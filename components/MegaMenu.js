@@ -108,7 +108,6 @@ export default function MegaMenu() {
             {contactSubMenuOpen && (
               <ul className="absolute left-full top-0 bg-gray-200 w-48 h-full">
                 <li><a href="/contact/board-members" className="block py-2 px-4 text-black hover:bg-gray-300">Board Members</a></li>
-                <li><a href="/contact/lead" className="block py-2 px-4 text-black hover:bg-gray-300">Lead</a></li>
                 <li><a href="/contact/members" className="block py-2 px-4 text-black hover:bg-gray-300">Members</a></li>
                 <li><a href="/contact/freelance" className="block py-2 px-4 text-black hover:bg-gray-300">Freelance</a></li>
                 <li><a href="/contact/partenaire" className="block py-2 px-4 text-black hover:bg-gray-300">Partenaires</a></li>
