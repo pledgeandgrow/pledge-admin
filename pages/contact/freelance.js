@@ -14,7 +14,7 @@ export default function Freelance() {
               <tr>
                 <th className="py-3 px-5 border-b border-gray-200 text-left text-gray-600 font-semibold">Name</th>
                 <th className="py-3 px-5 border-b border-gray-200 text-left text-gray-600 font-semibold">Specialty</th>
-                <th className="py-3 px-5 border-b border-gray-200 text-left text-gray-600 font-semibold">Email</th>
+                <th className="py-3 px-5 border-b border-gray-200 text-left text-gray-600 font-semibold">Skills</th>
                 <th className="py-3 px-5 border-b border-gray-200 text-left text-gray-600 font-semibold">Contact</th>
               </tr>
             </thead>

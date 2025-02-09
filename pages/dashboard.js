@@ -78,6 +78,9 @@ export default function Dashboard() {
         </div>
       </main>
       <Footer />
+      <div className="fixed bottom-0 left-0 w-full bg-black text-white text-center py-4">
+        <a href="/dashboard" className="text-white">Pledge Portal 2025</a>
+      </div>
     </div>
   );
 }

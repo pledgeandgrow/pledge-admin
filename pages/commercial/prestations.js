@@ -7,9 +7,6 @@ export default function Prestations() {
       <MegaMenu />
       <div className="flex-grow p-8 ml-[32rem]">
         <h1 className="text-2xl font-bold mb-4">Prestations</h1>
-        <div className="bg-white p-4 rounded shadow">
-          <p>This page is dedicated to prestations.</p>
-        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             { icon: '🌐', title: 'Site web', price: '$500 - $5,000' },
