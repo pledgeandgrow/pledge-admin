@@ -6,6 +6,9 @@ export default function Home() {
       <Head>
         <title>Login</title>
       </Head>
+      <div className="absolute top-0 left-0 right-0 flex justify-center mt-8">
+        <img src="/logo-white.png" alt="Logo" className="h-32" />
+      </div>
       <form className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-2xl font-bold mb-6 text-center">Welcome to Pledge Portal</h2>
         <div className="mb-4">

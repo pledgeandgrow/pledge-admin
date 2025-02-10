@@ -4,6 +4,8 @@ import Exclusive from '../../components/Exclusive';
 import Patriote from '../../components/Patriote';
 import Technique from '../../components/Technique';
 import Commercial from '../../components/Commercial';
+import { Carousel } from 'react-responsive-carousel';
+import 'react-responsive-carousel/lib/styles/carousel.min.css';
 
 export default function Partenaire() {
   const [activeComponent, setActiveComponent] = useState(null);
@@ -20,7 +22,7 @@ export default function Partenaire() {
         return <Commercial />;
       default:
         return (
-          <div className="grid grid-cols-4 gap-4 ">
+          <Carousel showThumbs={false} showStatus={false} infiniteLoop={true} autoPlay={true} interval={3000} centerMode={true} centerSlidePercentage={25}>
             <div className="bg-white shadow-md rounded-md overflow-hidden">
               <img src="/images/sharka-ugc.jpg" alt="Sharka UGC" className="w-full h-24 sm:h-32 object-cover" />
               <div className="p-2">
@@ -49,7 +51,35 @@ export default function Partenaire() {
                 <p className="text-gray-500 text-sm">Patriote</p>
               </div>
             </div>
-          </div>
+            <div className="bg-white shadow-md rounded-md overflow-hidden">
+              <img src="/images/new-partner-5.jpg" alt="New Partner 5" className="w-full h-24 sm:h-32 object-cover" />
+              <div className="p-2">
+                <h3 className="text-md font-semibold">New Partner 5</h3>
+                <p className="text-gray-500 text-sm">Description for new partner 5</p>
+              </div>
+            </div>
+            <div className="bg-white shadow-md rounded-md overflow-hidden">
+              <img src="/images/new-partner-6.jpg" alt="New Partner 6" className="w-full h-24 sm:h-32 object-cover" />
+              <div className="p-2">
+                <h3 className="text-md font-semibold">New Partner 6</h3>
+                <p className="text-gray-500 text-sm">Description for new partner 6</p>
+              </div>
+            </div>
+            <div className="bg-white shadow-md rounded-md overflow-hidden">
+              <img src="/images/new-partner-7.jpg" alt="New Partner 7" className="w-full h-24 sm:h-32 object-cover" />
+              <div className="p-2">
+                <h3 className="text-md font-semibold">New Partner 7</h3>
+                <p className="text-gray-500 text-sm">Description for new partner 7</p>
+              </div>
+            </div>
+            <div className="bg-white shadow-md rounded-md overflow-hidden">
+              <img src="/images/new-partner-8.jpg" alt="New Partner 8" className="w-full h-24 sm:h-32 object-cover" />
+              <div className="p-2">
+                <h3 className="text-md font-semibold">New Partner 8</h3>
+                <p className="text-gray-500 text-sm">Description for new partner 8</p>
+              </div>
+            </div>
+          </Carousel>
         );
     }
   };
@@ -57,7 +87,7 @@ export default function Partenaire() {
   return (
     <div className="min-h-screen flex">
       <MegaMenu />
-      <div className="flex-grow p-8 ml-[32rem]">
+      <div className="flex-grow p-8 ml-[24rem]">
         <h1 className="text-3xl font-bold mb-6">Our Partners</h1>
         <div className="flex space-x-4 mb-8">
           <button onClick={() => setActiveComponent('exclusive')} className="bg-blue-500 text-white px-4 py-2 rounded">Exclusive</button>
