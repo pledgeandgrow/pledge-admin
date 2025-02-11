@@ -26,7 +26,7 @@ export default function Devis() {
   return (
     <div className="min-h-screen flex">
       <MegaMenu />
-      <div className="flex-grow p-8 ml-[32rem] bg-gray-50">
+      <div className="flex-grow p-8 ml-[32rem]">
         <h1 className="text-4xl font-bold mb-8 text-gray-800">Devis</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">

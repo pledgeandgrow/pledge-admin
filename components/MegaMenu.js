@@ -274,8 +274,8 @@ export default function MegaMenu() {
             )}
           </li>
         </ul>
-        <div className="absolute bottom-0 w-full bg-black">
-          <a href="/dashboard" className="text-white mb-4 block">Pledge Portal 2025</a>
+        <div className="fixed bottom-0 left-0 w-full bg-black text-white text-center py-4">
+          <a href="/dashboard" className="text-white mb-4 block">Paramètres</a>
         </div>
       </div>
     </aside>

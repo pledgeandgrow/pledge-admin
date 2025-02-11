@@ -6,16 +6,16 @@ export default function ExportIntegration() {
 
   const sections = {
     overview: {
-      title: 'Vue d\'ensemble Export & Intégration',
+      title: 'Creer un devis',
       content: 'Aperçu global des processus d\'exportation et d\'intégration des données comptables.'
     },
     exportDonnees: {
-      title: 'Export de Données',
+      title: 'Creer une facture',
       content: 'Méthodes et formats d\'exportation des données financières.'
     },
     integration: {
-      title: 'Intégration Systèmes',
-      content: 'Connexion et synchronisation avec d\'autres systèmes comptables.'
+      title: 'Creer un avoir',
+      content: 'Un avoir permet d’annuler ou d’ajuster une facture, généralement en cas de retour de produit ou de modification de commande'
     },
     outils: {
       title: 'Outils d\'Intégration',
