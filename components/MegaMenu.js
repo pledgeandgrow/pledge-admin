@@ -205,7 +205,7 @@ export default function MegaMenu() {
                 <li><a href="/informatique/documentation" className="block py-2 px-4 text-black hover:bg-gray-300">📄 Documentation</a></li>
                 <li><a href="/informatique/test-et-validation" className="block py-2 px-4 text-black hover:bg-gray-300">🧪 Test et validation</a></li>
                 <li><a href="/informatique/cahier-des-charges" className="block py-2 px-4 text-black hover:bg-gray-300">📋 Cahier des charges</a></li>
-                <li><a href="/informatique/projets-clients" className="block py-2 px-4 text-black hover:bg-gray-300">📂 Projets clients</a></li>
+                <li><a href="/informatique/projets-clients" className="block py-2 px-4 text-black hover:bg-gray-300">🖥️ Projets Clients</a></li>
                 <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🔐 Sécurité & Conformité</a></li>
               </ul>
             )}
