@@ -130,17 +130,17 @@ export default function MegaMenu() {
             <button onClick={toggleComptabiliterSubMenu} className="block py-2 px-4 hover:bg-gray-700">📊 Comptabilité</button>
             {comptabiliterSubMenuOpen && (
               <ul className="absolute left-full top-0 bg-gray-200 w-48 h-full">
-                <li><a href="/contact/comptabiliter/facturation" className="block py-2 px-4 text-black hover:bg-gray-300">💸 Facturation</a></li>
-                <li><a href="/contact/comptabiliter/devis" className="block py-2 px-4 text-black hover:bg-gray-300">📜 Devis</a></li>
-                <li><a href="/contact/comptabiliter/depenses" className="block py-2 px-4 text-black hover:bg-gray-300">💰 Dépenses</a></li>
-                <li><a href="/contact/comptabiliter/recettes" className="block py-2 px-4 text-black hover:bg-gray-300">📈 Recettes</a></li>
-                <li><a href="/contact/comptabiliter/clients-fournisseurs" className="block py-2 px-4 text-black hover:bg-gray-300">👥 Clients & Fournisseurs</a></li>
-                <li><a href="/contact/comptabiliter/comptes-bancaires" className="block py-2 px-4 text-black hover:bg-gray-300">🏦 Comptes bancaires</a></li>
-                <li><a href="/contact/comptabiliter/ecritures-comptables" className="block py-2 px-4 text-black hover:bg-gray-300">📝 Écritures comptables</a></li>
-                <li><a href="/contact/comptabiliter/tva-taxes" className="block py-2 px-4 text-black hover:bg-gray-300">💼 TVA & Taxes</a></li>
-                <li><a href="/contact/comptabiliter/rapports-financiers" className="block py-2 px-4 text-black hover:bg-gray-300">📊 Rapports financiers</a></li>
-                <li><a href="/contact/comptabiliter/salaires-paiements" className="block py-2 px-4 text-black hover:bg-gray-300">💵 Salaires & Paiements</a></li>
-                <li><a href="/contact/comptabiliter/export-integration" className="block py-2 px-4 text-black hover:bg-gray-300">🔄 Export & Intégration</a></li>
+                <li><a href="/comptabilite/facturation" className="block py-2 px-4 text-black hover:bg-gray-300">💸 Facturation</a></li>
+                <li><a href="/comptabilite/devis" className="block py-2 px-4 text-black hover:bg-gray-300">📜 Devis</a></li>
+                <li><a href="/comptabilite/depenses" className="block py-2 px-4 text-black hover:bg-gray-300">💰 Dépenses</a></li>
+                <li><a href="/comptabilite/recettes" className="block py-2 px-4 text-black hover:bg-gray-300">📈 Recettes</a></li>
+                <li><a href="/comptabilite/gestion-fournisseurs" className="block py-2 px-4 text-black hover:bg-gray-300">👥 Fournisseurs</a></li>
+                <li><a href="/comptabilite/comptes-bancaires" className="block py-2 px-4 text-black hover:bg-gray-300">🏦 Comptes bancaires</a></li>
+                <li><a href="/comptabilite/ecritures-comptables" className="block py-2 px-4 text-black hover:bg-gray-300">📝 Écritures comptables</a></li>
+                <li><a href="/comptabilite/tva-et-taxes" className="block py-2 px-4 text-black hover:bg-gray-300">💼 TVA & Taxes</a></li>
+                <li><a href="/comptabilite/rapports-financiers" className="block py-2 px-4 text-black hover:bg-gray-300">📊 Rapports financiers</a></li>
+                <li><a href="/comptabilite/salaires-paiements" className="block py-2 px-4 text-black hover:bg-gray-300">💵 Salaires & Paiements</a></li>
+                <li><a href="/comptabilite/export-integration" className="block py-2 px-4 text-black hover:bg-gray-300">🔄 Export & Intégration</a></li>
               </ul>
             )}
           </li>
