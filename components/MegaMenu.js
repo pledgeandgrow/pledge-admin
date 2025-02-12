@@ -246,15 +246,15 @@ export default function MegaMenu() {
             <button onClick={toggleCommunicationSubMenu} className="block py-2 px-4 hover:bg-gray-700">📢 Communication</button>
             {communicationSubMenuOpen && (
               <ul className="absolute left-full top-0 bg-gray-200 w-48 h-full">
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📰 Relations Publiques & Presse</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📢 Stratégie de Communication</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">💻 Communication Digitale</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📩 Communication Interne</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📆 Événements & Webinaires</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🎤 Médias & Contenus</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🤝 Partenariats & Influenceurs</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🔎 Veille & E-réputation</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📈 Rapports & Analyse</a></li>
+                <li><a href="/communication/relations-publiques-presse" className="block py-2 px-4 text-black hover:bg-gray-300">📰 Relations Publiques & Presse</a></li>
+                <li><a href="/communication/strategie-communication" className="block py-2 px-4 text-black hover:bg-gray-300">📢 Stratégie de Communication</a></li>
+                <li><a href="/communication/communication-digitale" className="block py-2 px-4 text-black hover:bg-gray-300">💻 Communication Digitale</a></li>
+                <li><a href="/communication/communication-interne" className="block py-2 px-4 text-black hover:bg-gray-300">📩 Communication Interne</a></li>
+                <li><a href="/communication/evenements-webinaires" className="block py-2 px-4 text-black hover:bg-gray-300">📆 Événements & Webinaires</a></li>
+                <li><a href="/communication/medias-contenus" className="block py-2 px-4 text-black hover:bg-gray-300">🎤 Médias & Contenus</a></li>
+                <li><a href="/communication/partenariats-influenceurs" className="block py-2 px-4 text-black hover:bg-gray-300">🤝 Partenariats & Influenceurs</a></li>
+                <li><a href="/communication/veille-e-reputation" className="block py-2 px-4 text-black hover:bg-gray-300">🔎 Veille & E-réputation</a></li>
+                <li><a href="/communication/rapports-analyse" className="block py-2 px-4 text-black hover:bg-gray-300">📈 Rapports & Analyse</a></li>
               </ul>
             )}
           </li>
