@@ -2,9 +2,15 @@ import Head from 'next/head';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import MegaMenu from '../components/MegaMenu';
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
+import { supabase } from '../utils/supabase';
 
 export default function Dashboard() {
+
+
+
+
+  const [clients, setClients] = useState([]);
   const [menuOpen, setMenuOpen] = useState(true);
   const [contactSubMenuOpen, setContactSubMenuOpen] = useState(false);
   const [legalSubMenuOpen, setLegalSubMenuOpen] = useState(false);
@@ -18,6 +24,22 @@ export default function Dashboard() {
     setLegalSubMenuOpen(!legalSubMenuOpen);
     if (contactSubMenuOpen) setContactSubMenuOpen(false);
   };
+
+ 
+  useEffect(() => {
+    async function fetchClients() {
+      const { data, error } = await supabase.from("clients").select("*");
+
+      if (error) {
+        console.error("erreur");
+      } else {
+        console.log("Clients récupérés :",data );
+        setClients(data);
+      }
+    }
+
+    fetchClients();
+  }, []);
 
   return (
     <div className="min-h-screen flex">
@@ -58,21 +80,22 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {Array(5).fill({
+              {/* {Array(5).fill({
                 name: 'Client Name',
                 email: 'client@example.com',
                 phone: '0123456789',
                 company: 'Company Inc.',
                 position: 'Manager'
-              }).map((client, index) => (
-                <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                  <td className="py-3 px-5 border-b border-gray-200">{client.name}</td>
-                  <td className="py-3 px-5 border-b border-gray-200">{client.email}</td>
-                  <td className="py-3 px-5 border-b border-gray-200">{client.phone}</td>
-                  <td className="py-3 px-5 border-b border-gray-200">{client.company}</td>
-                  <td className="py-3 px-5 border-b border-gray-200">{client.position}</td>
-                </tr>
-              ))}
+              }).map( */}
+               {clients.map((client, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                      <td className="py-3 px-5 border-b border-gray-200">{client.name}</td>
+                      <td className="py-3 px-5 border-b border-gray-200">{client.email}</td>
+                      <td className="py-3 px-5 border-b border-gray-200">{client.phone}</td>
+                      <td className="py-3 px-5 border-b border-gray-200">{client.company}</td>
+                      <td className="py-3 px-5 border-b border-gray-200">{client.position}</td>
+                    </tr>
+                ))}
             </tbody>
           </table>
         </div>
