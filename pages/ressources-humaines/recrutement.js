@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import MegaMenu from '../../components/MegaMenu';
 import Image from 'next/image';
+import { CandidateContext } from '../../components/ressources-humaines/CandidateContext';
 
 export default function Recrutement() {
+  const { candidats, setCandidats } = useContext(CandidateContext);
   const [activeSection, setActiveSection] = useState('processus');
   const [selectedCandidat, setSelectedCandidat] = useState(null);
   const [newPoste, setNewPoste] = useState({
@@ -12,6 +14,31 @@ export default function Recrutement() {
     competencesRequises: [],
     nouvelleCompetence: ''
   });
+  const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
+  const [newCandidate, setNewCandidate] = useState({ 
+    name: '', 
+    email: '', 
+    phone: '', 
+    cv: null, 
+    id: null,
+    formations: '',
+    domaineEtudes: '',
+    competences: '',
+    status: 'Prise de contact'
+  });
+
+  useEffect(() => {
+    const storedCandidates = localStorage.getItem('candidates');
+    if (storedCandidates) {
+      setCandidats(JSON.parse(storedCandidates));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('candidates', JSON.stringify(candidats));
+  }, [candidats]);
+
+  console.log(candidats);
 
   const processusRecrutement = [
     {
@@ -43,17 +70,6 @@ export default function Recrutement() {
       candidatsSelectionnes: 0
     }
   ];
-
-  const candidats = [
-    { id: 1, nom: 'John Doe', poste: 'Software Engineer' },
-    { id: 2, nom: 'Jane Smith', poste: 'Product Manager' },
-    { id: 3, nom: 'Alice Johnson', poste: 'UX Designer' },
-    { id: 4, nom: 'Bob Brown', poste: 'Marketing Specialist' },
-    { id: 5, nom: 'Charlie Brown', poste: 'Data Analyst' },
-    { id: 6, nom: 'Emily Davis', poste: 'Project Coordinator' }
-  ];
-
-  console.log(candidats);
 
   const postesOuverts = [
     {
@@ -91,6 +107,41 @@ export default function Recrutement() {
     }
   };
 
+  const handleAddCandidate = (e) => {
+    e.preventDefault();
+    console.log('Before adding candidate:', candidats);
+    if (newCandidate.id) {
+        // Update existing candidate
+        const updatedCandidats = candidats.map(candidate => 
+            candidate.id === newCandidate.id ? { ...candidate, ...newCandidate } : candidate
+        );
+        setCandidats(updatedCandidats);
+        console.log('Updated candidates:', updatedCandidats);
+    } else {
+        // Add new candidate
+        const newCandidateWithId = { ...newCandidate, id: Date.now() };
+        setCandidats([...candidats, newCandidateWithId]);
+        console.log('Added candidate:', newCandidateWithId);
+    }
+    // Reset newCandidate state for the next entry
+    setNewCandidate({ name: '', email: '', phone: '', cv: null, id: null, formations: '', domaineEtudes: '', competences: '', status: 'Prise de contact' });
+    setIsCandidateModalOpen(false);
+    console.log('Current candidates state after addition:', candidats);
+  };
+
+  const handleEditCandidate = (candidate) => {
+    setNewCandidate({ ...candidate });
+    setIsCandidateModalOpen(true);
+  };
+
+  const handleRemoveCandidate = (id) => {
+    console.log('Before removing candidate:', candidats);
+    const updatedCandidats = candidats.filter(candidate => candidate.id !== id);
+    setCandidats(updatedCandidats);
+    console.log('Removed candidate with id:', id);
+    console.log('Updated candidates:', updatedCandidats);
+  };
+
   const sections = {
     processus: {
       title: 'Processus de Recrutement',
@@ -122,110 +173,28 @@ export default function Recrutement() {
       title: 'Candidats',
       content: (
         <div>
-          <div className="flex flex-wrap justify-between">
-            {candidats && candidats.length > 0 ? (
-              candidats.map((candidat, index) => (
-                <div key={index} className="border border-gray-300 rounded-lg p-4 m-2 w-1/4 text-center shadow-sm">
-                  <h3 className="text-lg font-semibold">{candidat.nom}</h3>
-                  <p className="text-sm text-gray-600">{candidat.poste}</p>
-                </div>
-              ))
-            ) : (
-              <p>No candidates available.</p>
-            )}
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-800">Recrutement</h1>
+            <button onClick={() => setIsCandidateModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg">+</button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {candidats && candidats.length > 0 ? (
-              candidats.map((candidat) => (
-                <div 
-                  key={candidat.id} 
-                  className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow cursor-pointer"
-                  onClick={() => setSelectedCandidat(candidat)}
-                >
-                  <div className="flex items-center mb-4">
-                    <div className="w-16 h-16 bg-gray-200 rounded-full mr-4 flex items-center justify-center">
-                      {candidat.nom.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold">{candidat.nom}</h3>
-                      <p className="text-gray-600">{candidat.poste}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p><strong>Étape:</strong> {candidat.etape}</p>
-                    <p><strong>Note Entretien:</strong> {candidat.noteEntretien}/10</p>
-                    {candidat && candidat.competences && candidat.competences.length > 0 ? (
-                      <div>
-                        <strong>Compétences:</strong>
-                        <ul className="list-disc list-inside text-sm">
-                          {candidat.competences.map((competence, index) => (
-                            <li key={index}>{competence}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : (
-                      <p>Aucune compétence disponible.</p>
-                    )}
-                    <a 
-                      href={candidat.cv} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      Voir CV
-                    </a>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>No candidates available.</p>
-            )}
-            
-            {selectedCandidat && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white p-8 rounded-lg max-w-2xl w-full relative">
-                  <button 
-                    onClick={() => setSelectedCandidat(null)}
-                    className="absolute top-4 right-4 text-2xl"
-                  >
-                    ×
-                  </button>
-                  <h2 className="text-2xl font-bold mb-4">{selectedCandidat.nom}</h2>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <strong>Poste:</strong> {selectedCandidat.poste}
-                    </div>
-                    <div>
-                      <strong>Étape:</strong> {selectedCandidat.etape}
-                    </div>
-                    <div>
-                      <strong>Note Entretien:</strong> {selectedCandidat.noteEntretien}/10
-                    </div>
-                    {selectedCandidat && selectedCandidat.competences && selectedCandidat.competences.length > 0 ? (
-                      <div>
-                        <strong>Compétences:</strong>
-                        <ul className="list-disc list-inside">
-                          {selectedCandidat.competences.map((competence, index) => (
-                            <li key={index}>{competence}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : (
-                      <p>Aucune compétence disponible.</p>
-                    )}
-                  </div>
-                  <div className="mt-6 flex space-x-4">
-                    <button className="bg-green-500 text-white px-4 py-2 rounded">
-                      Avancer
-                    </button>
-                    <button className="bg-red-500 text-white px-4 py-2 rounded">
-                      Rejeter
-                    </button>
-                  </div>
-                </div>
+          {candidats.map((candidate) => (
+            <div key={candidate.id} className="bg-white shadow-md rounded-lg p-4 mb-4 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-semibold">{candidate.name}</h3>
+                <p>Email: {candidate.email}</p>
+                <p>Numéro: {candidate.phone}</p>
+                <p>Formations: {candidate.formations}</p>
+                <p>Domaine d'études: {candidate.domaineEtudes}</p>
+                <p>Compétences: {candidate.competences}</p>
+                <p>Status: {candidate.status}</p>
+                <p>CV: {candidate.cv ? <a href={candidate.cv} className="text-blue-600 hover:underline">Télécharger CV</a> : 'No CV uploaded'}</p>
               </div>
-            )}
-          </div>
+              <div className="flex items-center">
+                <button onClick={() => handleEditCandidate(candidate)} className="text-yellow-500 px-2"><span role="img" aria-label="edit">✏️</span></button>
+                <button onClick={() => handleRemoveCandidate(candidate.id)} className="text-red-500 px-2"><span role="img" aria-label="delete">🗑️</span></button>
+              </div>
+            </div>
+          ))}
         </div>
       )
     },
@@ -344,7 +313,7 @@ export default function Recrutement() {
 
               <button 
                 type="button"
-                className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+                className="w-full bg-green-600 text-white py-2 rounded-lg"
               >
                 Créer le Poste
               </button>
@@ -385,6 +354,54 @@ export default function Recrutement() {
           {sections[activeSection].content}
         </div>
       </div>
+      {isCandidateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg">
+            <h2 className="text-xl font-bold mb-4">Ajouter un Candidat</h2>
+            <form onSubmit={handleAddCandidate}>
+              <div className="mb-4">
+                <label className="block text-gray-700">Nom</label>
+                <input type="text" value={newCandidate.name} onChange={(e) => setNewCandidate({ ...newCandidate, name: e.target.value })} className="border rounded w-full px-3 py-2" required />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">Email</label>
+                <input type="email" value={newCandidate.email} onChange={(e) => setNewCandidate({ ...newCandidate, email: e.target.value })} className="border rounded w-full px-3 py-2" required />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">Numéro</label>
+                <input type="text" value={newCandidate.phone} onChange={(e) => setNewCandidate({ ...newCandidate, phone: e.target.value })} className="border rounded w-full px-3 py-2" required />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">Formations (en cours)</label>
+                <input type="text" value={newCandidate.formations} onChange={(e) => setNewCandidate({ ...newCandidate, formations: e.target.value })} className="border rounded w-full px-3 py-2" />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">Domaine d'études</label>
+                <input type="text" value={newCandidate.domaineEtudes} onChange={(e) => setNewCandidate({ ...newCandidate, domaineEtudes: e.target.value })} className="border rounded w-full px-3 py-2" />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">Compétences</label>
+                <input type="text" value={newCandidate.competences} onChange={(e) => setNewCandidate({ ...newCandidate, competences: e.target.value })} className="border rounded w-full px-3 py-2" />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">Status</label>
+                <select value={newCandidate.status} onChange={(e) => setNewCandidate({ ...newCandidate, status: e.target.value })} className="border rounded w-full px-3 py-2">
+                  <option value="Prise de contact">Prise de contact</option>
+                  <option value="Entretien">Entretien</option>
+                  <option value="Qualification">Qualification</option>
+                  <option value="Décision finale">Décision finale</option>
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">CV</label>
+                <input type="file" onChange={(e) => setNewCandidate({ ...newCandidate, cv: e.target.files[0] })} className="border rounded w-full px-3 py-2" required />
+              </div>
+              <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg">Ajouter</button>
+              <button type="button" onClick={() => setIsCandidateModalOpen(false)} className="bg-gray-300 text-black px-4 py-2 rounded-lg ml-2">Annuler</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -179,8 +179,10 @@ export default function MegaMenu() {
                 <li><a href="/marketing/branding" className="block py-2 px-4 text-black hover:bg-gray-300">🎨 Branding</a></li>
                 <li><a href="/marketing/publicite" className="block py-2 px-4 text-black hover:bg-gray-300">📢 Publicité</a></li>
                 <li><a href="/marketing/reseaux-sociaux" className="block py-2 px-4 text-black hover:bg-gray-300">🌐 Réseaux Sociaux</a></li>
+                <li><a href="/marketing/contenu" className="block py-2 px-4 text-black hover:bg-gray-300">✍️ Contenu</a></li>
+                <li><a href="/marketing/email-marketing" className="block py-2 px-4 text-black hover:bg-gray-300">📬 Email Marketing</a></li>
                 <li><a href="/marketing/analyse-optimisation" className="block py-2 px-4 text-black hover:bg-gray-300">📊 Analyse & Optimisation</a></li>
-                <li><a href="/marketing/expérience-client-fidelisation" className="block py-2 px-4 text-black hover:bg-gray-300">💡 Expérience Client & Fidélisation</a></li>
+                <li><a href="/marketing/affiliation" className="block py-2 px-4 text-black hover:bg-gray-300">🤝 Affiliation</a></li>
               </ul>
             )}
           </li>
@@ -253,7 +255,7 @@ export default function MegaMenu() {
                 <li><a href="/communication/communication-digitale" className="block py-2 px-4 text-black hover:bg-gray-300">💻 Webinaires</a></li>
                 <li><a href="/communication/communication-interne" className="block py-2 px-4 text-black hover:bg-gray-300">📩 Communication Interne</a></li>
                 <li><a href="/communication/evenements-webinaires" className="block py-2 px-4 text-black hover:bg-gray-300">📆 Événements</a></li>
-                <li><a href="/communication/medias-contenus" className="block py-2 px-4 text-black hover:bg-gray-300">🎤 Médias & Contenus</a></li>
+                <li><a href="/communication/medias-contenus" className="block py-2 px-4 text-black hover:bg-gray-300">🎤 Médias</a></li>
                 <li><a href="/communication/influenceurs" className="block py-2 px-4 text-black hover:bg-gray-300">🤝 Influenceurs</a></li>
                 <li><a href="/communication/partenariats" className="block py-2 px-4 text-black hover:bg-gray-300">🤝 Partenariats</a></li>
                 <li><a href="/communication/veille-e-reputation" className="block py-2 px-4 text-black hover:bg-gray-300">🔎 E-réputation</a></li>

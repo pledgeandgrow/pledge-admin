@@ -82,7 +82,7 @@ export default function ReseauxSociaux() {
       content: <SocialPlatforms platforms={plateformesSociales} />
     },
     ideesPosts: {
-      title: 'Idées de Posts',
+      title: 'Community Management',
       content: (
         <PostIdeas 
           ideas={ideesPosts} 
