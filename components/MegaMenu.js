@@ -191,7 +191,7 @@ export default function MegaMenu() {
             {hrSubMenuOpen && (
               <ul className="absolute left-full top-0 bg-gray-200 w-48 h-full">
                 <li><a href="/ressources-humaines/recrutement" className="block py-2 px-4 text-black hover:bg-gray-300">🔍 Recrutement</a></li>
-                <li><a href="/ressources-humaines/gestion-du-personnel" className="block py-2 px-4 text-black hover:bg-gray-300">👥 Gestion du Personnel</a></li>
+                <li><a href="/ressources-humaines/gestion-du-personnel" className="block py-2 px-4 text-black hover:bg-gray-300">👥 Staff</a></li>
                 <li><a href="/ressources-humaines/performance-formation" className="block py-2 px-4 text-black hover:bg-gray-300">📈 Performance & Formation</a></li>
                 <li><a href="/ressources-humaines/conformite-administration" className="block py-2 px-4 text-black hover:bg-gray-300">📋 Conformité & Administration</a></li>
                 <li><a href="/ressources-humaines/culture-engagement" className="block py-2 px-4 text-black hover:bg-gray-300">🌟 Culture & Engagement</a></li>
@@ -235,14 +235,14 @@ export default function MegaMenu() {
             <button onClick={toggleDeveloppementDurableSubMenu} className="block py-2 px-2 text-sm hover:bg-gray-700">🌍 Développement Durable</button>
             {developpementDurableSubMenuOpen && (
               <ul className="absolute left-full top-0 bg-gray-200 w-48 h-full">
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🌱 Stratégie & Engagements</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">💡 Énergies & Ressources</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">♻️ Gestion des Déchets</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🚀 Éco-conception</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🏢 Infrastructures Durables</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🚗 Mobilité Durable</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🤝 Impact Social</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📈 Mesure d’Impact</a></li>
+                <li><a href="/developpement-durable/strategie" className="block py-2 px-4 text-black hover:bg-gray-300">🌍 Engagements</a></li>
+                <li><a href="/developpement-durable/energies" className="block py-2 px-4 text-black hover:bg-gray-300">💡 Énergies</a></li>
+                <li><a href="/developpement-durable/recyclage" className="block py-2 px-4 text-black hover:bg-gray-300">♻️ Recyclage</a></li>
+                <li><a href="/developpement-durable/eco-conception" className="block py-2 px-4 text-black hover:bg-gray-300">🚀 Éco-conception</a></li>
+                <li><a href="/developpement-durable/empreinte" className="block py-2 px-4 text-black hover:bg-gray-300">🌱 Empreinte</a></li>
+                <li><a href="/developpement-durable/mobilite" className="block py-2 px-4 text-black hover:bg-gray-300">🚗 Mobilité Durable</a></li>
+                <li><a href="/developpement-durable/impact-social" className="block py-2 px-4 text-black hover:bg-gray-300">🤝 Impact Social</a></li>
+                <li><a href="/developpement-durable/mesure-impact" className="block py-2 px-4 text-black hover:bg-gray-300">📈 Mesure d’Impact</a></li>
               </ul>
             )}
           </li>
