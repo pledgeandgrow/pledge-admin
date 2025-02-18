@@ -154,6 +154,7 @@ export default function MegaMenu() {
                 <li><a href="/commercial/prestations" className="block py-2 px-4 text-black hover:bg-gray-300">⭐ Prestations</a></li>
                 <li><a href="/commercial/autres-offres" className="block py-2 px-4 text-black hover:bg-gray-300">🎁 Autres offres</a></li>
                 <li><a href="/commercial/formation" className="block py-2 px-4 text-black hover:bg-gray-300">📚 Formation</a></li>
+                <li><a href="/commercial/packages" className="block py-2 px-4 text-black hover:bg-gray-300">📦 Packages</a></li>
               </ul>
             )}
           </li>
@@ -161,11 +162,12 @@ export default function MegaMenu() {
             <button onClick={toggleLegalSubMenu} className="block py-2 px-4 hover:bg-gray-700">📜 Legal</button>
             {legalSubMenuOpen && (
               <ul className="absolute left-full top-0 bg-gray-200 w-48 h-full">
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📑 Contrats & Accords</a></li>
+                <li><a href="/legal/contrats-accords" className="block py-2 px-4 text-black hover:bg-gray-300">📑 Contrats & Accords</a></li>
+                <li><a href="/legal/another-page" className="block py-2 px-4 text-black hover:bg-gray-300">Another Page</a></li>
                 <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📊 Conformité & Réglementation</a></li>
                 <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🔒 Propriété Intellectuelle</a></li>
                 <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">⚖️ Gestion des Litiges</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📜 Politiques Internes</a></li>
+                <li><a href="/legal/politiques-internes" className="block py-2 px-4 text-black hover:bg-gray-300">📜 Politiques Internes</a></li>
                 <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📚 Documentation Légale</a></li>
               </ul>
             )}
@@ -218,12 +220,12 @@ export default function MegaMenu() {
                 <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🚛 Temps de Livraison</a></li>
                 <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🏢 Gestion des Societe</a></li>
                 <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📦 Suivi des Missions</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🔄 Gestion des Remboursements</a></li>
+                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">🔄 Remboursements</a></li>
                 <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">💰 Coûts & Budgétisation</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📜 Fournisseurs & Achats</a></li>
+                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📜 Achats</a></li>
                 <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📅 Planification & Prévisions</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📡 Suivi en Temps Réel</a></li>
-                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📈 Optimisation des Processus</a></li>
+                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📡 Fournisseurs</a></li>
+                <li><a href="#" className="block py-2 px-4 text-black hover:bg-gray-300">📈 Optimisation</a></li>
               </ul>
             )}
           </li>
@@ -248,12 +250,13 @@ export default function MegaMenu() {
               <ul className="absolute left-full top-0 bg-gray-200 w-48 h-full">
                 <li><a href="/communication/relations-publiques-presse" className="block py-2 px-4 text-black hover:bg-gray-300">📰 Relations Publiques & Presse</a></li>
                 <li><a href="/communication/strategie-communication" className="block py-2 px-4 text-black hover:bg-gray-300">📢 Stratégie de Communication</a></li>
-                <li><a href="/communication/communication-digitale" className="block py-2 px-4 text-black hover:bg-gray-300">💻 Communication Digitale</a></li>
+                <li><a href="/communication/communication-digitale" className="block py-2 px-4 text-black hover:bg-gray-300">💻 Webinaires</a></li>
                 <li><a href="/communication/communication-interne" className="block py-2 px-4 text-black hover:bg-gray-300">📩 Communication Interne</a></li>
-                <li><a href="/communication/evenements-webinaires" className="block py-2 px-4 text-black hover:bg-gray-300">📆 Événements & Webinaires</a></li>
+                <li><a href="/communication/evenements-webinaires" className="block py-2 px-4 text-black hover:bg-gray-300">📆 Événements</a></li>
                 <li><a href="/communication/medias-contenus" className="block py-2 px-4 text-black hover:bg-gray-300">🎤 Médias & Contenus</a></li>
-                <li><a href="/communication/partenariats-influenceurs" className="block py-2 px-4 text-black hover:bg-gray-300">🤝 Partenariats & Influenceurs</a></li>
-                <li><a href="/communication/veille-e-reputation" className="block py-2 px-4 text-black hover:bg-gray-300">🔎 Veille & E-réputation</a></li>
+                <li><a href="/communication/influenceurs" className="block py-2 px-4 text-black hover:bg-gray-300">🤝 Influenceurs</a></li>
+                <li><a href="/communication/partenariats" className="block py-2 px-4 text-black hover:bg-gray-300">🤝 Partenariats</a></li>
+                <li><a href="/communication/veille-e-reputation" className="block py-2 px-4 text-black hover:bg-gray-300">🔎 E-réputation</a></li>
                 <li><a href="/communication/rapports-analyse" className="block py-2 px-4 text-black hover:bg-gray-300">📈 Rapports & Analyse</a></li>
               </ul>
             )}

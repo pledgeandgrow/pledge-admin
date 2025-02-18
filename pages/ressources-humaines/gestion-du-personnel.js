@@ -40,30 +40,119 @@ export default function GestionDuPersonnel() {
         objectifsAtteints: '90%',
         progression: 'Très Bien'
       }
+    },
+    {
+      id: 3,
+      nom: 'Doe',
+      prenom: 'John',
+      photo: '/images/employes/default.jpg',
+      departement: 'Technologie',
+      poste: 'Software Engineer',
+      dateEmbauche: '2022-01-01',
+      email: 'john.doe@entreprise.com',
+      telephone: '+33 6 98 76 54 32',
+      competences: ['Java', 'Python', 'Cloud Computing'],
+      performance: {
+        noteAnnuelle: 0,
+        objectifsAtteints: 'N/A',
+        progression: 'Nouveau'
+      }
+    },
+    {
+      id: 4,
+      nom: 'Smith',
+      prenom: 'Jane',
+      photo: '/images/employes/default.jpg',
+      departement: 'Produit',
+      poste: 'Product Manager',
+      dateEmbauche: '2022-01-01',
+      email: 'jane.smith@entreprise.com',
+      telephone: '+33 6 43 21 09 87',
+      competences: ['Gestion de Produit', 'Marketing', 'Stratégie'],
+      performance: {
+        noteAnnuelle: 0,
+        objectifsAtteints: 'N/A',
+        progression: 'Nouveau'
+      }
+    },
+    {
+      id: 5,
+      nom: 'Johnson',
+      prenom: 'Alice',
+      photo: '/images/employes/default.jpg',
+      departement: 'Technologie',
+      poste: 'UX Designer',
+      dateEmbauche: '2022-01-01',
+      email: 'alice.johnson@entreprise.com',
+      telephone: '+33 6 12 34 56 78',
+      competences: ['UX Design', 'UI Design', 'Prototypage'],
+      performance: {
+        noteAnnuelle: 0,
+        objectifsAtteints: 'N/A',
+        progression: 'Nouveau'
+      }
+    },
+    {
+      id: 6,
+      nom: 'Brown',
+      prenom: 'Bob',
+      photo: '/images/employes/default.jpg',
+      departement: 'Marketing',
+      poste: 'Marketing Specialist',
+      dateEmbauche: '2022-01-01',
+      email: 'bob.brown@entreprise.com',
+      telephone: '+33 6 87 65 43 21',
+      competences: ['Marketing Digital', 'Publicité', 'Réseaux Sociaux'],
+      performance: {
+        noteAnnuelle: 0,
+        objectifsAtteints: 'N/A',
+        progression: 'Nouveau'
+      }
     }
   ]);
 
   const departements = [
     {
-      nom: 'Technologie',
-      effectif: 25,
-      responsable: 'Sophie Leroy',
+      nom: 'Membre du conseil',
+      effectif: 8,
+      responsable: 'Mehdi BEREL',
       budgetFormation: 50000,
       projetsEnCours: 5
     },
     {
-      nom: 'Produit',
-      effectif: 12,
-      responsable: 'Lucas Moreau',
+      nom: 'Informatique',
+      effectif: 12, 
+      responsable: 'Mehdi BEREL',
       budgetFormation: 30000,
-      projetsEnCours: 3
+      projetsEnCours: 4
     },
     {
       nom: 'Marketing',
-      effectif: 15,
-      responsable: 'Emma Dubois',
+      effectif: 4,
+      responsable: 'Mehdi BEREL',
       budgetFormation: 35000,
       projetsEnCours: 4
+    },
+    {
+      nom: 'Commercial',
+      effectif: 0,
+      responsable: 'Louis JUNQUA',
+      budgetFormation: 0,
+      projetsEnCours: 0
+    },
+    {
+      nom: 'Ressources humaines',
+      effectif: 2,
+      responsable: 'Mehdi BEREL',
+      budgetFormation: 0,
+      projetsEnCours: 0
+    },
+    {
+      nom: 'Discord',
+      effectif: 0,
+      responsable: '',
+      budgetFormation: 0,
+      projetsEnCours: 0
     }
   ];
 
@@ -110,7 +199,7 @@ export default function GestionDuPersonnel() {
 
   const sections = {
     employes: {
-      title: 'Liste des Employés',
+      title: 'Employés',
       content: <ListeEmployes employes={employes} />
     },
     departements: {

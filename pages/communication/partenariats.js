@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import MegaMenu from '../../components/MegaMenu';
 
-export default function PartenariatsInfluenceurs() {
+export default function Partenariats() {
   const [partenariats, setPartenariats] = useState([
     {
       id: 1,
@@ -18,23 +18,6 @@ export default function PartenariatsInfluenceurs() {
         opportunitesGenerees: 12,
         valeurEstimee: 75000,
         satisfaction: '4.5/5'
-      }
-    },
-    {
-      id: 2,
-      nom: 'Influenceurs Tech et Innovation',
-      type: 'Collaboration Média',
-      dateDebut: '2025-02-01',
-      statut: 'En négociation',
-      objectif: 'Augmenter la visibilité et la crédibilité de la marque',
-      contacts: [
-        { nom: 'Emma Dubois', entreprise: 'Tech Insights Blog', role: 'Influenceuse Tech' },
-        { nom: 'Marc Dupont', entreprise: 'Innovation Podcast', role: 'Animateur' }
-      ],
-      metriques: {
-        portee: 250000,
-        engagement: '3.8%',
-        conversions: 85
       }
     }
   ]);
@@ -82,7 +65,7 @@ export default function PartenariatsInfluenceurs() {
     <div className="min-h-screen flex bg-gray-50">
       <MegaMenu />
       <div className="flex-grow p-8 ml-[32rem]">
-        <h1 className="text-4xl font-bold mb-8 text-gray-800">🤝 Partenariats & Influenceurs</h1>
+        <h1 className="text-4xl font-bold mb-8 text-gray-800">🤝 Partenariats</h1>
 
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-white p-6 rounded-xl shadow-md">
@@ -155,7 +138,7 @@ export default function PartenariatsInfluenceurs() {
                   value={nouveauPartenariat.nom}
                   onChange={(e) => setNouveauPartenariat({...nouveauPartenariat, nom: e.target.value})}
                   className="w-full px-3 py-2 border rounded"
-                  placeholder="Nom du partenariat ou de l'influenceur"
+                  placeholder="Nom du partenariat"
                 />
               </div>
               <div>
@@ -167,7 +150,6 @@ export default function PartenariatsInfluenceurs() {
                 >
                   <option value="Réseau Professionnel">Réseau Professionnel</option>
                   <option value="Collaboration Média">Collaboration Média</option>
-                  <option value="Influenceur">Influenceur</option>
                   <option value="Partenariat Technologique">Partenariat Technologique</option>
                 </select>
               </div>
@@ -200,97 +182,16 @@ export default function PartenariatsInfluenceurs() {
                   <option value="Prospection">Prospection</option>
                   <option value="Négociation">Négociation</option>
                   <option value="Actif">Actif</option>
+                  <option value="En Pause">En Pause</option>
                   <option value="Terminé">Terminé</option>
                 </select>
               </div>
-              <div>
-                <label className="block mb-2">Contacts Clés</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <input 
-                    type="text"
-                    placeholder="Nom"
-                    value={nouveauPartenariat.contacts.map(c => c.nom).join(', ')}
-                    onChange={(e) => setNouveauPartenariat({
-                      ...nouveauPartenariat, 
-                      contacts: e.target.value.split(',').map(c => ({
-                        nom: c.trim(),
-                        entreprise: '',
-                        role: ''
-                      }))
-                    })}
-                    className="w-full px-3 py-2 border rounded"
-                  />
-                  <input 
-                    type="text"
-                    placeholder="Entreprise"
-                    className="w-full px-3 py-2 border rounded"
-                  />
-                  <input 
-                    type="text"
-                    placeholder="Rôle"
-                    className="w-full px-3 py-2 border rounded"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block mb-2">Métriques</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="text-sm text-gray-600">Opportunités</label>
-                    <input 
-                      type="number"
-                      value={nouveauPartenariat.metriques.opportunitesGenerees}
-                      onChange={(e) => setNouveauPartenariat({
-                        ...nouveauPartenariat, 
-                        metriques: {
-                          ...nouveauPartenariat.metriques,
-                          opportunitesGenerees: Number(e.target.value)
-                        }
-                      })}
-                      className="w-full px-2 py-1 border rounded text-sm"
-                      placeholder="Nb opportunités"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-600">Valeur Estimée</label>
-                    <input 
-                      type="number"
-                      value={nouveauPartenariat.metriques.valeurEstimee}
-                      onChange={(e) => setNouveauPartenariat({
-                        ...nouveauPartenariat, 
-                        metriques: {
-                          ...nouveauPartenariat.metriques,
-                          valeurEstimee: Number(e.target.value)
-                        }
-                      })}
-                      className="w-full px-2 py-1 border rounded text-sm"
-                      placeholder="Valeur en €"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-600">Satisfaction</label>
-                    <input 
-                      type="text"
-                      value={nouveauPartenariat.metriques.satisfaction}
-                      onChange={(e) => setNouveauPartenariat({
-                        ...nouveauPartenariat, 
-                        metriques: {
-                          ...nouveauPartenariat.metriques,
-                          satisfaction: e.target.value
-                        }
-                      })}
-                      className="w-full px-2 py-1 border rounded text-sm"
-                      placeholder="Ex: 4.5/5"
-                    />
-                  </div>
-                </div>
-              </div>
-              <button 
+              <button
                 type="button"
                 onClick={handleAddPartenariat}
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors"
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
               >
-                Ajouter Partenariat
+                Ajouter le Partenariat
               </button>
             </form>
           </div>

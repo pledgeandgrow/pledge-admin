@@ -15,7 +15,9 @@
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-responsive-carousel": "^3.2.23"
+    "react-responsive-carousel": "^3.2.23",
+    "slate": "^0.112.0",
+    "slate-react": "^0.112.1"
   },
   "devDependencies": {
     "@types/node": "^20",

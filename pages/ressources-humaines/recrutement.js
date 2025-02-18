@@ -45,25 +45,15 @@ export default function Recrutement() {
   ];
 
   const candidats = [
-    {
-      id: 1,
-      nom: 'Marie Dupont',
-      poste: 'Développeur Full Stack',
-      cv: '/documents/cv/marie_dupont.pdf',
-      competences: ['React', 'Node.js', 'PostgreSQL'],
-      etape: 'Entretiens Initiaux',
-      noteEntretien: 8.5
-    },
-    {
-      id: 2,
-      nom: 'Jean Martin',
-      poste: 'Product Manager',
-      cv: '/documents/cv/jean_martin.pdf',
-      competences: ['Gestion de Produit', 'Agile', 'UX Design'],
-      etape: 'Sourcing',
-      noteEntretien: 7.8
-    }
+    { id: 1, nom: 'John Doe', poste: 'Software Engineer' },
+    { id: 2, nom: 'Jane Smith', poste: 'Product Manager' },
+    { id: 3, nom: 'Alice Johnson', poste: 'UX Designer' },
+    { id: 4, nom: 'Bob Brown', poste: 'Marketing Specialist' },
+    { id: 5, nom: 'Charlie Brown', poste: 'Data Analyst' },
+    { id: 6, nom: 'Emily Davis', poste: 'Project Coordinator' }
   ];
+
+  console.log(candidats);
 
   const postesOuverts = [
     {
@@ -131,85 +121,111 @@ export default function Recrutement() {
     candidats: {
       title: 'Candidats',
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {candidats.map((candidat) => (
-            <div 
-              key={candidat.id} 
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow cursor-pointer"
-              onClick={() => setSelectedCandidat(candidat)}
-            >
-              <div className="flex items-center mb-4">
-                <div className="w-16 h-16 bg-gray-200 rounded-full mr-4 flex items-center justify-center">
-                  {candidat.nom.charAt(0)}
+        <div>
+          <div className="flex flex-wrap justify-between">
+            {candidats && candidats.length > 0 ? (
+              candidats.map((candidat, index) => (
+                <div key={index} className="border border-gray-300 rounded-lg p-4 m-2 w-1/4 text-center shadow-sm">
+                  <h3 className="text-lg font-semibold">{candidat.nom}</h3>
+                  <p className="text-sm text-gray-600">{candidat.poste}</p>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold">{candidat.nom}</h3>
-                  <p className="text-gray-600">{candidat.poste}</p>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <p><strong>Étape:</strong> {candidat.etape}</p>
-                <p><strong>Note Entretien:</strong> {candidat.noteEntretien}/10</p>
-                <div>
-                  <strong>Compétences:</strong>
-                  <ul className="list-disc list-inside text-sm">
-                    {candidat.competences.map((competence, index) => (
-                      <li key={index}>{competence}</li>
-                    ))}
-                  </ul>
-                </div>
-                <a 
-                  href={candidat.cv} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+              ))
+            ) : (
+              <p>No candidates available.</p>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {candidats && candidats.length > 0 ? (
+              candidats.map((candidat) => (
+                <div 
+                  key={candidat.id} 
+                  className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow cursor-pointer"
+                  onClick={() => setSelectedCandidat(candidat)}
                 >
-                  Voir CV
-                </a>
-              </div>
-            </div>
-          ))}
-          
-          {selectedCandidat && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-8 rounded-lg max-w-2xl w-full relative">
-                <button 
-                  onClick={() => setSelectedCandidat(null)}
-                  className="absolute top-4 right-4 text-2xl"
-                >
-                  ×
-                </button>
-                <h2 className="text-2xl font-bold mb-4">{selectedCandidat.nom}</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <strong>Poste:</strong> {selectedCandidat.poste}
+                  <div className="flex items-center mb-4">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full mr-4 flex items-center justify-center">
+                      {candidat.nom.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold">{candidat.nom}</h3>
+                      <p className="text-gray-600">{candidat.poste}</p>
+                    </div>
                   </div>
-                  <div>
-                    <strong>Étape:</strong> {selectedCandidat.etape}
-                  </div>
-                  <div>
-                    <strong>Note Entretien:</strong> {selectedCandidat.noteEntretien}/10
-                  </div>
-                  <div>
-                    <strong>Compétences:</strong>
-                    <ul className="list-disc list-inside">
-                      {selectedCandidat.competences.map((competence, index) => (
-                        <li key={index}>{competence}</li>
-                      ))}
-                    </ul>
+                  <div className="space-y-2">
+                    <p><strong>Étape:</strong> {candidat.etape}</p>
+                    <p><strong>Note Entretien:</strong> {candidat.noteEntretien}/10</p>
+                    {candidat && candidat.competences && candidat.competences.length > 0 ? (
+                      <div>
+                        <strong>Compétences:</strong>
+                        <ul className="list-disc list-inside text-sm">
+                          {candidat.competences.map((competence, index) => (
+                            <li key={index}>{competence}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <p>Aucune compétence disponible.</p>
+                    )}
+                    <a 
+                      href={candidat.cv} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      Voir CV
+                    </a>
                   </div>
                 </div>
-                <div className="mt-6 flex space-x-4">
-                  <button className="bg-green-500 text-white px-4 py-2 rounded">
-                    Avancer
+              ))
+            ) : (
+              <p>No candidates available.</p>
+            )}
+            
+            {selectedCandidat && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-8 rounded-lg max-w-2xl w-full relative">
+                  <button 
+                    onClick={() => setSelectedCandidat(null)}
+                    className="absolute top-4 right-4 text-2xl"
+                  >
+                    ×
                   </button>
-                  <button className="bg-red-500 text-white px-4 py-2 rounded">
-                    Rejeter
-                  </button>
+                  <h2 className="text-2xl font-bold mb-4">{selectedCandidat.nom}</h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <strong>Poste:</strong> {selectedCandidat.poste}
+                    </div>
+                    <div>
+                      <strong>Étape:</strong> {selectedCandidat.etape}
+                    </div>
+                    <div>
+                      <strong>Note Entretien:</strong> {selectedCandidat.noteEntretien}/10
+                    </div>
+                    {selectedCandidat && selectedCandidat.competences && selectedCandidat.competences.length > 0 ? (
+                      <div>
+                        <strong>Compétences:</strong>
+                        <ul className="list-disc list-inside">
+                          {selectedCandidat.competences.map((competence, index) => (
+                            <li key={index}>{competence}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <p>Aucune compétence disponible.</p>
+                    )}
+                  </div>
+                  <div className="mt-6 flex space-x-4">
+                    <button className="bg-green-500 text-white px-4 py-2 rounded">
+                      Avancer
+                    </button>
+                    <button className="bg-red-500 text-white px-4 py-2 rounded">
+                      Rejeter
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )
     },
