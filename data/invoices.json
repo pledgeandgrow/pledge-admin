@@ -1,0 +1,93 @@
+[
+  {
+    "id": "1fa2bc3d-79f4-467b-9036-9b746d0ecf55",
+    "invoice_number": "PG18",
+    "date": "2025-02-26",
+    "due_date": "2025-02-27T00:00:00.000Z",
+    "status": "sent",
+    "client": {
+      "id": "4f0516de-2b36-4bc3-8647-406da9db6001",
+      "name": "Mehdi BEREL",
+      "email": "pledgeandgrow@gmail.com",
+      "address": "4bis Rue Alfred Nobel",
+      "postal_code": "77420",
+      "city": "Champs-sur-Marne",
+      "country": ""
+    },
+    "items": [
+      {
+        "id": "03b34407-a223-463e-9b2e-488d05c68e35",
+        "description": "prestations web",
+        "quantity": 1,
+        "unit_price": 0,
+        "tax_rate": 20,
+        "total": 0
+      }
+    ],
+    "subtotal": 0,
+    "tax_rate": 20,
+    "tax_amount": 0,
+    "total": 0,
+    "notes": "ww",
+    "payment_terms": "0",
+    "currency": "EUR",
+    "language": "fr",
+    "company_details": {
+      "name": "Votre Entreprise",
+      "address": "123 Rue de l'Entreprise",
+      "postal_code": "75000",
+      "city": "Paris",
+      "country": "France",
+      "vat_number": "FR12345678901",
+      "registration_number": "RCS PARIS 123 456 789",
+      "phone": "+33 1 23 45 67 89",
+      "email": "contact@votreentreprise.fr",
+      "website": "www.votreentreprise.fr",
+      "bank_account": "FR76 1234 5678 9012 3456 7890 123"
+    },
+    "created_at": "2025-02-26T19:25:37.937Z",
+    "updated_at": "2025-02-26T19:31:33.225Z",
+    "payment_method": "Virement"
+  },
+  {
+    "id": "33d77978-0755-46f4-bbf3-6905ba23fe5a",
+    "invoice_number": "54352763",
+    "date": "2025-05-09T16:48:37.493Z",
+    "due_date": "2025-06-08T16:48:37.493Z",
+    "status": "draft",
+    "client": {
+      "id": "4f0516de-2b36-4bc3-8647-406da9db6001",
+      "name": "Mehdi BEREL",
+      "email": "pledgeandgrow@gmail.com",
+      "address": "4bis Rue Alfred Nobel",
+      "postal_code": "77420",
+      "city": "Champs-sur-Marne",
+      "country": ""
+    },
+    "items": [],
+    "subtotal": 0,
+    "tax_rate": 20,
+    "tax_amount": 0,
+    "total": 0,
+    "notes": "non réglé",
+    "payment_terms": "30 jours",
+    "payment_method": "Virement bancaire",
+    "currency": "EUR",
+    "language": "fr",
+    "company_details": {
+      "name": "",
+      "address": "",
+      "postal_code": "",
+      "city": "",
+      "country": "",
+      "vat_number": "",
+      "registration_number": "",
+      "phone": "",
+      "email": "",
+      "website": "",
+      "bank_account": ""
+    },
+    "created_at": "2025-05-09T16:49:15.295Z",
+    "updated_at": "2025-05-09T16:49:15.295Z"
+  }
+]

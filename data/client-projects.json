@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Cabinet michou",
+    "description": "Cabinet Immobilier",
+    "client": "Cabinet Michou",
+    "equipe": [
+      "2"
+    ],
+    "technologies": [
+      "Next.js",
+      "node.js"
+    ],
+    "dateDebut": "01/01/2025",
+    "dateFin": "31/02/2025",
+    "statut": "En cours",
+    "id": "1740591779592"
+  }
+]
