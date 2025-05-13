@@ -109,10 +109,10 @@ export function MegaMenu() {
       subItems: [
         { href: '/communication/presse', icon: '📰', label: 'Presse' },
         { href: '/communication/relations-publiques/page', icon: '🤝', label: 'Relations Publiques' },
-        { href: '/communication/newsletter/page', icon: '📧', label: 'Newsletter' },
+        { href: '/communication/newsletter', icon: '📧', label: 'Newsletter' },
         { href: '/communication/reseaux-sociaux/page', icon: '📱', label: 'Réseaux Sociaux' },
-        { href: '/communication/evenements/page', icon: '🎪', label: 'Événements' },
-        { href: '/communication/blog/page', icon: '✍️', label: 'Blog' },
+        { href: '/communication/evenements', icon: '🎪', label: 'Événements' },
+        { href: '/communication/blog', icon: '✍️', label: 'Blog' },
       ],
     },
     {
