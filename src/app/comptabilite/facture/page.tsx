@@ -1,10 +1,4 @@
 // app/comptabilite/facture/page.tsx
-/* ------------------------------------------------------------------
-   - Factures (listing + CRUD)
-   - Upload de n’importe quel fichier vers le bucket Supabase `factures`
-   - Export PDF d’une facture
-   - Tableau zébré avec date & poubelle (DELETE)
------------------------------------------------------------------- */
 
 "use client";
 
@@ -181,31 +175,6 @@ export default function InvoicePage() {
     }
   }
 
-  const stats: InvoiceStatsType = {
-    total_count: invoices.length,
-    draft_count: invoices.filter(i => i.status === "draft").length,
-    sent_count: invoices.filter(i => i.status === "sent").length,
-    paid_count: invoices.filter(i => i.status === "paid").length,
-    overdue_count: invoices.filter(i => i.status === "overdue").length,
-    total_amount: invoices.reduce((s, i) => s + i.total, 0),
-    paid_amount: invoices.filter(i => i.status === "paid").reduce((s, i) => s + i.total, 0),
-    overdue_amount: invoices.filter(i => i.status === "overdue").reduce((s, i) => s + i.total, 0),
-    currency: "EUR",
-  };
-
-  const resetFilters = () => {
-    setSearch(""); setStatusFilter("all");
-    setClientFilter("all"); setProjectFilter("all");
-    setDateRange(undefined);
-  };
-
-  const activeFilterCount =
-    Number(Boolean(search)) +
-    Number(statusFilter !== "all") +
-    Number(clientFilter !== "all") +
-    Number(projectFilter !== "all") +
-    Number(Boolean(dateRange?.from));
-
   const filteredInvoices = invoices.filter(i => {
     const q = search.toLowerCase();
     return (
@@ -219,24 +188,9 @@ export default function InvoicePage() {
     );
   });
 
-  const handleExportInvoice = async () => {
-    if (!selectedInvoice) return;
-    const html2pdf = (await import("html2pdf.js")).default;
-    const container = document.getElementById("invoice-preview");
-    if (container) {
-      await html2pdf(container, {
-        margin: 0.5,
-        filename: `facture-${selectedInvoice.invoice_number}.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      }).save();
-    }
-  };
-
   return (
     <div className="ml-64 p-8 bg-background min-h-screen">
       <div className="max-w-[1400px] mx-auto space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Factures</h1>
           <div className="flex gap-2">
@@ -250,7 +204,17 @@ export default function InvoicePage() {
           </div>
         </div>
 
-        <InvoiceStatsComponent stats={stats} />
+        <InvoiceStatsComponent stats={{
+          total_count: invoices.length,
+          draft_count: invoices.filter(i => i.status === "draft").length,
+          sent_count: invoices.filter(i => i.status === "sent").length,
+          paid_count: invoices.filter(i => i.status === "paid").length,
+          overdue_count: invoices.filter(i => i.status === "overdue").length,
+          total_amount: invoices.reduce((s, i) => s + i.total, 0),
+          paid_amount: invoices.filter(i => i.status === "paid").reduce((s, i) => s + i.total, 0),
+          overdue_amount: invoices.filter(i => i.status === "overdue").reduce((s, i) => s + i.total, 0),
+          currency: "EUR",
+        }} />
 
         <InvoiceFilters
           search={search}
@@ -265,11 +229,22 @@ export default function InvoicePage() {
           onDateRangeChange={setDateRange}
           clients={clients.map(c => c.name)}
           projects={projects.map(p => p.name)}
-          activeFilters={activeFilterCount}
-          onClearFilters={resetFilters}
+          activeFilters={
+            Number(Boolean(search)) +
+            Number(statusFilter !== "all") +
+            Number(clientFilter !== "all") +
+            Number(projectFilter !== "all") +
+            Number(Boolean(dateRange?.from))
+          }
+          onClearFilters={() => {
+            setSearch("");
+            setStatusFilter("all");
+            setClientFilter("all");
+            setProjectFilter("all");
+            setDateRange(undefined);
+          }}
         />
 
-        {/* Liste des factures */}
         <ScrollArea className="h-[calc(100vh-340px)] rounded-lg border bg-card">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-6">
             {filteredInvoices.map(inv => (
@@ -282,58 +257,12 @@ export default function InvoicePage() {
           </div>
         </ScrollArea>
 
-        {/* Tableau fichiers */}
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold">Fichiers stockés</h2>
-          {files.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Aucun fichier.</p>
-          ) : (
-            <ScrollArea className="h-72 rounded-lg border overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 z-10 bg-muted/60 backdrop-blur text-xs uppercase">
-                  <tr className="text-left tracking-wider">
-                    <th className="px-4 py-3">Nom</th>
-                    <th className="px-4 py-3">Ajouté le</th>
-                    <th className="w-12"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {files.map((f, i) => (
-                    <tr key={f.name} className={`${i % 2 ? "bg-muted/10" : ""} hover:bg-muted/30`}>
-                      <td className="px-4 py-2 flex items-center gap-2 truncate">
-                        <FileText className="h-4 w-4 text-primary shrink-0" />
-                        <a href={f.url} target="_blank" className="truncate underline-offset-2 hover:underline">
-                          {f.name}
-                        </a>
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-muted-foreground">
-                        {fmt(f.updated_at)}
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        <button onClick={() => onDelete(f)} title="Supprimer" className="p-1 rounded hover:bg-destructive/10 hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </ScrollArea>
-          )}
-        </div>
-
-        {/* Dialog formulaire avec scroll et styles visibles */}
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto bg-blue-50 text-gray-900 rounded-lg shadow-xl">
             <DialogHeader className="flex items-center justify-between p-4 border-b border-blue-200">
               <DialogTitle className="text-2xl font-semibold">
                 {selectedInvoice ? "Modifier la facture" : "Créer une nouvelle facture"}
               </DialogTitle>
-              {selectedInvoice && (
-                <Button variant="outline" size="sm" onClick={handleExportInvoice}>
-                  <FileDown className="mr-2 h-4 w-4" /> Exporter PDF
-                </Button>
-              )}
             </DialogHeader>
             <div id="invoice-preview" className="p-6 bg-white rounded-b-lg space-y-4">
               <InvoiceForm
