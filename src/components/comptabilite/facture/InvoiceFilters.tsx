@@ -75,11 +75,13 @@ export function InvoiceFilters({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les clients</SelectItem>
-              {clients.map((client) => (
-                <SelectItem key={client} value={client}>
-                  {client}
-                </SelectItem>
-              ))}
+              {clients
+                .filter((client) => client.trim() !== "")
+                .map((client) => (
+                  <SelectItem key={client} value={client}>
+                    {client}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
 
@@ -89,11 +91,13 @@ export function InvoiceFilters({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les projets</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project} value={project}>
-                  {project}
-                </SelectItem>
-              ))}
+              {projects
+                .filter((project) => project.trim() !== "")
+                .map((project) => (
+                  <SelectItem key={project} value={project}>
+                    {project}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
 
