@@ -18,9 +18,9 @@ export interface Client {
   email: string;
   phone: string;
   company: string;
-  position: string;
-  createdAt: Date;
-  updatedAt: Date;
+  status: string;
+  lastContact: string;
+  amount: number;
 }
 
 export const columns: ColumnDef<Client>[] = [
@@ -51,8 +51,25 @@ export const columns: ColumnDef<Client>[] = [
     header: 'Company',
   },
   {
-    accessorKey: 'position',
-    header: 'Position',
+    accessorKey: 'status',
+    header: 'Status',
+  },
+  {
+    accessorKey: 'lastContact',
+    header: 'Last Contact',
+  },
+  {
+    accessorKey: 'amount',
+    header: 'Amount',
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue('amount'));
+      const formatted = new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR',
+      }).format(amount);
+
+      return <div className="font-medium">{formatted}</div>;
+    },
   },
   {
     id: 'actions',
@@ -69,14 +86,13 @@ export const columns: ColumnDef<Client>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(client.id)}
-            >
+            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(client.id)}>
               Copy client ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>View details</DropdownMenuItem>
             <DropdownMenuItem>Edit client</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600">Delete client</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

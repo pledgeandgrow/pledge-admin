@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Prestation } from '@/types/prestation';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,45 +25,79 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+interface EditPrestationDialogProps {
+  prestation: Prestation | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (prestationData: Partial<Prestation>) => void;
+  onDelete?: () => void;
+}
+
+// Define the schema
 const formSchema = z.object({
   title: z.string().min(1, 'Veuillez entrer un titre'),
   description: z.string().min(1, 'Veuillez entrer une description'),
-  price: z.number().min(0, 'Veuillez entrer un prix valide'),
+  priceMin: z.number().min(0, 'Veuillez entrer un prix minimum valide'),
+  priceMax: z.number().min(0, 'Veuillez entrer un prix maximum valide')
+    .refine(val => val >= 0, {
+      message: 'Le prix maximum doit être positif',
+    }),
   duration: z.string().min(1, 'Veuillez entrer une durée'),
   category: z.string().min(1, 'Veuillez sélectionner une catégorie'),
   status: z.string().min(1, 'Veuillez sélectionner un statut'),
   features: z.array(z.string()).min(1, 'Veuillez entrer au moins une caractéristique'),
 });
 
-interface EditPrestationDialogProps {
-  prestation: Prestation;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+// Infer the type from the schema
+type FormValues = z.infer<typeof formSchema>;
 
-export function EditPrestationDialog({ open, onOpenChange, prestation }: EditPrestationDialogProps) {
-  const [formData, setFormData] = useState<Partial<Prestation>>(
-    prestation || {
-      title: '',
-      description: '',
-      price: 0,
-      duration: '',
-      category: 'Consulting',
-      status: 'Available',
-      features: []
-    }
-  );
+export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, onDelete }: EditPrestationDialogProps) {
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  // Initialize form with default values from prestation or empty values
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: formData,
+    defaultValues: {
+      title: prestation?.title || '',
+      description: prestation?.description || '',
+      priceMin: prestation?.priceMin || 0,
+      priceMax: prestation?.priceMax || 0,
+      duration: prestation?.duration || '',
+      category: prestation?.category || 'Site Web',
+      status: prestation?.status || 'Available',
+      features: prestation?.features || [],
+    },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // TODO: Implement prestation update
-    console.log(values);
-    onOpenChange(false);
-  }
+  // Update form values when prestation changes
+  useEffect(() => {
+    if (prestation) {
+      form.reset({
+        title: prestation.title,
+        description: prestation.description,
+        priceMin: prestation.priceMin,
+        priceMax: prestation.priceMax,
+        duration: prestation.duration,
+        category: prestation.category,
+        status: prestation.status,
+        features: prestation.features,
+      });
+    }
+  }, [prestation, form]);
+
+  // Watch priceMin to validate priceMax
+  const priceMin = form.watch('priceMin');
+
+  // Handle form submission
+  const onSubmit = (values: FormValues) => {
+    // Convert form values to Prestation type
+    const prestationData: Partial<Prestation> = {
+      ...values,
+      // Explicitly cast string values to their proper types
+      category: values.category as Prestation['category'],
+      status: values.status as Prestation['status'],
+    };
+    onSave(prestationData);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -90,8 +124,7 @@ export function EditPrestationDialog({ open, onOpenChange, prestation }: EditPre
                   <FormControl>
                     <Input 
                       placeholder="Développement Web..." 
-                      value={formData.title}
-                      onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -119,14 +152,36 @@ export function EditPrestationDialog({ open, onOpenChange, prestation }: EditPre
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="price"
+                name="priceMin"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Prix (€)</FormLabel>
+                    <FormLabel>Prix minimum (€)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
                         placeholder="1500"
+                        {...field} 
+                        onChange={e => {
+                          const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                          field.onChange(value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="priceMax"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prix maximum (€)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="5000"
                         {...field} 
                         onChange={e => field.onChange(parseFloat(e.target.value))}
                       />
@@ -165,10 +220,21 @@ export function EditPrestationDialog({ open, onOpenChange, prestation }: EditPre
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Développement Web">Développement Web</SelectItem>
-                        <SelectItem value="Maintenance Applicative">Maintenance Applicative</SelectItem>
-                        <SelectItem value="Cloud & DevOps">Cloud & DevOps</SelectItem>
-                        <SelectItem value="Sécurité IT">Sécurité IT</SelectItem>
+                        <SelectItem value="Site Web">Site Web</SelectItem>
+                        <SelectItem value="SaaS">SaaS</SelectItem>
+                        <SelectItem value="Application Mobile">Application Mobile</SelectItem>
+                        <SelectItem value="Logiciel">Logiciel</SelectItem>
+                        <SelectItem value="Jeux Vidéo">Jeux Vidéo</SelectItem>
+                        <SelectItem value="E-commerce">E-commerce</SelectItem>
+                        <SelectItem value="IA & Automatisation">IA & Automatisation</SelectItem>
+                        <SelectItem value="Blockchain">Blockchain</SelectItem>
+                        <SelectItem value="Cybersécurité">Cybersécurité</SelectItem>
+                        <SelectItem value="Cloud / DevOps">Cloud / DevOps</SelectItem>
+                        <SelectItem value="Documentation">Documentation</SelectItem>
+                        <SelectItem value="Design UX/UI">Design UX/UI</SelectItem>
+                        <SelectItem value="Référencement">Référencement</SelectItem>
+                        <SelectItem value="Maintenance">Maintenance</SelectItem>
+                        <SelectItem value="Conseil / Formation">Conseil / Formation</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -218,21 +284,35 @@ export function EditPrestationDialog({ open, onOpenChange, prestation }: EditPre
               )}
             />
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="hover:bg-white/20 dark:hover:bg-gray-800/50"
-              >
-                Annuler
-              </Button>
-              <Button 
-                type="submit"
-                className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:opacity-90"
-              >
-                Sauvegarder
-              </Button>
+            <DialogFooter className="flex justify-between">
+              <div>
+                {onDelete && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={onDelete}
+                    className="mr-2"
+                  >
+                    Supprimer
+                  </Button>
+                )}
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="hover:bg-white/20 dark:hover:bg-gray-800/50"
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit"
+                  className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:opacity-90"
+                >
+                  Sauvegarder
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </Form>

@@ -20,6 +20,7 @@ interface ViewPrestationDialogProps {
   onOpenChange: (open: boolean) => void;
   getStatusColor: (status: Prestation['status']) => string;
   getCategoryColor: (category: string) => string;
+  getStatusText: (status: Prestation['status']) => string;
 }
 
 export function ViewPrestationDialog({
@@ -28,6 +29,7 @@ export function ViewPrestationDialog({
   onOpenChange,
   getStatusColor,
   getCategoryColor,
+  getStatusText,
 }: ViewPrestationDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,8 +50,8 @@ export function ViewPrestationDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Prix</Label>
-              <p className="text-lg font-semibold">{prestation.price.toLocaleString('fr-FR')} €</p>
+              <Label className="text-sm font-medium text-muted-foreground">Fourchette de prix</Label>
+              <p className="text-lg font-semibold">{prestation.priceMin.toLocaleString('fr-FR')} - {prestation.priceMax.toLocaleString('fr-FR')} €</p>
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Durée</Label>
@@ -70,9 +72,18 @@ export function ViewPrestationDialog({
             <Label className="text-sm font-medium text-muted-foreground">Statut</Label>
             <div>
               <Badge variant="outline" className={getStatusColor(prestation.status)}>
-                {prestation.status === 'Available' ? 'Disponible' : 'Indisponible'}
+                {getStatusText(prestation.status)}
               </Badge>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-muted-foreground">Caractéristiques</Label>
+            <ul className="list-disc list-inside text-sm space-y-1 pl-2">
+              {prestation.features.map((feature, index) => (
+                <li key={index} className="text-sm">{feature}</li>
+              ))}
+            </ul>
           </div>
         </div>
 
