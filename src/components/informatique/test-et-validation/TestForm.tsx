@@ -104,7 +104,7 @@ export function TestForm({ onSubmit, onCancel, projects, initialData }: TestForm
             <Label htmlFor="priority">Priorité</Label>
             <Select
               value={formData.priority}
-              onValueChange={(value) => setFormData({ ...formData, priority: value as any })}
+              onValueChange={(value: string) => setFormData({ ...formData, priority: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner une priorité" />

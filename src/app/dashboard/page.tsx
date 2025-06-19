@@ -43,8 +43,8 @@ const MOCK_CLIENTS: Client[] = [
 ];
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats>(MOCK_STATS);
-  const [clients, setClients] = useState<Client[]>(MOCK_CLIENTS);
+  const [stats] = useState<DashboardStats>(MOCK_STATS);
+  const [clients] = useState<Client[]>(MOCK_CLIENTS);
 
   return (
     <main className="flex-1 p-6">

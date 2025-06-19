@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+// import { Label } from '@/components/ui/label';
 import { Search, Edit, Download, Filter, Plus, Star, FileText, Eye } from 'lucide-react';
 
 interface EmployeeEvaluation {
@@ -260,7 +261,7 @@ export function EmployeeEvaluations() {
                   <TableHead className="w-[250px]">Employé</TableHead>
                   <TableHead>Département</TableHead>
                   <TableHead>Période</TableHead>
-                  <TableHead>Date d'évaluation</TableHead>
+                  <TableHead>Date d&apos;évaluation</TableHead>
                   <TableHead>Score</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Évaluateur</TableHead>
@@ -350,10 +351,10 @@ export function EmployeeEvaluations() {
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>
-              Détails de l'évaluation - {selectedEvaluation?.employeeName}
+              Détails de l&apos;évaluation - {selectedEvaluation?.employeeName}
             </DialogTitle>
             <DialogDescription>
-              Période d'évaluation: {selectedEvaluation?.evaluationPeriod}
+              Période d&apos;évaluation: {selectedEvaluation?.evaluationPeriod}
             </DialogDescription>
           </DialogHeader>
           

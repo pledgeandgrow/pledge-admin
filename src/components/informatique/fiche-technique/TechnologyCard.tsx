@@ -154,7 +154,7 @@ export function TechnologyCard({ technology, onClick }: TechnologyCardProps) {
           {technology.type === 'platform' && (
             <>
               <div className="text-sm">
-                <span className="font-medium">Type d'hébergement:</span> {technology.hosting_type}
+                <span className="font-medium">Type d&apos;hébergement:</span> {technology.hosting_type}
               </div>
               {technology.services.length > 0 && (
                 <div className="flex flex-wrap gap-1">

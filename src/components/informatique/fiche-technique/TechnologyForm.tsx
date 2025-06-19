@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Technology, TechnologyType } from './types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -197,7 +197,7 @@ export function TechnologyForm({
               />
             </div>
             <div>
-              <Label htmlFor="use_cases">Cas d'utilisation (séparés par des virgules)</Label>
+              <Label htmlFor="use_cases">Cas d&apos;utilisation (séparés par des virgules)</Label>
               <Input
                 id="use_cases"
                 value={formData.use_cases.join(', ')}

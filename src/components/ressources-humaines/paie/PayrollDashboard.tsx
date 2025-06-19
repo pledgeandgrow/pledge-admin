@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { DollarSign, Calendar, Users, FileText, TrendingUp, Clock } from 'lucide-react';
+import { DollarSign, Calendar, Users, TrendingUp, Clock } from 'lucide-react';
 
 export function PayrollDashboard() {
   // Sample data for the payroll dashboard
@@ -175,7 +175,7 @@ export function PayrollDashboard() {
             </div>
             <Progress value={payrollData.payrollBudgetUtilization} className="h-3" />
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
-              L'utilisation du budget de paie est actuellement à {payrollData.payrollBudgetUtilization}% du montant alloué pour l'année fiscale en cours.
+              L&apos;utilisation du budget de paie est actuellement à {payrollData.payrollBudgetUtilization}% du montant alloué pour l&apos;année fiscale en cours.
             </p>
           </div>
         </CardContent>

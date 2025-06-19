@@ -1,28 +1,26 @@
 'use client';
 
 import { FC, useState } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
-  SelectGroup,
+  // SelectGroup removed - unused import
   SelectItem,
-  SelectLabel,
+  // SelectLabel removed - unused import
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Switch } from '@/components/ui/switch';
+} from "@/components/ui/select";
 import {
   Palette,
   Type,
   Image as ImageIcon,
   Upload,
-  Edit,
   Download,
   FileText,
   Eye
@@ -317,10 +315,12 @@ export const BrandIdentity: FC<BrandIdentityProps> = ({
                   <Label>Logo Principal</Label>
                   <div className="aspect-video rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-800 flex items-center justify-center relative overflow-hidden">
                     {logo.main ? (
-                      <img
+                      <Image
                         src={logo.main}
                         alt="Logo Principal"
                         className="object-contain"
+                        width={300}
+                        height={150}
                       />
                     ) : (
                       <div className="text-center">
@@ -351,10 +351,12 @@ export const BrandIdentity: FC<BrandIdentityProps> = ({
                   <Label>Logo Alternatif</Label>
                   <div className="aspect-video rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-800 flex items-center justify-center relative overflow-hidden">
                     {logo.alternative ? (
-                      <img
+                      <Image
                         src={logo.alternative}
                         alt="Logo Alternatif"
                         className="object-contain"
+                        width={300}
+                        height={150}
                       />
                     ) : (
                       <div className="text-center">
@@ -386,10 +388,12 @@ export const BrandIdentity: FC<BrandIdentityProps> = ({
                 <Label>Favicon</Label>
                 <div className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-800 flex items-center justify-center relative overflow-hidden">
                   {logo.favicon ? (
-                    <img
+                    <Image
                       src={logo.favicon}
                       alt="Favicon"
                       className="object-contain"
+                      width={64}
+                      height={64}
                     />
                   ) : (
                     <div className="text-center">

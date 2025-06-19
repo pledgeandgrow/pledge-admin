@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DomainName, DomainStats } from "@/components/informatique/nom-de-domaine/types";
 import { DomainCard } from "@/components/informatique/nom-de-domaine/DomainCard";
 import { DomainStats as DomainStatsComponent } from "@/components/informatique/nom-de-domaine/DomainStats";
@@ -30,40 +30,46 @@ export default function DomainPage() {
   const [isEditingDomain, setIsEditingDomain] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchDomains();
-    fetchProjects();
-  }, []);
-
-  const fetchDomains = async () => {
+  // Define fetch functions before using them
+  const fetchDomains = useCallback(async () => {
     try {
       const response = await fetch("/api/nom-de-domaine");
       if (!response.ok) throw new Error("Failed to fetch domains");
       const data = await response.json();
       setDomains(data);
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Impossible de charger les noms de domaine";
       toast({
         title: "Erreur",
-        description: "Impossible de charger les noms de domaine",
+        description: errorMessage,
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
-      const response = await fetch("/api/client-projects");
+      const response = await fetch("/api/projets");
       if (!response.ok) throw new Error("Failed to fetch projects");
       const data = await response.json();
       setProjects(data);
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Impossible de charger les projets";
       toast({
         title: "Erreur",
-        description: "Impossible de charger les projets",
+        description: errorMessage,
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
+
+  // Use the functions in useEffect
+  useEffect(() => {
+    fetchDomains();
+    fetchProjects();
+  }, [fetchDomains, fetchProjects]);
+
+  // Functions are now defined above
 
   const handleCreateDomain = async (domainData: Partial<DomainName>) => {
     try {
@@ -81,10 +87,11 @@ export default function DomainPage() {
         title: "Succès",
         description: "Nom de domaine créé avec succès",
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Impossible de créer le nom de domaine";
       toast({
         title: "Erreur",
-        description: "Impossible de créer le nom de domaine",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -107,10 +114,11 @@ export default function DomainPage() {
         title: "Succès",
         description: "Nom de domaine mis à jour avec succès",
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Impossible de mettre à jour le nom de domaine";
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour le nom de domaine",
+        description: errorMessage,
         variant: "destructive",
       });
     }

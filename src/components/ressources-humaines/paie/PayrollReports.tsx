@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -295,7 +295,7 @@ export function PayrollReports() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Visualisez l'évolution des salaires sur différentes périodes.
+                      Visualisez l&apos;évolution des salaires sur différentes périodes.
                     </p>
                     <Button variant="outline" className="w-full mt-4">
                       Voir les tendances
@@ -329,10 +329,10 @@ export function PayrollReports() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Évaluez les coûts salariaux et identifiez les opportunités d'optimisation.
+                      Évaluez les coûts salariaux et identifiez les opportunités d&apos;optimisation.
                     </p>
                     <Button variant="outline" className="w-full mt-4">
-                      Voir l'analyse
+                      Voir l&apos;analyse
                     </Button>
                   </CardContent>
                 </Card>
@@ -344,7 +344,7 @@ export function PayrollReports() {
                   Analyses avancées disponibles
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  Des analyses plus détaillées sont disponibles dans le module d'analyse de données.
+                  Des analyses plus détaillées sont disponibles dans le module d&apos;analyse de données.
                 </p>
                 <Button>
                   Accéder aux analyses avancées

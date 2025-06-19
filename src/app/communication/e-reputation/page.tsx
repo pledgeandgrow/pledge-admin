@@ -1,7 +1,7 @@
 'use client';
 
-import { type NextPage } from 'next';
-import { useState, useEffect, useId } from 'react';
+// Removed unused NextPage import
+import React, { useState, useEffect, useId } from 'react';
 import { MegaMenu } from '@/components/layout/MegaMenu';
 
 interface Engagement {
@@ -41,13 +41,14 @@ interface Filtres {
   tags: string[];
 }
 
-interface NouvelleMention extends Omit<Mention, 'id'> {}
+type NouvelleMention = Omit<Mention, 'id'>
 
-interface NouvelleAction extends Omit<Action, 'id'> {
-  mentionId: string;
-}
+// Commented out unused interface to fix build error
+// interface NouvelleAction extends Omit<Action, 'id'> {
+//   mentionId: string;
+// }
 
-const EReputationPage: NextPage = () => {
+const EReputationPage = () => {
   const [isClient, setIsClient] = useState(false);
   const baseId = useId();
 
@@ -97,13 +98,14 @@ const EReputationPage: NextPage = () => {
     actions: []
   });
 
-  const [nouvelleAction, setNouvelleAction] = useState<NouvelleAction>({
-    mentionId: '',
-    type: 'Réponse',
-    date: '',
-    statut: 'En cours',
-    responsable: ''
-  });
+  // Commented out unused state
+  // const [nouvelleAction, setNouvelleAction] = useState<NouvelleAction>({
+  //   mentionId: '',
+  //   type: 'Réponse',
+  //   date: '',
+  //   statut: 'En cours',
+  //   responsable: ''
+  // });
 
   const [filtres, setFiltres] = useState<Filtres>({
     source: '',
@@ -151,7 +153,10 @@ const EReputationPage: NextPage = () => {
     });
   };
 
-  const handleAddAction = () => {
+  // Function to add action to a mention - currently unused
+  // Commented out to fix unused variable warning
+  /*
+  const addActionToMention = () => {
     if (!nouvelleAction.mentionId || !nouvelleAction.date || !nouvelleAction.responsable) {
       alert('Veuillez remplir tous les champs obligatoires');
       return;
@@ -180,15 +185,16 @@ const EReputationPage: NextPage = () => {
       responsable: ''
     });
   };
+  */
 
   const filtrerMentions = () => {
-    return mentions.filter(mention => {
+    return mentions.filter((mention: Mention) => {
       if (filtres.source && mention.source !== filtres.source) return false;
       if (filtres.sentiment && mention.sentiment !== filtres.sentiment) return false;
       if (filtres.impact && mention.impact !== filtres.impact) return false;
       if (filtres.dateDebut && new Date(mention.date) < new Date(filtres.dateDebut)) return false;
       if (filtres.dateFin && new Date(mention.date) > new Date(filtres.dateFin)) return false;
-      if (filtres.tags.length > 0 && !filtres.tags.some(tag => mention.tags.includes(tag))) return false;
+      if (filtres.tags.length > 0 && !filtres.tags.some((tag: string) => mention.tags.includes(tag))) return false;
       return true;
     });
   };
@@ -374,7 +380,7 @@ const EReputationPage: NextPage = () => {
 
           {/* Liste des mentions */}
           <div className="grid grid-cols-1 gap-6">
-            {filtrerMentions().map((mention) => (
+            {filtrerMentions().map((mention: Mention) => (
               <div key={mention.id} className="bg-white p-6 rounded-lg shadow-md dark:bg-gray-800">
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -421,7 +427,7 @@ const EReputationPage: NextPage = () => {
                 {/* Tags */}
                 <div className="mb-4">
                   <div className="flex flex-wrap gap-2">
-                    {mention.tags.map((tag, index) => (
+                    {mention.tags.map((tag: string, index: number) => (
                       <span
                         key={index}
                         className="px-2 py-1 bg-gray-100 text-gray-700 rounded dark:bg-gray-700 dark:text-gray-300"
@@ -436,7 +442,7 @@ const EReputationPage: NextPage = () => {
                 <div>
                   <h4 className="font-semibold mb-2 dark:text-white">Actions</h4>
                   <div className="space-y-2">
-                    {mention.actions.map((action, index) => (
+                    {mention.actions.map((action: Action, index: number) => (
                       <div
                         key={index}
                         className="flex justify-between items-center p-2 bg-gray-50 rounded dark:bg-gray-700"

@@ -7,8 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, FileText, Download, Eye, Calendar, CheckCircle, XCircle, AlertCircle, Filter } from 'lucide-react';
+import { Search, FileText, Download, Eye, Calendar } from 'lucide-react';
 
 interface Contract {
   id: string;
@@ -27,7 +26,7 @@ export function Contracts() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
-  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  // PDF preview is now handled through Dialog component directly
 
   // Sample data
   const contracts: Contract[] = [
@@ -264,22 +263,22 @@ export function Contracts() {
                         />
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" asChild>
-                          <a href={selectedContract?.pdfUrl} download target="_blank" rel="noopener noreferrer">
+                        <a href={selectedContract?.pdfUrl} download target="_blank" rel="noopener noreferrer" className="inline-flex">
+                          <Button variant="outline">
                             <Download className="h-4 w-4 mr-2" />
                             Télécharger
-                          </a>
-                        </Button>
+                          </Button>
+                        </a>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
                   
-                  <Button variant="ghost" size="sm" asChild>
-                    <a href={contract.pdfUrl} download>
+                  <a href={contract.pdfUrl} download className="inline-flex">
+                    <Button variant="ghost" size="sm">
                       <Download className="h-4 w-4 mr-2" />
                       Télécharger
-                    </a>
-                  </Button>
+                    </Button>
+                  </a>
                 </CardFooter>
               </Card>
             ))}

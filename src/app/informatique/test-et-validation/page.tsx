@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Test } from "@/components/informatique/test-et-validation/types";
 import { TestCard } from "@/components/informatique/test-et-validation/TestCard";
 import { TestForm } from "@/components/informatique/test-et-validation/TestForm";
@@ -33,37 +33,39 @@ export default function TestValidationPage() {
   useEffect(() => {
     fetchTests();
     fetchProjects();
-  }, []);
+  }, [fetchTests, fetchProjects]);
 
-  const fetchTests = async () => {
+  const fetchTests = useCallback(async () => {
     try {
       const response = await fetch("/api/test-et-validation");
       if (!response.ok) throw new Error("Failed to fetch tests");
       const data = await response.json();
       setTests(data);
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Impossible de charger les tests";
       toast({
         title: "Erreur",
-        description: "Impossible de charger les tests",
+        description: errorMessage,
         variant: "destructive",
       });
     }
-  };
+  }, [toast, setTests]);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const response = await fetch("/api/client-projects");
       if (!response.ok) throw new Error("Failed to fetch projects");
       const data = await response.json();
       setProjects(data);
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Impossible de charger les projets";
       toast({
         title: "Erreur",
-        description: "Impossible de charger les projets",
+        description: errorMessage,
         variant: "destructive",
       });
     }
-  };
+  }, [toast, setProjects]);
 
   const handleCreateTest = async (testData: Partial<Test>) => {
     try {
@@ -81,10 +83,11 @@ export default function TestValidationPage() {
         title: "Succès",
         description: "Test créé avec succès",
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Impossible de créer le test";
       toast({
         title: "Erreur",
-        description: "Impossible de créer le test",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -107,10 +110,11 @@ export default function TestValidationPage() {
         title: "Succès",
         description: "Test mis à jour avec succès",
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Impossible de mettre à jour le test";
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour le test",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -181,7 +185,7 @@ export default function TestValidationPage() {
         <TestDetailsDialog
           test={selectedTest}
           onOpenChange={(open) => !open && setSelectedTest(null)}
-          onEdit={(test) => {
+          onEdit={() => {
             setSelectedTest(null);
             setIsEditingTest(true);
           }}

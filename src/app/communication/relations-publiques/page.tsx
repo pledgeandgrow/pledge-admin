@@ -176,7 +176,7 @@ const RelationsPubliquesPage: NextPage = () => {
               onClick={handleAddEvent}
               className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
             >
-              Créer l'événement
+              Créer l&apos;événement
             </button>
           </div>
 

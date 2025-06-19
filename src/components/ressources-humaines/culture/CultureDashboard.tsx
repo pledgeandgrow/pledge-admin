@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Heart, Users, Award, Calendar, Lightbulb, TrendingUp, MessageSquare } from 'lucide-react';
+import { Heart, Users, Calendar, Lightbulb, TrendingUp } from 'lucide-react';
 
 export function CultureDashboard() {
   // Sample data for the culture dashboard
@@ -74,7 +74,7 @@ export function CultureDashboard() {
             <div className="text-3xl font-bold text-gray-900 dark:text-white">
               {formatScore(cultureData.engagementScore)}/10
             </div>
-            <p className="text-sm text-muted-foreground dark:text-gray-400">Score d'engagement</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">Score d&apos;engagement</p>
           </CardContent>
         </Card>
 
@@ -128,7 +128,7 @@ export function CultureDashboard() {
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
               Valeurs fondamentales
             </CardTitle>
-            <CardDescription>Évaluation des valeurs de l'entreprise</CardDescription>
+            <CardDescription>Évaluation des valeurs de l&apos;entreprise</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-5">
@@ -150,9 +150,9 @@ export function CultureDashboard() {
         <Card className="bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-              Tendances d'engagement
+              Tendances d&apos;engagement
             </CardTitle>
-            <CardDescription>Évolution du score d'engagement sur les derniers trimestres</CardDescription>
+            <CardDescription>Évolution du score d&apos;engagement sur les derniers trimestres</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -168,7 +168,7 @@ export function CultureDashboard() {
                     }`} />
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">{trend.period}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Score d'engagement</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Score d&apos;engagement</p>
                     </div>
                   </div>
                   <span className={`text-lg font-bold ${getScoreColorClass(trend.score)}`}>

@@ -5,15 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Share2, MessageCircle, Heart, Plus, BarChart } from 'lucide-react';
+import { Share2, MessageCircle, Heart, BarChart } from 'lucide-react';
 import { SocialPlatforms } from '@/components/marketing/social/SocialPlatforms';
 import { CommunityManagement } from '@/components/marketing/social/CommunityManagement';
 import { PublicationCalendar } from '@/components/marketing/social/PublicationCalendar';
 import { MegaMenu } from '@/components/layout/MegaMenu';
 
-interface PageProps {}
-
-const Page: FC<PageProps> = () => {
+const Page: FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <MegaMenu />

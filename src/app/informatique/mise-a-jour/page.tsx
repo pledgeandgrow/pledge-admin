@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Update, UpdateType, UpdateStatus, UpdatePriority, UpdateStatistics as UpdateStatisticsType } from '@/components/informatique/mise-a-jour/types';
+import { useEffect, useState, useCallback } from "react";
+import { Update, UpdateStatistics as UpdateStatisticsType } from '@/components/informatique/mise-a-jour/types';
 import { UpdateForm } from '@/components/informatique/mise-a-jour/UpdateForm';
 import { UpdateCard } from '@/components/informatique/mise-a-jour/UpdateCard';
 import { UpdateStatistics } from '@/components/informatique/mise-a-jour/UpdateStatistics';
@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/select";
 
 export default function UpdatesPage() {
-  const [updates, setUpdates] = useState<Update[]>([]);
+  // Using filteredUpdates instead of updates directly
+  const [, setUpdates] = useState<Update[]>([]);
   const [filteredUpdates, setFilteredUpdates] = useState<Update[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -55,9 +56,9 @@ export default function UpdatesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchUpdates = async () => {
+  const fetchUpdates = useCallback(async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const searchParams = new URLSearchParams();
       if (typeFilter !== 'all') searchParams.append('type', typeFilter);
       if (statusFilter !== 'all') searchParams.append('status', statusFilter);
@@ -79,9 +80,9 @@ export default function UpdatesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchQuery, typeFilter, statusFilter, priorityFilter, toast]);
 
-  const fetchStatistics = async () => {
+  const fetchStatistics = useCallback(async () => {
     try {
       const response = await fetch('/api/mise-a-jour/statistics');
       if (!response.ok) throw new Error('Failed to fetch statistics');
@@ -90,12 +91,12 @@ export default function UpdatesPage() {
     } catch (error) {
       console.error('Error fetching statistics:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchUpdates();
     fetchStatistics();
-  }, [typeFilter, statusFilter, priorityFilter, searchQuery]);
+  }, [fetchUpdates, fetchStatistics]);
 
   const handleCreate = async (update: Partial<Update>) => {
     try {

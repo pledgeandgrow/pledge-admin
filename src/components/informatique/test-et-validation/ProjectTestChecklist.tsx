@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TestCase, TestStep, ClientProject } from './types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,6 +12,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Extend TestStep to include the completed property used in the component
+interface ExtendedTestStep extends TestStep {
+  completed?: boolean;
+}
+
 interface ProjectTestChecklistProps {
   test: TestCase;
   onUpdate: (updatedTest: TestCase) => void;
@@ -21,27 +25,14 @@ interface ProjectTestChecklistProps {
 export function ProjectTestChecklist({ test, onUpdate }: ProjectTestChecklistProps) {
   const [projects, setProjects] = useState<ClientProject[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>(test.project_id || '');
-  const [steps, setSteps] = useState<TestStep[]>(test.steps);
+  const [steps, setSteps] = useState<ExtendedTestStep[]>(test.steps.map(step => ({
+    ...step,
+    completed: step.status === 'passed'
+  })));
   const [completionPercentage, setCompletionPercentage] = useState(test.completion_percentage || 0);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  useEffect(() => {
-    const completed = steps.filter(step => step.completed).length;
-    const total = steps.length;
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    setCompletionPercentage(percentage);
-
-    // Update test status if all steps are completed
-    if (percentage === 100 && test.status !== 'passed') {
-      handleTestCompletion();
-    }
-  }, [steps]);
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const response = await fetch('/api/client-projects');
       if (!response.ok) throw new Error('Failed to fetch projects');
@@ -55,7 +46,38 @@ export function ProjectTestChecklist({ test, onUpdate }: ProjectTestChecklistPro
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
+
+  const handleTestCompletion = useCallback(() => {
+    const updatedTest = {
+      ...test,
+      status: 'passed' as const,
+      executed_at: new Date().toISOString(),
+      steps: steps.map(({ ...step }) => step), // Update steps without modifying structure
+      completion_percentage: 100,
+    };
+    onUpdate(updatedTest);
+    toast({
+      title: 'Test validé',
+      description: 'Toutes les étapes ont été complétées avec succès',
+    });
+  }, [test, steps, onUpdate, toast]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  useEffect(() => {
+    const completedSteps = steps.filter(step => step.completed).length;
+    const total = steps.length;
+    const percentage = total > 0 ? Math.round((completedSteps / total) * 100) : 0;
+    setCompletionPercentage(percentage);
+
+    // Update test status if all steps are completed
+    if (percentage === 100 && test.status !== 'passed') {
+      handleTestCompletion();
+    }
+  }, [steps, test.status, handleTestCompletion]);  // Added handleTestCompletion to dependencies
 
   const handleProjectChange = (projectId: string) => {
     setSelectedProject(projectId);
@@ -72,27 +94,12 @@ export function ProjectTestChecklist({ test, onUpdate }: ProjectTestChecklistPro
     newSteps[index] = {
       ...newSteps[index],
       completed: !newSteps[index].completed,
-      status: !newSteps[index].completed ? 'passed' : undefined,
+      status: !newSteps[index].completed ? 'passed' : 'pending',
     };
     setSteps(newSteps);
     onUpdate({
       ...test,
-      steps: newSteps,
-    });
-  };
-
-  const handleTestCompletion = () => {
-    const updatedTest = {
-      ...test,
-      status: 'passed' as const,
-      executed_at: new Date().toISOString(),
-      steps,
-      completion_percentage: 100,
-    };
-    onUpdate(updatedTest);
-    toast({
-      title: 'Test validé',
-      description: 'Toutes les étapes ont été complétées avec succès',
+      steps: newSteps.map(({ ...step }) => step), // Update steps without modifying structure
     });
   };
 

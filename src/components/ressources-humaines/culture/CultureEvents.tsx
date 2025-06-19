@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Calendar, Search, Filter, Plus, MapPin, Clock, Users, CalendarDays, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 interface CultureEvent {
@@ -172,7 +172,7 @@ export function CultureEvents() {
             Événements culturels
           </CardTitle>
           <CardDescription>
-            Découvrez et participez aux événements qui renforcent notre culture d'entreprise
+            Découvrez et participez aux événements qui renforcent notre culture d&apos;entreprise
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -248,7 +248,7 @@ export function CultureEvents() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{event.title}</h3>
                       </div>
-                      <Badge className={getTypeBadge(event.type)} className="mb-2">
+                      <Badge className={`${getTypeBadge(event.type)} mb-2`}>
                         {event.type}
                       </Badge>
                       <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mt-2">{event.description}</p>
@@ -278,7 +278,7 @@ export function CultureEvents() {
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm">
                             <ThumbsUp className="h-4 w-4 mr-2" />
-                            J'ai aimé
+                            J&apos;ai aimé
                           </Button>
                           <Button variant="outline" size="sm">
                             <ThumbsDown className="h-4 w-4 mr-2" />

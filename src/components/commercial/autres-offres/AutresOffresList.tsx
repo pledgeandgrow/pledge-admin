@@ -111,7 +111,7 @@ export function AutresOffresList() {
                 {offre.validUntil && (
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 mr-2" />
-                    <span>Valide jusqu'au {new Date(offre.validUntil).toLocaleDateString('fr-FR')}</span>
+                    <span>Valide jusqu&apos;au {new Date(offre.validUntil).toLocaleDateString('fr-FR')}</span>
                   </div>
                 )}
               </div>

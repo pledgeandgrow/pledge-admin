@@ -2,6 +2,7 @@
 
 import { type NextPage } from 'next';
 import { useState } from 'react';
+import Image from 'next/image';
 import { MegaMenu } from '@/components/layout/MegaMenu';
 
 interface Influenceur {
@@ -127,7 +128,8 @@ const InfluenceursPage: NextPage = () => {
         genres: []
       }
     },
-    collaborations: []
+    collaborations: [],
+    notes: ''
   });
 
   const handleAddInfluenceur = () => {
@@ -155,7 +157,8 @@ const InfluenceursPage: NextPage = () => {
           genres: []
         }
       },
-      collaborations: []
+      collaborations: [],
+      notes: ''
     });
   };
 
@@ -287,7 +290,7 @@ const InfluenceursPage: NextPage = () => {
               onClick={handleAddInfluenceur}
               className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
             >
-              Créer l'influenceur
+              Créer l&apos;influenceur
             </button>
           </div>
 
@@ -298,10 +301,12 @@ const InfluenceursPage: NextPage = () => {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-4">
                     {influenceur.photo ? (
-                      <img
+                      <Image
                         src={influenceur.photo}
                         alt={influenceur.nom}
-                        className="w-16 h-16 rounded-full object-cover"
+                        width={64}
+                        height={64}
+                        className="rounded-full object-cover"
                       />
                     ) : (
                       <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center dark:bg-blue-900">

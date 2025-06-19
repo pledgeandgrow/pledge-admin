@@ -4,7 +4,7 @@ import { FC, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+// Label removed - unused import
 import {
   FileText,
   Image as ImageIcon,
@@ -13,23 +13,23 @@ import {
   Upload,
   Download,
   Search,
-  Filter,
+  // Filter removed - unused import
   Grid,
   List,
   Trash2
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// Tabs components removed - unused imports
 import {
   Select,
   SelectContent,
-  SelectGroup,
+  // SelectGroup removed - unused import
   SelectItem,
-  SelectLabel,
+  // SelectLabel removed - unused import
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from '@/components/ui/badge';
+// Badge removed - unused import
 
 interface Asset {
   id: string;
@@ -109,7 +109,7 @@ export const BrandAssets: FC<BrandAssetsProps> = ({ assets: initialAssets }) => 
                   />
                 </div>
               </div>
-              <Select value={filter} onValueChange={(value: any) => setFilter(value)}>
+              <Select value={filter} onValueChange={(value: 'all' | 'image' | 'video' | 'document') => setFilter(value)}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Type de fichier" />
                 </SelectTrigger>

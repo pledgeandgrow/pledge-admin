@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, 
@@ -55,7 +55,7 @@ export function LoyaltyMetrics() {
   return (
     <Tabs defaultValue="overview" className="space-y-6">
       <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto">
-        <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+        <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
         <TabsTrigger value="engagement">Engagement</TabsTrigger>
         <TabsTrigger value="retention">Rétention</TabsTrigger>
       </TabsList>

@@ -103,7 +103,7 @@ export function DomainForm({
           <Label htmlFor="status">Statut</Label>
           <Select
             value={formData.status}
-            onValueChange={(value: any) =>
+            onValueChange={(value: "active" | "expired" | "expiring_soon" | "transferred") =>
               setFormData({ ...formData, status: value })
             }
           >
@@ -120,7 +120,7 @@ export function DomainForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="expiration_date">Date d'expiration</Label>
+          <Label htmlFor="expiration_date">Date d&apos;expiration</Label>
           <Input
             id="expiration_date"
             type="date"

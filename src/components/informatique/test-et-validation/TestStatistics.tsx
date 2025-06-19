@@ -133,7 +133,7 @@ export function TestStatistics({ statistics }: TestStatisticsProps) {
     <Card>
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+          <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
           <TabsTrigger value="type">Par Type</TabsTrigger>
           <TabsTrigger value="status">Par Statut</TabsTrigger>
           <TabsTrigger value="environment">Par Environnement</TabsTrigger>
@@ -149,7 +149,7 @@ export function TestStatistics({ statistics }: TestStatisticsProps) {
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="text-sm font-medium">Temps d'exécution moyen</div>
+                <div className="text-sm font-medium">Temps d&apos;exécution moyen</div>
                 <div className="text-2xl font-bold">
                   {statistics.average_execution_time}s
                 </div>

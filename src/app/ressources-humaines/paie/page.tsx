@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import MegaMenu from '../../../components/layout/MegaMenu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PayrollDashboard } from '@/components/ressources-humaines/paie/PayrollDashboard';

@@ -1,6 +1,5 @@
-import { FC } from 'react';
+import React, { FC } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, LineChart, PieChart, TrendingUp, TrendingDown, DollarSign, Users, Target, Share2 } from 'lucide-react';
@@ -75,7 +74,7 @@ const StatistiquesStrategie: FC = () => {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="grid w-full grid-cols-3 bg-white dark:bg-gray-800 rounded-lg p-1">
             <TabsTrigger value="overview" className="text-gray-700 data-[state=active]:text-gray-900 dark:text-gray-300 dark:data-[state=active]:text-white">
-              Vue d'ensemble
+              Vue d&apos;ensemble
             </TabsTrigger>
             <TabsTrigger value="performance" className="text-gray-700 data-[state=active]:text-gray-900 dark:text-gray-300 dark:data-[state=active]:text-white">
               Performance
@@ -207,12 +206,12 @@ const StatistiquesStrategie: FC = () => {
                           <Target className="h-5 w-5 text-green-500 dark:text-green-400" />
                         </div>
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">Ciblage d'audience</h4>
+                          <h4 className="font-medium text-gray-900 dark:text-white">Ciblage d&apos;audience</h4>
                           <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
                             Le segment 25-34 ans montre un taux de conversion 30% plus élevé. Concentrez vos efforts sur ce groupe.
                           </p>
                           <Button variant="link" className="p-0 h-auto mt-2 text-green-500 dark:text-green-400">
-                            Voir l'analyse complète
+                            Voir l&apos;analyse complète
                           </Button>
                         </div>
                       </div>
@@ -256,7 +255,7 @@ const StatistiquesStrategie: FC = () => {
             <div className="flex items-center justify-center h-64 border rounded-lg dark:border-gray-700 bg-white dark:bg-gray-800">
               <div className="text-center">
                 <Users className="h-16 w-16 text-gray-400 mx-auto" />
-                <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">Données d'audience détaillées</h3>
+                <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">Données d&apos;audience détaillées</h3>
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                   Analyse démographique et comportementale de votre audience
                 </p>

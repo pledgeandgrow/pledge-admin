@@ -3,8 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { BookOpen, CheckCircle2, AlertTriangle, Lightbulb, BookMarked, Star, TrendingUp, Bookmark } from 'lucide-react';
+import { CheckCircle2, Lightbulb, BookMarked, Star, TrendingUp, Bookmark } from 'lucide-react';
 
 const bestPractices = [
   {

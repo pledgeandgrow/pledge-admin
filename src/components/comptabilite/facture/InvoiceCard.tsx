@@ -128,7 +128,7 @@ export function InvoiceCard({ invoice, onClick }: InvoiceCardProps) {
             </p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Date d'échéance</p>
+            <p className="text-sm text-muted-foreground">Date d&apos;échéance</p>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span>{new Date(invoice.due_date).toLocaleDateString()}</span>

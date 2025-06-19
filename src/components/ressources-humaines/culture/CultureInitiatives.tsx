@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+// import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Search, Filter, Plus, Calendar, Users, Lightbulb, ArrowRight, ThumbsUp, Eye } from 'lucide-react';
 
 interface CultureInitiative {
@@ -177,7 +177,7 @@ export function CultureInitiatives() {
             Initiatives culturelles
           </CardTitle>
           <CardDescription>
-            Gérez les initiatives visant à renforcer la culture d'entreprise
+            Gérez les initiatives visant à renforcer la culture d&apos;entreprise
           </CardDescription>
         </CardHeader>
         <CardContent>

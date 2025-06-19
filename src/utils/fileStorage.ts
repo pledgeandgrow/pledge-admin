@@ -1,6 +1,38 @@
 import fs from 'fs';
 import path from 'path';
 
+// Define interfaces for the data structures
+interface BaseProject {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface InternalProject extends BaseProject {
+  department: string;
+  priority: string;
+  assignedTo: string[];
+}
+
+interface ClientProject extends BaseProject {
+  clientName: string;
+  budget: number;
+  deadline: string;
+  contactPerson: string;
+}
+
+interface Specification {
+  id: string;
+  projectId: string;
+  content: string;
+  version: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const DATA_DIR = path.join(process.cwd(), 'data');
 const INTERNAL_PROJECTS_FILE = path.join(DATA_DIR, 'internal-projects.json');
 const CLIENT_PROJECTS_FILE = path.join(DATA_DIR, 'client-projects.json');
@@ -19,7 +51,7 @@ if (!fs.existsSync(DATA_DIR)) {
 });
 
 export const fileStorage = {
-  readInternalProjects: (): any[] => {
+  readInternalProjects: (): InternalProject[] => {
     try {
       const data = fs.readFileSync(INTERNAL_PROJECTS_FILE, 'utf-8');
       return JSON.parse(data);
@@ -29,7 +61,7 @@ export const fileStorage = {
     }
   },
 
-  writeInternalProjects: (projects: any[]): void => {
+  writeInternalProjects: (projects: InternalProject[]): void => {
     try {
       fs.writeFileSync(INTERNAL_PROJECTS_FILE, JSON.stringify(projects, null, 2));
     } catch (error) {
@@ -37,7 +69,7 @@ export const fileStorage = {
     }
   },
 
-  readClientProjects: (): any[] => {
+  readClientProjects: (): ClientProject[] => {
     try {
       const data = fs.readFileSync(CLIENT_PROJECTS_FILE, 'utf-8');
       return JSON.parse(data);
@@ -47,7 +79,7 @@ export const fileStorage = {
     }
   },
 
-  writeClientProjects: (projects: any[]): void => {
+  writeClientProjects: (projects: ClientProject[]): void => {
     try {
       fs.writeFileSync(CLIENT_PROJECTS_FILE, JSON.stringify(projects, null, 2));
     } catch (error) {
@@ -55,7 +87,7 @@ export const fileStorage = {
     }
   },
 
-  readSpecifications: (): any[] => {
+  readSpecifications: (): Specification[] => {
     try {
       const data = fs.readFileSync(SPECIFICATIONS_FILE, 'utf-8');
       return JSON.parse(data);
@@ -65,7 +97,7 @@ export const fileStorage = {
     }
   },
 
-  writeSpecifications: (specifications: any[]): void => {
+  writeSpecifications: (specifications: Specification[]): void => {
     try {
       fs.writeFileSync(SPECIFICATIONS_FILE, JSON.stringify(specifications, null, 2));
     } catch (error) {

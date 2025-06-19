@@ -35,7 +35,7 @@ export function DevisStats({ stats }: DevisStatsProps) {
   }: {
     title: string;
     value: string | number;
-    icon: any;
+    icon: React.ElementType;
     description?: string;
     className?: string;
   }) => (

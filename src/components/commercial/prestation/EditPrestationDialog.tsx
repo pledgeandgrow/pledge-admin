@@ -84,8 +84,7 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
     }
   }, [prestation, form]);
 
-  // Watch priceMin to validate priceMax
-  const priceMin = form.watch('priceMin');
+  // priceMin watch removed as it's unused
 
   // Handle form submission
   const onSubmit = (values: FormValues) => {

@@ -178,7 +178,7 @@ export function PerformanceDashboard() {
           <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
             Objectifs clés de performance
           </CardTitle>
-          <CardDescription>Progression vers les objectifs d'entreprise</CardDescription>
+          <CardDescription>Progression vers les objectifs d&apos;entreprise</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">

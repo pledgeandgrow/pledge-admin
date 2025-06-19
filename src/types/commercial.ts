@@ -60,6 +60,7 @@ export interface WaitlistEntry {
 }
 
 export interface AutreOffre {
+  id: string;
   title: string;
   description: string;
   type: string;

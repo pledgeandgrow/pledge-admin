@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Client } from '@/types/commercial';
 import { ClientTable } from './ClientTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
 
 const mockClients: Client[] = [
   {
@@ -41,8 +41,8 @@ const mockClients: Client[] = [
 ];
 
 export function ClientList() {
-  const [clients, setClients] = useState<Client[]>(mockClients);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [clients] = useState<Client[]>(mockClients);
+  const [, setSelectedClient] = useState<Client | null>(null);
 
   const getStatusColor = (status: Client['status']) => {
     const colors = {

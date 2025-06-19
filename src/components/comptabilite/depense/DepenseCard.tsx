@@ -2,17 +2,15 @@ import { Depense } from "@/types/depense";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Calendar,
   CreditCard,
   CheckCircle,
   Clock,
-  AlertTriangle,
   XCircle,
-  FileText,
   Tag,
   User,
   Building,
   Briefcase,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";

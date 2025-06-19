@@ -4,14 +4,9 @@ import { Package } from '@/types/commercial';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, Pencil } from 'lucide-react';
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipTrigger,
-  TooltipProvider 
-} from '@/components/ui/tooltip';
-import { Separator } from '@/components/ui/separator';
+// Eye and Pencil imports removed as they're unused
+// Tooltip imports removed as they're unused
+// Separator import removed as it's unused
 
 interface PackageCardProps {
   package: Package;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MegaMenu } from '@/components/layout/MegaMenu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,9 +27,28 @@ export default function ProjetsInternesPage() {
     enRetard: 0
   });
 
+  const fetchProjects = useCallback(async () => {
+    try {
+      const response = await fetch('/api/internal-projects');
+      if (!response.ok) throw new Error('Failed to fetch projects');
+      const data = await response.json();
+      setProjects(data);
+      updateStatistics(data);
+    } catch (error) {
+      console.error('Error in internal project operation:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les projets.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [fetchProjects]);
 
   useEffect(() => {
     // Filter projects based on search query
@@ -42,24 +61,6 @@ export default function ProjetsInternesPage() {
     );
     setFilteredProjects(filtered);
   }, [searchQuery, projects]);
-
-  const fetchProjects = async () => {
-    try {
-      const response = await fetch('/api/internal-projects');
-      if (!response.ok) throw new Error('Failed to fetch projects');
-      const data = await response.json();
-      setProjects(data);
-      updateStatistics(data);
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les projets.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const updateStatistics = (projectList: InternalProjectType[]) => {
     const now = new Date();
@@ -93,6 +94,7 @@ export default function ProjetsInternesPage() {
         description: "Le projet a été créé avec succès.",
       });
     } catch (error) {
+      console.error('Error in internal project operation:', error);
       toast({
         title: "Erreur",
         description: "Impossible de créer le projet.",
@@ -101,12 +103,19 @@ export default function ProjetsInternesPage() {
     }
   };
 
-  const handleUpdateProject = async (project: InternalProjectType) => {
+  const handleUpdateProject = async (project: InternalProjectType | Omit<InternalProjectType, 'id'>) => {
     try {
+      // If the project has an id, it's an update, otherwise it's a create
+      const projectData = 'id' in project ? project : { ...project, id: selectedProject?.id };
+      
+      if (!projectData.id) {
+        throw new Error('Project ID is required for update');
+      }
+      
       const response = await fetch('/api/internal-projects', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(project),
+        body: JSON.stringify(projectData),
       });
 
       if (!response.ok) throw new Error('Failed to update project');
@@ -119,6 +128,7 @@ export default function ProjetsInternesPage() {
         description: "Les modifications ont été enregistrées.",
       });
     } catch (error) {
+      console.error('Error in internal project operation:', error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le projet.",
@@ -143,6 +153,7 @@ export default function ProjetsInternesPage() {
         variant: "destructive",
       });
     } catch (error) {
+      console.error('Error in internal project operation:', error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer le projet.",

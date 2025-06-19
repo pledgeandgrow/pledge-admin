@@ -122,7 +122,7 @@ export default function FidelisationPage() {
           {/* Main Content Tabs */}
           <Tabs defaultValue="overview" className="mb-8">
             <TabsList className="grid w-full grid-cols-4 mb-8">
-              <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+              <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
               <TabsTrigger value="program">Programme de Fidélité</TabsTrigger>
               <TabsTrigger value="reviews">Avis Clients</TabsTrigger>
               <TabsTrigger value="campaigns">Campagnes</TabsTrigger>
@@ -206,7 +206,7 @@ export default function FidelisationPage() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
                         <TrendingUp className="h-5 w-5 text-green-500" />
-                        Évolution de l'Engagement
+                        Évolution de l&apos;Engagement
                       </CardTitle>
                       <CardDescription className="text-gray-500 dark:text-gray-400">
                         Activité des clients fidèles
@@ -251,7 +251,7 @@ export default function FidelisationPage() {
                 <CardHeader>
                   <CardTitle className="text-gray-900 dark:text-gray-100">Campagnes de Fidélisation</CardTitle>
                   <CardDescription className="text-gray-500 dark:text-gray-400">
-                    Gérez vos campagnes de fidélisation et d'engagement client
+                    Gérez vos campagnes de fidélisation et d&apos;engagement client
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

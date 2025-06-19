@@ -359,7 +359,7 @@ export function CustomerReviews() {
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
                               <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                                Réponse de l'équipe
+                                Réponse de l&apos;équipe
                               </h4>
                               <span className="text-xs text-gray-500 dark:text-gray-400">
                                 {review.response.date}

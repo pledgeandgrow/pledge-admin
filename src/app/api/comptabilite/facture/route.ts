@@ -25,12 +25,12 @@ async function readInvoices() {
   return JSON.parse(content);
 }
 
-async function writeInvoices(invoices: any[]) {
+async function writeInvoices(invoices: Record<string, unknown>[]) {
   await ensureDataFile();
   await fs.writeFile(DATA_FILE, JSON.stringify(invoices, null, 2));
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const invoices = await readInvoices();
     return NextResponse.json(invoices);
@@ -87,7 +87,7 @@ export async function PATCH(request: Request) {
     }
 
     const invoices = await readInvoices();
-    const index = invoices.findIndex((invoice: any) => invoice.id === id);
+    const index = invoices.findIndex((invoice: Record<string, unknown>) => invoice.id === id);
 
     if (index === -1) {
       return NextResponse.json(
@@ -128,7 +128,7 @@ export async function DELETE(request: Request) {
     }
 
     const invoices = await readInvoices();
-    const filteredInvoices = invoices.filter((invoice: any) => invoice.id !== id);
+    const filteredInvoices = invoices.filter((invoice: Record<string, unknown>) => invoice.id !== id);
 
     if (filteredInvoices.length === invoices.length) {
       return NextResponse.json(

@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageCircle, ThumbsUp, Share2, Edit, Trash2, Plus, Users, AlertCircle } from 'lucide-react';
+import { MessageCircle, Edit, Trash2, Plus, AlertCircle } from 'lucide-react';
 
 interface Comment {
   id: number;

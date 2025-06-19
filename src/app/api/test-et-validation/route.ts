@@ -12,6 +12,7 @@ async function readTests(): Promise<Test[]> {
     const data = await fs.readFile(dataFile, "utf-8");
     return JSON.parse(data);
   } catch (error) {
+    console.error("Error in API route:", error);
     // If file doesn't exist, create it with empty array
     await fs.writeFile(dataFile, "[]");
     return [];
@@ -28,6 +29,7 @@ export async function GET() {
     const tests = await readTests();
     return NextResponse.json(tests);
   } catch (error) {
+    console.error("Error in API route:", error);
     return NextResponse.json({ error: "Failed to fetch tests" }, { status: 500 });
   }
 }
@@ -60,6 +62,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newTest);
   } catch (error) {
+    console.error("Error in API route:", error);
     return NextResponse.json(
       { error: "Failed to create test" },
       { status: 500 }
@@ -101,6 +104,7 @@ export async function PATCH(request: Request) {
     await writeTests(tests);
     return NextResponse.json(tests[testIndex]);
   } catch (error) {
+    console.error("Error in API route:", error);
     return NextResponse.json(
       { error: "Failed to update test" },
       { status: 500 }
@@ -133,6 +137,7 @@ export async function DELETE(request: Request) {
     await writeTests(filteredTests);
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Error in API route:", error);
     return NextResponse.json(
       { error: "Failed to delete test" },
       { status: 500 }

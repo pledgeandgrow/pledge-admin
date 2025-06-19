@@ -4,7 +4,7 @@ import { FC, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+// Label removed - unused import
 import { Textarea } from '@/components/ui/textarea';
 import {
   FileText,
@@ -39,7 +39,7 @@ export const BrandGuidelines: FC<BrandGuidelinesProps> = ({ sections: initialSec
     setEditingSection(id);
   };
 
-  const handleSave = (id: string) => {
+  const handleSave = () => {
     setEditingSection(null);
   };
 

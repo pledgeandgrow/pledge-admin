@@ -99,14 +99,14 @@ const initialBoardMembers: BoardMember[] = [
     status: 'Active',
     responsibilities: ['Financial Strategy'],
     jobDescription: {
-      summary: "En tant que CFO, superviser la stratégie financière et la gestion des ressources de l'entreprise.",
+      summary: "En tant que CFO, superviser la stratégie financière et la gestion des ressources de l&apos;entreprise.",
       roles: [
         "Gérer la stratégie financière globale",
         "Superviser la comptabilité et le reporting",
         "Optimiser la structure financière"
       ],
       missions: [
-        "Assurer la santé financière de l'entreprise",
+        "Assurer la santé financière de l&apos;entreprise",
         "Gérer les relations avec les investisseurs",
         "Optimiser la gestion des ressources",
         "Développer les projections financières"

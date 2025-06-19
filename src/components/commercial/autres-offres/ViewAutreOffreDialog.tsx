@@ -77,7 +77,7 @@ export function ViewAutreOffreDialog({
               <Label className="text-sm font-medium text-muted-foreground">Date de validité</Label>
               <div className="flex items-center">
                 <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span>Valide jusqu'au {new Date(offre.validUntil).toLocaleDateString('fr-FR')}</span>
+                <span>Valide jusqu&apos;au {new Date(offre.validUntil).toLocaleDateString('fr-FR')}</span>
               </div>
             </div>
           )}

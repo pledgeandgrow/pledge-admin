@@ -1,7 +1,38 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { Invoice } from "./types";
+import { useEffect, useState, useCallback } from "react";
+import { Invoice, InvoiceItem } from "./types";
+
+// Extended Invoice interface to include additional properties needed in this component
+interface ExtendedInvoice extends Omit<Invoice, 'clientName' | 'clientAddress' | 'clientEmail' | 'clientPhone' | 'status'> {
+  paymentTerms?: string;
+  paymentMethod?: string;
+  projectName?: string;
+  companyDetails?: {
+    name?: string;
+    address?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+    registration_number?: string;
+    vat_number?: string;
+    activity_code?: string;
+    country?: string;
+    postal_code?: string;
+    city?: string;
+    contact_name?: string;
+    bank_account?: string;
+  };
+  clientName: string;
+  clientAddress: string;
+  clientEmail: string;
+  clientPhone: string;
+  currency?: string;
+  language?: string;
+  status: "draft" | "sent" | "paid" | "cancelled" | "overdue";
+  logo?: string;
+}
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,12 +45,24 @@ import { toast } from "@/components/ui/use-toast";
 import { loadLogoForPDF } from "./utils";
 
 interface InvoiceFormProps {
-  onSubmit: (data: Partial<Invoice>) => void;
+  onSubmit: (data: ExtendedInvoice) => void;
   onCancel: () => void;
-  clients: Invoice["client"][];
+  clients: { id: string; name: string; address: string; email: string; phone: string }[];
   projects: { id: string; name: string }[];
-  initialData?: Invoice;
-  companyDetails: any;
+  initialData?: ExtendedInvoice;
+  companyDetails: {
+    name: string;
+    address: string;
+    postal_code: string;
+    city: string;
+    country: string;
+    vat_number?: string;
+    registration_number?: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+    bank_account?: string;
+  };
 }
 
 export function InvoiceForm({
@@ -30,59 +73,69 @@ export function InvoiceForm({
   initialData,
   companyDetails,
 }: InvoiceFormProps) {
-  const [formData, setFormData] = useState<Partial<Invoice>>(
+  const [formData, setFormData] = useState<Partial<ExtendedInvoice>>(
     initialData || {
-      invoice_number: "",
+      number: "",
       date: new Date().toISOString(),
-      due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      status: "draft",
-      client: { name: "", address: "", email: "", country: "", registration_number: "", activity_code: "", vat_number: "", phone: "" },
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      status: "draft" as const,
+      clientName: "",
+      clientAddress: "",
+      clientEmail: "",
+      clientPhone: "",
       items: [],
       subtotal: 0,
-      tax_rate: 20,
-      tax_amount: 0,
+      taxRate: 20,
+      taxAmount: 0,
       total: 0,
       notes: "",
-      payment_terms: "30 jours",
-      payment_method: "Virement bancaire",
+      paymentTerms: "30 jours",
+      paymentMethod: "Virement bancaire",
       currency: "EUR",
       language: "fr",
-      company_details: companyDetails,
+      companyDetails: companyDetails,
     }
   );
 
-  const [newItem, setNewItem] = useState({
+  const [newItem, setNewItem] = useState<InvoiceItem>({
     description: "",
     quantity: 1,
-    unit_price: 0,
-    total: 0,
+    unitPrice: 0,
+    amount: 0,
   });
 
-  useEffect(() => {
-    calculateTotals();
-  }, [formData.items, formData.tax_rate]);
+  const calculateTotals = useCallback(() => {
+    if (!formData.items || formData.items.length === 0) {
+      return;
+    }
 
-  const calculateTotals = () => {
-    const items = formData.items || [];
-    const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-    const taxAmount = (subtotal * (formData.tax_rate || 0)) / 100;
+    const subtotal = formData.items.reduce((acc, item) => acc + item.amount, 0);
+    const taxAmount = (subtotal * (formData.taxRate || 0)) / 100;
     const total = subtotal + taxAmount;
 
     setFormData((prev) => ({
       ...prev,
       subtotal,
-      tax_amount: taxAmount,
+      taxAmount,
       total,
     }));
-  };
+  }, [formData.items, formData.taxRate]);
+
+  useEffect(() => {
+    calculateTotals();
+  }, [calculateTotals]);
 
   const handleAddItem = () => {
-    if (!newItem.description || newItem.quantity <= 0 || newItem.unit_price <= 0) {
+    if (!newItem.description || newItem.quantity <= 0 || newItem.unitPrice <= 0) {
       return;
     }
 
-    const itemTotal = newItem.quantity * newItem.unit_price;
-    const item = { ...newItem, total: itemTotal };
+    const item: InvoiceItem = {
+      description: newItem.description,
+      quantity: newItem.quantity,
+      unitPrice: newItem.unitPrice,
+      amount: newItem.quantity * newItem.unitPrice,
+    };
 
     setFormData((prev) => ({
       ...prev,
@@ -92,8 +145,8 @@ export function InvoiceForm({
     setNewItem({
       description: "",
       quantity: 1,
-      unit_price: 0,
-      total: 0,
+      unitPrice: 0,
+      amount: 0,
     });
   };
 
@@ -107,12 +160,21 @@ export function InvoiceForm({
   const handleClientChange = (clientName: string) => {
     const selectedClient = clients.find((c) => c.name === clientName);
     if (selectedClient) {
-      setFormData((prev) => ({ ...prev, client: selectedClient }));
+      setFormData((prev) => ({
+        ...prev,
+        clientName: selectedClient.name,
+        clientAddress: selectedClient.address || '',
+        clientEmail: selectedClient.email || '',
+        clientPhone: selectedClient.phone || '',
+      }));
     } else {
       // Allow manual entry if client not found
       setFormData((prev) => ({
         ...prev,
-        client: { name: clientName, address: "", email: "", country: "", registration_number: "", activity_code: "", vat_number: "", phone: "" },
+        clientName: clientName,
+        clientAddress: "",
+        clientEmail: "",
+        clientPhone: "",
       }));
     }
   };
@@ -123,21 +185,21 @@ export function InvoiceForm({
       setFormData((prev) => ({
         ...prev,
         project_id: selectedProject.id,
-        project_name: selectedProject.name,
+        projectName: selectedProject.name,
       }));
     } else {
       // Allow manual entry if project not found
       setFormData((prev) => ({
         ...prev,
         project_id: undefined,
-        project_name: projectName,
+        projectName: projectName,
       }));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit(formData as ExtendedInvoice);
   };
 
   const exportToPDF = async () => {
@@ -148,8 +210,8 @@ export function InvoiceForm({
         unit: 'mm'
       });
       
-      const company = formData.company_details;
-      const client = formData.client;
+      const company = formData.companyDetails || {};
+      // Use client information from the form data directly in the PDF generation
       
       // Document margins
       const margin = {
@@ -161,20 +223,21 @@ export function InvoiceForm({
       // Add invoice header on the left
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
-      doc.text(`FACTURE N°${formData.invoice_number}`, margin.left, margin.top + 10);
+      doc.text(`FACTURE N°${formData.number}`, margin.left, margin.top + 10);
       
       // Add invoice details
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.text([
         `Date d'émission: ${new Date(formData.date || "").toLocaleDateString("fr-FR")}`,
-        `Échéance: ${new Date(formData.due_date || "").toLocaleDateString("fr-FR")}`,
+        `Échéance: ${new Date(formData.dueDate || "").toLocaleDateString("fr-FR")}`,
       ], margin.left, margin.top + 20);
       
       // Add logo on the right
       try {
         const logoData = await loadLogoForPDF();
-        doc.addImage(logoData, 'PNG', doc.internal.pageSize.width - margin.right - 35, margin.top, 35, 30); 
+        // Type assertion to ensure logoData is treated as a string
+        doc.addImage(logoData as string, 'PNG', doc.internal.pageSize.width - margin.right - 35, margin.top, 35, 30); 
       } catch (error) {
         console.error('Error loading logo:', error);
       }
@@ -188,17 +251,17 @@ export function InvoiceForm({
       
       doc.setFont("helvetica", "normal");
       const companyDetails = [
-        `Société : ${company.name}`,
-        `Votre contact : ${company.contact_name || "Mehdi Berel"}`,
-        `Adresse : ${company.address}`,
-        `${company.postal_code} ${company.city}`,
-        `Pays : ${company.country}`,
-        `Numéro d'entreprise : ${company.registration_number}`,
-        `Code d'activité : ${company.activity_code || "6201Z"}`,
-        `Numéro de TVA : ${company.vat_number}`,
-        `Numéro de téléphone : ${company.phone}`,
-        `Adresse email : ${company.email}`,
-        `Site internet : ${company.website || "https://www.pledgeandgrow.com/"}`
+        `${company?.name || ''}`,
+        `${company?.contact_name || ''}`,
+        `${company?.address || ''}`,
+        `${company?.postal_code || ''} ${company?.city || ''}`,
+        `${company?.country || ''}`,
+        `N° d'entreprise : ${company?.registration_number || ''}`,
+        `Code d'activité : ${company?.activity_code || ''}`,
+        `Numéro de TVA : ${company?.vat_number || ''}`,
+        `Numéro de téléphone : ${company?.phone || ''}`,
+        `Adresse email : ${company?.email || ''}`,
+        `Site internet : ${company?.website || "https://www.pledgeandgrow.com/"}`,
       ];
       doc.text(companyDetails, margin.left, detailsStartY + 5);
       
@@ -209,22 +272,19 @@ export function InvoiceForm({
       
       doc.setFont("helvetica", "normal");
       const clientDetails = [
-        `Société : ${client.name || ""}`,
-        `Adresse : ${client.address || ""}`,
-        `Pays : ${client.country || ""}`,
-        `Numéro d'entreprise : ${client.registration_number || ""}`,
-        `Code d'activité : ${client.activity_code || ""}`,
-        `Numéro de TVA : ${client.vat_number || ""}`,
-        `Numéro de téléphone : ${client.phone || ""}`
-      ];
+        formData.clientName,
+        formData.clientAddress,
+        formData.clientEmail,
+        formData.clientPhone,
+      ].filter(Boolean).join('\n');
       doc.text(clientDetails, middleX + margin.left, detailsStartY + 5);
       
       // Project details if available - positioned below company details
-      if (formData.project_name) {
+      if (formData.projectName) {
         doc.setFont("helvetica", "bold");
         doc.text("PROJET", margin.left, detailsStartY + 60);
         doc.setFont("helvetica", "normal");
-        doc.text(formData.project_name, margin.left, detailsStartY + 65);
+        doc.text(formData.projectName, margin.left, detailsStartY + 65);
       }
       
       // Add some spacing before the items table
@@ -245,8 +305,8 @@ export function InvoiceForm({
         body: formData.items?.map(item => [
           item.description,
           item.quantity.toString(),
-          formatCurrency(item.unit_price),
-          formatCurrency(item.total),
+          formatCurrency(item.unitPrice),
+          formatCurrency(item.amount),
         ]) || [],
         headStyles: {
           fillColor: [44, 62, 80], // Dark blue background
@@ -270,7 +330,9 @@ export function InvoiceForm({
       });
       
       // Totals section - positioned below table
-      const finalY = (doc as any).lastAutoTable.finalY + 10;
+      // Get the final Y position from the last table
+      // jsPDF with autotable plugin adds this property at runtime
+      const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
       
       // Add totals on the right
       doc.setFont("helvetica", "normal");
@@ -278,14 +340,14 @@ export function InvoiceForm({
       const totalsX = doc.internal.pageSize.width - margin.right - 30;
       doc.text([
         "Total HT",
-        `TVA (${formData.tax_rate}%)`,
+        `TVA (${formData.taxRate}%)`,
         "Total TTC",
       ], totalsX, finalY + 5);
       
       // Add amounts aligned to the right
       doc.text([
         formatCurrency(formData.subtotal || 0),
-        formatCurrency(formData.tax_amount || 0),
+        formatCurrency(formData.taxAmount || 0),
         formatCurrency(formData.total || 0),
       ], doc.internal.pageSize.width - margin.right, finalY + 5, { align: "right" });
       
@@ -298,17 +360,23 @@ export function InvoiceForm({
       doc.text("CONDITIONS DE PAIEMENT", margin.left, paymentY);
       doc.setFont("helvetica", "normal");
       doc.text([
-        `Mode de paiement: ${formData.payment_method}`,
-        `Conditions: ${formData.payment_terms}`,
+        `Mode de paiement: ${formData.paymentMethod}`,
+        `Conditions: ${formData.paymentTerms}`,
       ], margin.left, paymentY + 5);
       
       // Bank details on the right
       doc.setFont("helvetica", "bold");
       doc.text("COORDONNÉES BANCAIRES", doc.internal.pageSize.width - margin.right, paymentY, { align: "right" });
       doc.setFont("helvetica", "normal");
-      doc.text([
-        `IBAN: ${company.bank_account || "FR76 1234 5678 9012 3456 7890 123"}`,
+      doc.text(["Informations de paiement:", 
+        `Mode de paiement: ${formData.paymentMethod || "Virement bancaire"}`,
+        `IBAN: ${company?.bank_account || "FR76 1234 5678 9012 3456 7890 123"}`,
       ], doc.internal.pageSize.width - margin.right, paymentY + 5, { align: "right" });
+      
+      // Add logo if available
+      if (formData.logo && typeof formData.logo === 'string') {
+        doc.addImage(formData.logo, 'JPEG', margin.left, margin.top, 40, 20);
+      }
       
       // Notes section if available
       if (formData.notes) {
@@ -329,7 +397,7 @@ export function InvoiceForm({
       );
       
       // Save PDF
-      doc.save(`facture_${formData.invoice_number}.pdf`);
+      doc.save(`facture_${formData.number}.pdf`);
       
       toast({
         title: "Succès",
@@ -350,14 +418,14 @@ export function InvoiceForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-4">
           <div>
-            <Label htmlFor="invoice_number">Numéro de facture</Label>
+            <Label htmlFor="number">Numéro de facture</Label>
             <Input
-              id="invoice_number"
-              value={formData.invoice_number}
+              id="number"
+              value={formData.number}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  invoice_number: e.target.value,
+                  number: e.target.value,
                 }))
               }
               required
@@ -365,7 +433,7 @@ export function InvoiceForm({
           </div>
 
           <div>
-            <Label htmlFor="date">Date d'émission</Label>
+            <Label htmlFor="date">Date d&apos;émission</Label>
             <Input
               type="date"
               id="date"
@@ -380,15 +448,15 @@ export function InvoiceForm({
           </div>
 
           <div>
-            <Label htmlFor="due_date">Date d'échéance</Label>
+            <Label htmlFor="dueDate">Date d&apos;échéance</Label>
             <Input
               type="date"
-              id="due_date"
-              value={formData.due_date ? new Date(formData.due_date).toISOString().split('T')[0] : ''}
+              id="dueDate"
+              value={formData.dueDate ? new Date(formData.dueDate).toISOString().split('T')[0] : ''}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  due_date: new Date(e.target.value).toISOString(),
+                  dueDate: new Date(e.target.value).toISOString(),
                 }))
               }
             />
@@ -398,7 +466,7 @@ export function InvoiceForm({
             <Label htmlFor="status">Statut</Label>
             <Select
               value={formData.status}
-              onValueChange={(value) =>
+              onValueChange={(value: "draft" | "sent" | "paid" | "overdue" | "cancelled") =>
                 setFormData((prev) => ({ ...prev, status: value }))
               }
             >
@@ -420,7 +488,7 @@ export function InvoiceForm({
           <div>
             <Label htmlFor="emetteur">Émetteur</Label>
             <Select
-              value={formData.client?.name}
+              value={formData.clientName || ''}
               onValueChange={handleClientChange}
             >
               <SelectTrigger>
@@ -439,7 +507,7 @@ export function InvoiceForm({
           <div>
             <Label htmlFor="project">Client</Label>
             <Select
-              value={formData.project_name}
+              value={formData.projectName}
               onValueChange={handleProjectChange}
             >
               <SelectTrigger>
@@ -456,28 +524,28 @@ export function InvoiceForm({
           </div>
 
           <div>
-            <Label htmlFor="payment_terms">Conditions de paiement</Label>
+            <Label htmlFor="paymentTerms">Conditions de paiement</Label>
             <Input
-              id="payment_terms"
-              value={formData.payment_terms}
+              id="paymentTerms"
+              value={formData.paymentTerms}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  payment_terms: e.target.value,
+                  paymentTerms: e.target.value,
                 }))
               }
             />
           </div>
 
           <div>
-            <Label htmlFor="payment_method">Mode de paiement</Label>
+            <Label htmlFor="paymentMethod">Mode de paiement</Label>
             <Input
-              id="payment_method"
-              value={formData.payment_method}
+              id="paymentMethod"
+              value={formData.paymentMethod}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  payment_method: e.target.value,
+                  paymentMethod: e.target.value,
                 }))
               }
             />
@@ -523,18 +591,18 @@ export function InvoiceForm({
               type="number"
               min="0"
               step="0.01"
-              value={newItem.unit_price}
+              value={newItem.unitPrice}
               onChange={(e) =>
                 setNewItem((prev) => ({
                   ...prev,
-                  unit_price: parseFloat(e.target.value) || 0,
+                  unitPrice: parseFloat(e.target.value) || 0,
                 }))
               }
             />
           </div>
         </div>
         <Button type="button" onClick={handleAddItem}>
-          Ajouter l'article
+          Ajouter l&apos;article
         </Button>
 
         <div className="border rounded-lg p-4">
@@ -554,9 +622,9 @@ export function InvoiceForm({
                   <td>{item.description}</td>
                   <td className="text-right">{item.quantity}</td>
                   <td className="text-right">
-                    {formatCurrency(item.unit_price)}
+                    {formatCurrency(item.unitPrice)}
                   </td>
-                  <td className="text-right">{formatCurrency(item.total)}</td>
+                  <td className="text-right">{formatCurrency(item.amount)}</td>
                   <td className="text-right">
                     <Button
                       type="button"
@@ -584,18 +652,18 @@ export function InvoiceForm({
                 type="number"
                 min="0"
                 max="100"
-                value={formData.tax_rate}
+                value={formData.taxRate}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    tax_rate: parseFloat(e.target.value) || 0,
+                    taxRate: parseFloat(e.target.value) || 0,
                   }))
                 }
                 className="w-20"
               />
               <span>%</span>
               <span className="ml-4">
-                {formatCurrency(formData.tax_amount || 0)}
+                {formatCurrency(formData.taxAmount || 0)}
               </span>
             </div>
           </div>

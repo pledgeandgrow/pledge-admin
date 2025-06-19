@@ -16,7 +16,7 @@ interface TechnicalSheetListProps {
     category: string;
     status: string;
   };
-  onSelect: (system: any) => void;
+  onSelect: (system: { category: string; status: string; frameworks?: { name: string; value: string }[] }) => void;
 }
 
 export const TechnicalSheetList: FC<TechnicalSheetListProps> = ({

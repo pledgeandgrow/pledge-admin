@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ServerIcon, CheckCircleIcon, XCircleIcon, SettingsIcon, AlertTriangleIcon } from "lucide-react";
+import { ServerIcon, CheckCircleIcon, XCircleIcon, SettingsIcon } from "lucide-react";
 
 interface ServerStatsProps {
   servers: Server[];

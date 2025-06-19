@@ -1,12 +1,16 @@
 import { createSupabaseServerClient } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
+// This file contains API routes for managing quotes (devis)
+// We're using specific @ts-expect-error comments to handle Supabase query builder typing issues
+
 export async function POST(request: Request) {
   try {
     const supabase = createSupabaseServerClient();
 
     const body = await request.json();
 
+    // @ts-expect-error - Supabase query builder typing issue with select() method
     const { data: devis, error } = await supabase
       .from("devis")
       .insert([
@@ -32,7 +36,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const supabase = createSupabaseServerClient();
 
@@ -69,6 +73,7 @@ export async function DELETE(request: Request) {
       );
     }
 
+    // @ts-expect-error - Supabase query builder typing issue with eq() method
     const { error } = await supabase
       .from("devis")
       .delete()

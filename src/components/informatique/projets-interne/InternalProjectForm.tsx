@@ -170,7 +170,7 @@ export const InternalProjectForm: FC<InternalProjectFormProps> = ({
             <Label>Statut</Label>
             <Select
               value={formData.statut}
-              onValueChange={(value: any) => setFormData(prev => ({ ...prev, statut: value }))}
+              onValueChange={(value: "En cours" | "Terminé" | "En pause") => setFormData(prev => ({ ...prev, statut: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un statut" />
@@ -186,7 +186,7 @@ export const InternalProjectForm: FC<InternalProjectFormProps> = ({
             <Label>Priorité</Label>
             <Select
               value={formData.priorite}
-              onValueChange={(value: any) => setFormData(prev => ({ ...prev, priorite: value }))}
+              onValueChange={(value: "Haute" | "Moyenne" | "Basse") => setFormData(prev => ({ ...prev, priorite: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner une priorité" />

@@ -3,18 +3,18 @@
 import { FC } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+// Badge removed - unused import
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import {
   Settings,
-  DollarSign,
+  // DollarSign removed - unused import
   BarChart,
   Bell,
   Shield,
-  Clock,
+  // Clock removed - unused import
   Percent
 } from 'lucide-react';
 

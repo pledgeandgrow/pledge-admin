@@ -116,9 +116,10 @@ export default function Home() {
       }
 
       router.push('/dashboard');
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in. Please try again later.';
       setErrors({
-        general: 'Failed to sign in. Please try again later.'
+        general: errorMessage
       });
     } finally {
       setIsLoading(false);

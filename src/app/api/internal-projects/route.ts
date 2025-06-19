@@ -25,7 +25,7 @@ export async function PUT(request: Request) {
   const projects = fileStorage.readInternalProjects();
   const updatedProject = await request.json();
   
-  const index = projects.findIndex((p: any) => p.id === updatedProject.id);
+  const index = projects.findIndex((p) => p.id === updatedProject.id);
   if (index !== -1) {
     projects[index] = updatedProject;
     fileStorage.writeInternalProjects(projects);
@@ -44,7 +44,7 @@ export async function DELETE(request: Request) {
   }
   
   const projects = fileStorage.readInternalProjects();
-  const filteredProjects = projects.filter((p: any) => p.id !== id);
+  const filteredProjects = projects.filter((p) => p.id !== id);
   
   if (filteredProjects.length === projects.length) {
     return NextResponse.json({ error: 'Project not found' }, { status: 404 });

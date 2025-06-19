@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { MegaMenu } from '@/components/layout/MegaMenu';
-import { Card } from '@/components/ui/card';
+// Removed unused Card import
 import {
   Table,
   TableBody,
@@ -15,10 +15,10 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
+  // DialogDescription removed - unused
   DialogHeader,
   DialogTitle,
-  DialogFooter,
+  // DialogFooter removed - unused
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -30,13 +30,15 @@ export default function BoardMembersPage() {
   const [selectedMember, setSelectedMember] = useState<BoardMember | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
-  const [departmentFilter, setDepartmentFilter] = useState('all');
-  const [locationFilter, setLocationFilter] = useState('all');
+  const [departmentFilter] = useState('all');
+  const [locationFilter] = useState('all');
   const [editForm, setEditForm] = useState<Partial<BoardMember>>({});
   const [searchQuery, setSearchQuery] = useState('');
 
-  const departments = Array.from(new Set(boardMembers.map(member => member.department)));
-  const locations = Array.from(new Set(boardMembers.map(member => member.location)));
+  // Commented out unused variable
+  // const departments = Array.from(new Set(boardMembers.map(member => member.department)));
+  // Commented out unused variable
+  // const locations = Array.from(new Set(boardMembers.map(member => member.location)));
 
   const filteredMembers = boardMembers.filter(member => {
     const matchesDepartment = departmentFilter === 'all' || member.department === departmentFilter;
@@ -83,12 +85,13 @@ export default function BoardMembersPage() {
     setEditForm({});
   };
 
-  const handleRemoveMember = (id: string) => {
-    if (confirm('Are you sure you want to remove this board member?')) {
-      removeBoardMember(id);
-      setSelectedMember(null);
-    }
-  };
+  // Function to remove a board member - will be implemented in future UI updates
+  // const handleRemoveMember = (id: string) => {
+  //   if (confirm('Are you sure you want to remove this board member?')) {
+  //     removeBoardMember(id);
+  //     setSelectedMember(null);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

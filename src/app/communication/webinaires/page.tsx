@@ -2,6 +2,7 @@
 
 import { type NextPage } from 'next';
 import { useState } from 'react';
+import Image from 'next/image';
 import { MegaMenu } from '@/components/layout/MegaMenu';
 
 interface Webinaire {
@@ -302,10 +303,12 @@ const WebinairesPage: NextPage = () => {
                   <div className="p-4 bg-gray-50 rounded-lg dark:bg-gray-700">
                     <div className="flex items-center gap-3">
                       {webinaire.intervenant.photo ? (
-                        <img
+                        <Image
                           src={webinaire.intervenant.photo}
                           alt={webinaire.intervenant.nom}
-                          className="w-10 h-10 rounded-full object-cover"
+                          width={40}
+                          height={40}
+                          className="rounded-full object-cover"
                         />
                       ) : (
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center dark:bg-blue-900">
@@ -422,7 +425,7 @@ const WebinairesPage: NextPage = () => {
                         </p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg dark:bg-gray-700">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Taux d'interaction</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Taux d&apos;interaction</p>
                         <p className="text-lg font-semibold dark:text-white">
                           {webinaire.statistiques.tauxInteraction}%
                         </p>

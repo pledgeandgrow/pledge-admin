@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -39,41 +39,32 @@ export default function ProjetsClientsPage() {
     delayed: 0
   });
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
+  // Define fetchProjectsData with useCallback to avoid React Hook warnings
+  const fetchProjectsData = useCallback(async () => {
     try {
       const response = await fetch('/api/client-projects');
       if (!response.ok) throw new Error('Failed to fetch projects');
       const data = await response.json();
-      setProjects(data);
-      updateStatistics(data);
+      setProjects(data.projects);
+      setStatistics(data.statistics);
+      setIsLoading(false);
     } catch (error) {
+      console.error('Error in client project operation:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les projets.",
-        variant: "destructive",
+        title: 'Erreur',
+        description: 'Impossible de charger les projets clients',
+        variant: 'destructive'
       });
-    } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast, setProjects, setStatistics, setIsLoading]);
+  
+  // Using useEffect with proper dependency array
+  useEffect(() => {
+    fetchProjectsData();
+  }, [fetchProjectsData]);
 
-  const updateStatistics = (projectList: ClientProjectType[]) => {
-    const now = new Date();
-    const stats: ClientProjectStatisticsType = {
-      total: projectList.length,
-      active: projectList.filter(p => p.status === 'En cours').length,
-      completed: projectList.filter(p => p.status === 'Terminé').length,
-      delayed: projectList.filter(p => {
-        const endDate = new Date(p.deadline.split('/').reverse().join('-'));
-        return endDate < now && p.status !== 'Terminé';
-      }).length
-    };
-    setStatistics(stats);
-  };
+  // Removed unused fetchProjects function
 
   const handleCreateProject = async (project: Omit<ClientProjectType, 'id'>) => {
     try {
@@ -93,6 +84,7 @@ export default function ProjetsClientsPage() {
         description: "Le projet a été créé avec succès.",
       });
     } catch (error) {
+      console.error('Error in client project operation:', error);
       toast({
         title: "Erreur",
         description: "Impossible de créer le projet.",
@@ -119,6 +111,7 @@ export default function ProjetsClientsPage() {
         description: "Les modifications ont été enregistrées.",
       });
     } catch (error) {
+      console.error('Error in client project operation:', error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le projet.",
@@ -143,6 +136,7 @@ export default function ProjetsClientsPage() {
         variant: "destructive",
       });
     } catch (error) {
+      console.error('Error in client project operation:', error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer le projet.",

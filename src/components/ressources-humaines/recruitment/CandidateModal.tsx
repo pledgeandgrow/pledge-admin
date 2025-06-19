@@ -67,7 +67,7 @@ const CandidateModal: React.FC<CandidateModalProps> = ({
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 dark:text-gray-300">Domaine d'études</label>
+            <label className="block text-gray-700 dark:text-gray-300">Domaine d&apos;études</label>
             <input 
               type="text" 
               value={candidate.domaineEtudes} 

@@ -10,17 +10,17 @@ export async function GET(request: Request) {
   
   try {
     // Base query to filter by date range if provided
-    let queryCondition = '';
-    const queryParams: any[] = [];
+    // Removed unused queryCondition variable
+    const queryParams: unknown[] = [];
     
     if (from_date && to_date) {
-      queryCondition = 'WHERE date >= $1 AND date <= $2';
+      // Removed queryCondition assignment
       queryParams.push(from_date, to_date);
     } else if (from_date) {
-      queryCondition = 'WHERE date >= $1';
+      // Removed queryCondition assignment
       queryParams.push(from_date);
     } else if (to_date) {
-      queryCondition = 'WHERE date <= $1';
+      // Removed queryCondition assignment
       queryParams.push(to_date);
     }
     
@@ -65,7 +65,8 @@ export async function GET(request: Request) {
     }
     
     return NextResponse.json(statsData);
-  } catch (error) {
+  } catch (_error) {
+    console.error('Error in depenses stats route:', _error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

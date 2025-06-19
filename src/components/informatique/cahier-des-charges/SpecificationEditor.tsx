@@ -13,7 +13,7 @@ import Image from '@tiptap/extension-image';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import CodeBlock from '@tiptap/extension-code-block';
-import { Button } from '@/components/ui/button';
+
 import { Toggle } from '@/components/ui/toggle';
 import {
   Bold,
@@ -111,7 +111,7 @@ export function SpecificationEditor({ content, onChange }: SpecificationEditorPr
     isActive = false,
     tooltip
   }: { 
-    icon: any, 
+    icon: React.ElementType, 
     onClick: () => void, 
     isActive?: boolean,
     tooltip: string
@@ -329,7 +329,7 @@ export function SpecificationEditor({ content, onChange }: SpecificationEditorPr
 
       <div className="flex items-center justify-between p-2 border-t text-xs text-muted-foreground">
         <div>
-          Astuce: Utilisez Ctrl+B pour le gras, Ctrl+I pour l'italique, Ctrl+U pour souligner
+          Astuce: Utilisez Ctrl+B pour le gras, Ctrl+I pour l&apos;italique, Ctrl+U pour souligner
         </div>
         <div>
           {editor.storage.characterCount?.words()} mots

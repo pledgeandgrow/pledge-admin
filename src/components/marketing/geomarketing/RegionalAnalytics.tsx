@@ -131,8 +131,8 @@ export function RegionalAnalytics() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Toutes les régions</DropdownMenuItem>
                 <DropdownMenuItem>Top 5 régions</DropdownMenuItem>
-                <DropdownMenuItem>Croissance > 10%</DropdownMenuItem>
-                <DropdownMenuItem>Conversion > 3.5%</DropdownMenuItem>
+                <DropdownMenuItem>Croissance &gt; 10%</DropdownMenuItem>
+                <DropdownMenuItem>Conversion &gt; 3.5%</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

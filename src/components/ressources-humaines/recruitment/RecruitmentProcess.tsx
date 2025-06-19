@@ -56,7 +56,7 @@ const RecruitmentProcess: React.FC<RecruitmentProcessProps> = ({ processusRecrut
         <CardHeader className="pb-3">
           <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">Processus de Recrutement</CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-300">
-            Suivez l'avancement des différentes étapes du processus de recrutement
+            Suivez l&apos;avancement des différentes étapes du processus de recrutement
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -116,7 +116,7 @@ const RecruitmentProcess: React.FC<RecruitmentProcessProps> = ({ processusRecrut
         <CardHeader className="pb-3">
           <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">Statistiques Globales</CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-300">
-            Vue d'ensemble du processus de recrutement
+            Vue d&apos;ensemble du processus de recrutement
           </CardDescription>
         </CardHeader>
         <CardContent>

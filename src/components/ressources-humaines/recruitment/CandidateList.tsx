@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, UserPlus, Edit, Trash2, FileText, Mail, Phone, Briefcase, GraduationCap } from 'lucide-react';
+import { Search, UserPlus, Edit, Trash2, Mail, Phone, Briefcase, GraduationCap } from 'lucide-react';
 
 interface CandidateListProps {
   candidats: Candidate[];

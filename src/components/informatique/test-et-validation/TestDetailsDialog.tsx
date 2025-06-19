@@ -1,4 +1,4 @@
-import { Test, TestStep } from "./types";
+import { Test } from "./types";
 import {
   Dialog,
   DialogContent,
@@ -158,7 +158,7 @@ export function TestDetailsDialog({
                 </div>
 
                 <div>
-                  <h4 className="font-medium mb-2">Date d'échéance</h4>
+                  <h4 className="font-medium mb-2">Date d&apos;échéance</h4>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="h-4 w-4" />
                     {new Date(test.due_date).toLocaleDateString()}

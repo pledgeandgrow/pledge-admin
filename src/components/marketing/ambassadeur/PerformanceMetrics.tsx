@@ -3,13 +3,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// Tabs components removed - unused imports
 import { 
   BarChart, 
-  PieChart, 
+  // PieChart removed - unused import
   LineChart, 
   TrendingUp, 
-  Users, 
+  // Users removed - unused import
   Award, 
   Download,
   Calendar
@@ -89,7 +89,7 @@ export function PerformanceMetrics() {
               Performance par Catégorie
             </CardTitle>
             <CardDescription className="text-gray-500 dark:text-gray-400">
-              Comparaison des types d'ambassadeurs
+              Comparaison des types d&apos;ambassadeurs
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">

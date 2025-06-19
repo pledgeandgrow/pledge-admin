@@ -15,7 +15,7 @@ export default function Culture() {
       <MegaMenu />
       <div className="flex-grow p-8 ml-[32rem]">
         <h1 className="text-4xl font-bold mb-8 text-gray-800 dark:text-white">
-          Culture d'Entreprise & Croissance
+          Culture d&apos;Entreprise & Croissance
         </h1>
         
         <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="space-y-8">

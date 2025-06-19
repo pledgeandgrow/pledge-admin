@@ -45,7 +45,7 @@ const mockWaitlist: WaitlistEntry[] = [
 
 export function WaitlistList() {
   const [entries, setEntries] = useState<WaitlistEntry[]>(mockWaitlist);
-  const [selectedEntry, setSelectedEntry] = useState<WaitlistEntry | null>(null);
+  const [selectedEntry, setSelectedEntry] = useState<WaitlistEntry | undefined>(undefined);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -93,7 +93,7 @@ export function WaitlistList() {
       });
     }
     setEditDialogOpen(false);
-    setSelectedEntry(null);
+    setSelectedEntry(undefined);
   };
 
   const handleDelete = () => {
@@ -105,7 +105,7 @@ export function WaitlistList() {
         variant: 'destructive',
       });
       setEditDialogOpen(false);
-      setSelectedEntry(null);
+      setSelectedEntry(undefined);
     }
   };
 
@@ -113,14 +113,14 @@ export function WaitlistList() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="space-y-1">
-          <h2 className="text-2xl font-semibold tracking-tight">Liste d'attente</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Liste d&apos;attente</h2>
           <p className="text-sm text-muted-foreground">
             Gérez vos contacts en attente
           </p>
         </div>
         <Button
           onClick={() => {
-            setSelectedEntry(null);
+            setSelectedEntry(undefined);
             setEditDialogOpen(true);
           }}
           className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:opacity-90"

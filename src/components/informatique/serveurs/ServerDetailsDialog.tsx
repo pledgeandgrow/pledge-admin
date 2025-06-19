@@ -112,7 +112,7 @@ export function ServerDetailsDialog({ server, onOpenChange }: ServerDetailsDialo
             {/* System Info */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <h4 className="font-medium mb-1 text-sm">Système d'exploitation</h4>
+                <h4 className="font-medium mb-1 text-sm">Système d&apos;exploitation</h4>
                 <p className="text-sm text-muted-foreground">{server.os}</p>
               </div>
               <div>

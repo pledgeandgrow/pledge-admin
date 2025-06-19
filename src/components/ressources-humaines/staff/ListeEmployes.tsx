@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { 
   Card, 
   CardContent, 
-  CardDescription, 
+  // CardDescription, 
   CardFooter, 
   CardHeader, 
   CardTitle 
@@ -22,9 +22,9 @@ import {
   Mail, 
   Phone, 
   Calendar, 
-  Briefcase, 
+  // Briefcase, 
   Users, 
-  Award, 
+  // Award, 
   Edit, 
   Trash2, 
   Filter 
@@ -174,9 +174,8 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, on
                   <Select 
                     value={newEmploye.departement} 
                     onValueChange={(value) => setNewEmploye({...newEmploye, departement: value})}
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   >
-                    <SelectTrigger id="departement">
+                    <SelectTrigger id="departement" className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Sélectionner un département" />
                     </SelectTrigger>
                     <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
@@ -203,7 +202,7 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, on
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="dateEmbauche">Date d'embauche</Label>
+                  <Label htmlFor="dateEmbauche">Date d&apos;embauche</Label>
                   <Input
                     id="dateEmbauche"
                     name="dateEmbauche"
@@ -275,8 +274,8 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, on
             />
           </div>
           
-          <Select value={selectedDepartement} onValueChange={setSelectedDepartement} className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            <SelectTrigger className="w-full md:w-48">
+          <Select value={selectedDepartement} onValueChange={setSelectedDepartement}>
+            <SelectTrigger className="w-full md:w-48 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
               <div className="flex items-center">
                 <Filter className="h-4 w-4 mr-2 text-gray-400" />
                 <SelectValue placeholder="Filtrer par département" />
@@ -303,8 +302,8 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, on
             />
           </div>
           <div className="w-full md:w-64">
-            <Select value={selectedDepartement} onValueChange={setSelectedDepartement} className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-              <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <Select value={selectedDepartement} onValueChange={setSelectedDepartement}>
+              <SelectTrigger className="w-full md:w-48 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                 <div className="flex items-center">
                   <Filter className="h-4 w-4 mr-2 text-gray-400" />
                   <SelectValue placeholder="Filtrer par département" />
@@ -329,10 +328,12 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, on
                     <div className="flex items-center space-x-3">
                       <div className="relative w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
                         {emp.photo ? (
-                          <img 
+                          <Image 
                             src={emp.photo} 
                             alt={`${emp.prenom} ${emp.nom}`} 
-                            className="w-full h-full object-cover"
+                            width={48}
+                            height={48}
+                            className="object-cover"
                           />
                         ) : (
                           <span className="text-lg font-semibold text-gray-600 dark:text-gray-300">
@@ -420,7 +421,7 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, on
           {selectedEmployee && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-gray-900 dark:text-white">Détails de l'employé</DialogTitle>
+                <DialogTitle className="text-gray-900 dark:text-white">Détails de l&apos;employé</DialogTitle>
               </DialogHeader>
               <div className="mt-4 space-y-4">
                 <div className="space-y-2">
@@ -432,7 +433,7 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, on
                   <p className="text-sm text-gray-500 dark:text-gray-400">{selectedEmployee.poste}</p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Date d'embauche</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Date d&apos;embauche</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{new Date(selectedEmployee.dateEmbauche).toLocaleDateString()}</p>
                 </div>
                 <div className="space-y-2">

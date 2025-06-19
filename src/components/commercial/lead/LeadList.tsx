@@ -8,7 +8,7 @@ import { AddLeadDialog } from './AddLeadDialog';
 import { EditLeadDialog } from './EditLeadDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
 
 export function LeadList() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);

@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Lightbulb, Target, BookOpen } from 'lucide-react';
@@ -55,11 +53,11 @@ export function ContentDashboard() {
 
         <ScrollArea className="h-[calc(100vh-280px)]">
           <TabsContent value="posts" className="m-0">
-            <PostIdeas />
+            <PostIdeas mode="list" />
           </TabsContent>
 
           <TabsContent value="strategies" className="m-0">
-            <ContentStrategies />
+            <ContentStrategies mode="list" />
           </TabsContent>
 
           <TabsContent value="practices" className="m-0">

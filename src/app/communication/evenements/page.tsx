@@ -64,7 +64,7 @@ const EvenementsPage: NextPage = () => {
     description: '',
     statut: 'À venir',
     budget: {
-      prevu: 0,
+      prévu: 0,
       actuel: 0,
       devise: 'EUR',
     },
@@ -88,7 +88,7 @@ const EvenementsPage: NextPage = () => {
       description: '',
       statut: 'À venir',
       budget: {
-        prevu: 0,
+        prévu: 0,
         actuel: 0,
         devise: 'EUR',
       },
@@ -115,7 +115,7 @@ const EvenementsPage: NextPage = () => {
     doc.text(`Description: ${evenement.description}`, 10, 80);
 
     // Budget
-    doc.text(`Budget prévu: ${evenement.budget.prevu} ${evenement.budget.devise}`, 10, 90);
+    doc.text(`Budget prévu: ${evenement.budget.prévu} ${evenement.budget.devise}`, 10, 90);
     doc.text(`Budget actuel: ${evenement.budget.actuel} ${evenement.budget.devise}`, 10, 100);
 
     // Intervenants
@@ -201,11 +201,11 @@ const EvenementsPage: NextPage = () => {
                   type="number"
                   placeholder="Budget prévu"
                   className="border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  value={nouvelEvenement.budget.prevu || ''}
+                  value={nouvelEvenement.budget.prévu || ''}
                   onChange={(e) =>
                     setNouvelEvenement({
                       ...nouvelEvenement,
-                      budget: { ...nouvelEvenement.budget, prevu: parseInt(e.target.value) || 0 },
+                      budget: { ...nouvelEvenement.budget, prévu: parseInt(e.target.value) || 0 },
                     })
                   }
                 />
@@ -237,7 +237,7 @@ const EvenementsPage: NextPage = () => {
               onClick={handleAddEvenement}
               className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
             >
-              Créer l'événement
+              Créer l&apos;événement
             </button>
           </div>
 

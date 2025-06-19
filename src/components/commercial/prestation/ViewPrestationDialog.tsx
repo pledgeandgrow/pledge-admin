@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Check } from 'lucide-react';
+// Check import removed as it's unused
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 

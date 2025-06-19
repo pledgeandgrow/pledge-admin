@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Invoice } from "./types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ import { formatCurrency } from "@/lib/utils/format";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
-import { loadLogoForPDF } from "./utils";
+// loadLogoForPDF import removed as it's unused
 
 interface InvoiceFormProps {
   onSubmit: (data: Partial<Invoice>) => void;
@@ -23,7 +23,19 @@ interface InvoiceFormProps {
   clients: Invoice["client"][];
   projects: { id: string; name: string }[];
   initialData?: Invoice;
-  companyDetails: any;
+  companyDetails: {
+    name: string;
+    address: string;
+    postal_code: string;
+    city: string;
+    country: string;
+    vat_number?: string;
+    registration_number?: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+    bank_account?: string;
+  };
 }
 
 export function InvoiceForm({
@@ -64,10 +76,14 @@ export function InvoiceForm({
     }
   );
 
-  const [newItem, setNewItem] = useState({
+  // Define a type that matches InvoiceItem without the id field
+  type NewInvoiceItem = Omit<Invoice['items'][0], 'id'>;
+  
+  const [newItem, setNewItem] = useState<NewInvoiceItem>({
     description: "",
     quantity: 1,
     unit_price: 0,
+    tax_rate: formData.tax_rate || 20,
     total: 0,
   });
 
@@ -85,25 +101,36 @@ export function InvoiceForm({
     }));
   }, [formData.items, formData.tax_rate]);
 
-  const handleAddItem = () => {
+  const handleAddItem = useCallback(() => {
     if (!newItem.description || newItem.quantity <= 0 || newItem.unit_price <= 0) return;
     const itemTotal = newItem.quantity * newItem.unit_price;
-    const item = { ...newItem, total: itemTotal };
+    // Generate a temporary ID for the new item
+    const item = { 
+      ...newItem, 
+      total: itemTotal,
+      id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}` 
+    };
     setFormData((prev) => ({
       ...prev,
       items: [...(prev.items || []), item],
     }));
-    setNewItem({ description: "", quantity: 1, unit_price: 0, total: 0 });
-  };
+    setNewItem({ 
+      description: "", 
+      quantity: 1, 
+      unit_price: 0, 
+      tax_rate: formData.tax_rate || 20,
+      total: 0 
+    });
+  }, [newItem, formData.tax_rate, setFormData]);
 
-  const handleRemoveItem = (index: number) => {
+  const handleRemoveItem = useCallback((index: number) => {
     setFormData((prev) => ({
       ...prev,
-      items: prev.items?.filter((_, i) => i !== index),
+      items: prev.items?.filter((_item, i) => i !== index),
     }));
-  };
+  }, [setFormData]);
 
-  const handleClientChange = (clientName: string) => {
+  const handleClientChange = useCallback((clientName: string) => {
     const selectedClient = clients.find((c) => c.name === clientName);
     setFormData((prev) => ({
       ...prev,
@@ -118,23 +145,23 @@ export function InvoiceForm({
         vat_number: undefined,
       },
     }));
-  };
+  }, [clients, setFormData]);
 
-  const handleProjectChange = (projectName: string) => {
+  const handleProjectChange = useCallback((projectName: string) => {
     const selectedProject = projects.find((p) => p.name === projectName);
     setFormData((prev) => ({
       ...prev,
       project_id: selectedProject?.id,
       project_name: projectName,
     }));
-  };
+  }, [projects, setFormData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
-  };
+  }, [formData, onSubmit]);
 
-  const exportToPDF = async () => {
+  const exportToPDF = useCallback(async () => {
     try {
       const doc = new jsPDF("p", "mm", "a4");
       const margin = { top: 20, left: 15, right: 15 };
@@ -194,7 +221,9 @@ export function InvoiceForm({
         margin: { left: margin.left, right: margin.right }
       });
 
-      const totalsY = (doc as any).lastAutoTable.finalY + 10;
+      // Get the final Y position from the last table
+      // jsPDF with autotable plugin adds this property at runtime
+      const totalsY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
       doc.setFontSize(10);
       doc.text(`Sous-total: ${formatCurrency(formData.subtotal || 0)}`, margin.left, totalsY);
       doc.text(`TVA (${formData.tax_rate}%): ${formatCurrency(formData.tax_amount || 0)}`, margin.left, totalsY + 5);
@@ -220,7 +249,7 @@ export function InvoiceForm({
       console.error("Erreur lors de l'export PDF", error);
       toast({ title: "Erreur", description: "Impossible d'exporter la facture", variant: "destructive" });
     }
-  };
+  }, [formData]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -236,7 +265,7 @@ export function InvoiceForm({
             />
           </div>
           <div>
-            <Label htmlFor="date">Date d'émission</Label>
+            <Label htmlFor="date">Date d&apos;émission</Label>
             <Input
               type="date"
               id="date"
@@ -245,7 +274,7 @@ export function InvoiceForm({
             />
           </div>
           <div>
-            <Label htmlFor="due_date">Date d'échéance</Label>
+            <Label htmlFor="due_date">Date d&apos;échéance</Label>
             <Input
               type="date"
               id="due_date"
@@ -257,7 +286,7 @@ export function InvoiceForm({
             <Label htmlFor="status">Statut</Label>
             <Select
               value={formData.status}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value }))}
+              onValueChange={(value: "draft" | "sent" | "paid" | "cancelled" | "overdue") => setFormData((prev) => ({ ...prev, status: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un statut" />
@@ -356,7 +385,7 @@ export function InvoiceForm({
             />
           </div>
         </div>
-        <Button type="button" onClick={handleAddItem}>Ajouter l'article</Button>
+        <Button type="button" onClick={handleAddItem}>Ajouter l&apos;article</Button>
         <div className="border rounded-lg p-4">
           <table className="w-full">
             <thead>

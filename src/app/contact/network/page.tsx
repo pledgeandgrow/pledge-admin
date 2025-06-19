@@ -1,6 +1,7 @@
 'use client';
 
-import { useTheme } from 'next-themes';
+// Theme will be used in future updates
+// import { useTheme } from 'next-themes';
 import { format } from 'date-fns';
 import { MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react';
 
@@ -42,20 +43,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ContactDetails } from '@/components/contact/ContactDetails';
+// Commented out unused imports to fix build errors
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// import { ContactDetails } from '@/components/contact/ContactDetails';
 import React, { useState } from 'react';
 
 export default function NetworkPage() {
-  const { theme } = useTheme();
+  // Removed unused theme variable
+  // const { theme } = useTheme();
   const { contacts, addContact, updateContact, removeContact } = useNetworkStore();
   const [selectedContact, setSelectedContact] = useState<NetworkContact | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<NetworkContact>>({});
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('list');
+  // Removed unused activeTab state
+  // const [activeTab, setActiveTab] = useState('list');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
   const filteredContacts = contacts.filter(contact => {
@@ -339,11 +343,11 @@ export default function NetworkPage() {
                     <div className="mt-2 space-y-2">
                       <p className="text-sm">
                         <span className="text-gray-500 dark:text-gray-400">Last Contact: </span>
-                        {format(new Date(selectedContact.lastContact), 'MMMM d, yyyy')}
+                        {selectedContact.lastContact ? format(new Date(selectedContact.lastContact), 'MMMM d, yyyy') : 'Not set'}
                       </p>
                       <p className="text-sm">
                         <span className="text-gray-500 dark:text-gray-400">Next Follow-up: </span>
-                        {format(new Date(selectedContact.nextFollowUp), 'MMMM d, yyyy')}
+                        {selectedContact.nextFollowUp ? format(new Date(selectedContact.nextFollowUp), 'MMMM d, yyyy') : 'Not scheduled'}
                       </p>
                     </div>
                   </div>
@@ -516,7 +520,10 @@ export default function NetworkPage() {
                 <Button
                   onClick={() => {
                     setIsEditing(true);
-                    setEditForm(selectedContact);
+                    // Ensure selectedContact is not null before setting form state
+                    if (selectedContact) {
+                      setEditForm(selectedContact);
+                    }
                   }}
                 >
                   Edit Contact

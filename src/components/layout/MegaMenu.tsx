@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 
@@ -308,10 +309,12 @@ export function MegaMenu() {
         {/* Logo and User Section */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-center mb-4">
-            <img
+            <Image
               src={theme === 'dark' ? '/logo/logo-white.png' : '/logo/logo-black.png'}
               alt="Logo"
-              className="h-16"
+              width={160}
+              height={64}
+              className="h-16 w-auto"
             />
           </div>
           <div className="text-center">

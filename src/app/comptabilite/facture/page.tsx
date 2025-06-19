@@ -2,13 +2,12 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { DateRange } from "react-day-picker";
-import { PlusIcon, FileText, Trash2, FileDown } from "lucide-react";
+import { Plus as PlusIcon } from "lucide-react";
 
 import {
   Invoice,
-  InvoiceStats as InvoiceStatsType,
 } from "@/components/comptabilite/facture/types";
 import { InvoiceCard } from "@/components/comptabilite/facture/InvoiceCard";
 import { InvoiceStats as InvoiceStatsComponent } from "@/components/comptabilite/facture/InvoiceStats";
@@ -29,14 +28,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 type StoredFile = { name: string; updated_at: string; url: string };
 
-const fmt = (iso: string) =>
-  new Date(iso).toLocaleString("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+// Removed unused fmt function
 
 const COMPANY_DETAILS = {
   name: "",
@@ -65,37 +57,32 @@ export default function InvoicePage() {
   const [dateRange, setDateRange] = useState<DateRange>();
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const [files, setFiles] = useState<StoredFile[]>([]);
+  const [, setFiles] = useState<StoredFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadInvoices();
-    loadStorageFiles();
-  }, []);
-
-  async function loadInvoices() {
+  const loadInvoices = useCallback(async () => {
     try {
       const r = await fetch("/api/comptabilite/facture");
       if (!r.ok) throw new Error();
       const data = await r.json();
       setInvoices(data);
       setClients(
-        Array.from(new Set(data.map(i => JSON.stringify(i.client)))).map(c => JSON.parse(c))
+        Array.from(new Set(data.map((i: { client: object }) => JSON.stringify(i.client)))).map((c) => JSON.parse(c as string))
       );
       setProjects(
         Array.from(
           new Set(
             data
-              .filter(i => i.project_id)
-              .map(i => JSON.stringify({ id: i.project_id, name: i.project_name }))
+              .filter((i: { project_id?: string }) => i.project_id)
+              .map((i: { project_id: string; project_name: string }) => JSON.stringify({ id: i.project_id, name: i.project_name }))
           )
-        ).map(p => JSON.parse(p))
+        ).map((p) => JSON.parse(p as string))
       );
     } catch {
       toast({ title: "Erreur", description: "Chargement factures échoué", variant: "destructive" });
     }
-  }
+  }, [toast]);
 
   async function handleCreateInvoice(payload: Partial<Invoice>) {
     try {
@@ -130,7 +117,7 @@ export default function InvoicePage() {
     }
   }
 
-  async function loadStorageFiles() {
+  const loadStorageFiles = useCallback(async () => {
     const { data, error } = await supabase
       .storage
       .from("factures")
@@ -147,7 +134,12 @@ export default function InvoicePage() {
           return { name: o.name, updated_at: o.updated_at, url: publicUrl };
         })
     );
-  }
+  }, [toast]);
+
+  useEffect(() => {
+    loadInvoices();
+    loadStorageFiles();
+  }, [loadInvoices, loadStorageFiles]);
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -164,7 +156,9 @@ export default function InvoicePage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  async function onDelete(file: StoredFile) {
+  // Function to delete a file - commented out until needed to avoid lint errors
+  /* 
+  const handleDeleteFile = async (file: StoredFile) => {
     if (!confirm(`Supprimer « ${file.name} » ?`)) return;
     const { error } = await supabase.storage.from("factures").remove([file.name]);
     if (error) {
@@ -174,6 +168,7 @@ export default function InvoicePage() {
       toast({ title: "Supprimé", description: "Fichier supprimé ✅" });
     }
   }
+  */
 
   const filteredInvoices = invoices.filter(i => {
     const q = search.toLowerCase();

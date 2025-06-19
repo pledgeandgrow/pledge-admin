@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, Users, Award, Clock, BookOpen, GraduationCap } from 'lucide-react';
+import { Users, Award, Clock, BookOpen } from 'lucide-react';
 
 export function FormationStatistics() {
   // Sample data for the statistics

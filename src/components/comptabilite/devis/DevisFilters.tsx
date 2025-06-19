@@ -89,13 +89,13 @@ export function DevisFilters({
               className={sortBy === "date" ? "bg-accent" : ""}
               onClick={() => setSortBy("date")}
             >
-              Date d'émission
+              Date d&apos;émission
             </DropdownMenuItem>
             <DropdownMenuItem
               className={sortBy === "due_date" ? "bg-accent" : ""}
               onClick={() => setSortBy("due_date")}
             >
-              Date d'échéance
+              Date d&apos;échéance
             </DropdownMenuItem>
             <DropdownMenuItem
               className={sortBy === "devis_number" ? "bg-accent" : ""}

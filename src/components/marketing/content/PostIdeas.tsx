@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Edit, Calendar, Tag, MessageSquare, Clock, CheckCircle2 } from 'lucide-react';
+import { Trash2, Edit, Calendar, Tag, CheckCircle2 } from 'lucide-react';
 
 interface PostIdea {
   id: number;
@@ -51,12 +51,18 @@ export function PostIdeas({ mode }: PostIdeasProps) {
     }
   ]);
 
-  const [newIdea, setNewIdea] = useState({
+  const [newIdea, setNewIdea] = useState<{
+    title: string;
+    description: string;
+    category: string;
+    date: string;
+    status: 'draft' | 'in-progress' | 'published';
+  }>({
     title: '',
     description: '',
     category: '',
     date: '',
-    status: 'draft' as const
+    status: 'draft'
   });
 
   const [editingId, setEditingId] = useState<number | null>(null);

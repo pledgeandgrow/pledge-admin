@@ -102,7 +102,7 @@ export default function GeomarketingPage() {
                 </p>
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Taux d'engagement</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Taux d&apos;engagement</span>
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300">4.8%</span>
                   </div>
                   <Progress value={48} className="h-1.5" />
@@ -287,7 +287,7 @@ export default function GeomarketingPage() {
                   <CardHeader>
                     <CardTitle className="text-xl text-gray-900 dark:text-white">Analyse Démographique</CardTitle>
                     <CardDescription className="text-gray-500 dark:text-gray-400">
-                      Répartition de l'audience par région
+                      Répartition de l&apos;audience par région
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

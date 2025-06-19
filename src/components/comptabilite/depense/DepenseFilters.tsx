@@ -27,7 +27,7 @@ import { ArrowUpDown, Calendar as CalendarIcon, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { useState } from "react";
+// useState is not used in this component
 
 interface DepenseFiltersProps {
   search: string;
@@ -60,7 +60,8 @@ export function DepenseFilters({
   setSortOrder,
   categories,
 }: DepenseFiltersProps) {
-  const [date, setDate] = useState<Date>();
+  // Date state removed as it's not being used
+  // const [date, setDate] = useState<Date>();
 
   // Helper function to format date
   const formatDate = (date?: Date) => {

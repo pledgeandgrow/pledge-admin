@@ -28,9 +28,27 @@ export default function ServersPage() {
   const [isAddingServer, setIsAddingServer] = useState(false);
   const { toast } = useToast();
 
+  // Using useEffect with empty dependency array and moving fetchServers inside
+  // to avoid the React Hook dependency warning
   useEffect(() => {
-    fetchServers();
-  }, []);
+    const fetchServersData = async () => {
+      try {
+        const response = await fetch("/api/serveurs");
+        if (!response.ok) throw new Error("Failed to fetch servers");
+        const data = await response.json();
+        setServers(data);
+      } catch (error) {
+        console.error('Error fetching servers:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les serveurs",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    fetchServersData();
+  }, [toast]);
 
   const fetchServers = async () => {
     try {
@@ -39,6 +57,7 @@ export default function ServersPage() {
       const data = await response.json();
       setServers(data);
     } catch (error) {
+      console.error('Error fetching servers:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les serveurs",
@@ -64,6 +83,7 @@ export default function ServersPage() {
         description: "Serveur ajouté avec succès",
       });
     } catch (error) {
+      console.error('Error adding server:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'ajouter le serveur",

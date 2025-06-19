@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Building, Clock, Search, Plus, X } from 'lucide-react';
+import { Building, Search, Plus, X } from 'lucide-react';
 
 interface JobPosting {
   titre: string;
@@ -72,7 +72,7 @@ const JobPostings: React.FC<JobPostingsProps> = ({ postesOuverts }) => {
   });
 
   // Get unique departments for filtering
-  const departments = Array.from(new Set(postesOuverts.map(job => job.departement)));
+  // const departments = Array.from(new Set(postesOuverts.map(job => job.departement)));
 
   return (
     <div className="space-y-6">
@@ -82,7 +82,7 @@ const JobPostings: React.FC<JobPostingsProps> = ({ postesOuverts }) => {
             <div>
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">Postes Ouverts</CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-300">
-                Consultez et gérez les offres d'emploi actuellement disponibles
+                Consultez et gérez les offres d&apos;emploi actuellement disponibles
               </CardDescription>
             </div>
             <Button 

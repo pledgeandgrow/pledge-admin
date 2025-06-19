@@ -40,13 +40,7 @@ interface Communique {
   resultats: Resultats;
 }
 
-interface NouveauMedia extends Omit<Media, 'id'> {
-  communiqueId: string;
-}
-
-interface NouveauDocument extends Omit<Document, 'id'> {
-  communiqueId: string;
-}
+// Removed unused interfaces NouveauMedia and NouveauDocument
 
 const PressePage: NextPage = () => {
   const [isClient, setIsClient] = useState(false);
@@ -119,22 +113,23 @@ const PressePage: NextPage = () => {
     }
   });
 
-  const [nouveauMedia, setNouveauMedia] = useState<NouveauMedia>({
-    communiqueId: '',
-    nom: '',
-    contact: '',
-    email: '',
-    telephone: '',
-    statut: 'À contacter',
-    reponse: ''
-  });
+  // Commented out unused state variables to fix build errors
+  // const [nouveauMedia, setNouveauMedia] = useState<NouveauMedia>({
+  //   communiqueId: '',
+  //   nom: '',
+  //   contact: '',
+  //   email: '',
+  //   telephone: '',
+  //   statut: 'À contacter',
+  //   reponse: ''
+  // });
 
-  const [nouveauDocument, setNouveauDocument] = useState<NouveauDocument>({
-    communiqueId: '',
-    type: 'Communiqué',
-    url: '',
-    langue: 'Français'
-  });
+  // const [nouveauDocument, setNouveauDocument] = useState<NouveauDocument>({
+  //   communiqueId: '',
+  //   type: 'Communiqué',
+  //   url: '',
+  //   langue: 'Français'
+  // });
 
   useEffect(() => {
     setIsClient(true);
@@ -173,7 +168,8 @@ const PressePage: NextPage = () => {
     });
   };
 
-  const handleAddMedia = () => {
+  // Commented out unused function
+  /* const handleAddMedia = () => {
     if (!nouveauMedia.communiqueId || !nouveauMedia.nom || !nouveauMedia.contact) {
       alert('Veuillez remplir tous les champs obligatoires');
       return;
@@ -205,9 +201,10 @@ const PressePage: NextPage = () => {
       statut: 'À contacter',
       reponse: ''
     });
-  };
+  } */
 
-  const handleAddDocument = () => {
+  // Commented out unused function
+  /* const handleAddDocument = () => {
     if (!nouveauDocument.communiqueId || !nouveauDocument.type || !nouveauDocument.url) {
       alert('Veuillez remplir tous les champs obligatoires');
       return;
@@ -233,8 +230,9 @@ const PressePage: NextPage = () => {
       url: '',
       langue: 'Français'
     });
-  };
+  } */
 
+  // isClient is already declared at the top of the component
   if (!isClient) {
     return null;
   }

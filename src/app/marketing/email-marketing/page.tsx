@@ -6,11 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Mail, Users, BarChart, Send, Plus } from 'lucide-react';
+import { Mail, Users, BarChart, Plus } from 'lucide-react';
 
-interface PageProps {}
-
-const Page: FC<PageProps> = () => {
+const Page: FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <MegaMenu />

@@ -45,7 +45,7 @@ export default function Recrutement() {
       try {
         const parsedCandidates = JSON.parse(storedCandidates);
         // Handle file objects which can't be serialized
-        setCandidats(parsedCandidates.map((candidate: any) => ({
+        setCandidats(parsedCandidates.map((candidate: Candidate) => ({
           ...candidate,
           cv: null // Reset CV since File objects can't be stored in localStorage
         })));

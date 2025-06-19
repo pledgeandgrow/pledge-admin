@@ -33,7 +33,8 @@ export function ServerForm({ onSubmit, onCancel }: ServerFormProps) {
       cpu_usage: 0,
       memory_usage: 0,
       disk_usage: 0,
-      uptime: 0
+      uptime: 0,
+      last_check: new Date().toISOString()
     }
   });
 
@@ -72,7 +73,9 @@ export function ServerForm({ onSubmit, onCancel }: ServerFormProps) {
           <Label htmlFor="type">Type de serveur*</Label>
           <Select
             value={formData.type}
-            onValueChange={(value) => setFormData({ ...formData, type: value })}
+            onValueChange={(value: 'production' | 'staging' | 'development') => 
+              setFormData({ ...formData, type: value })
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un type" />
@@ -81,13 +84,11 @@ export function ServerForm({ onSubmit, onCancel }: ServerFormProps) {
               <SelectItem value="production">Production</SelectItem>
               <SelectItem value="staging">Staging</SelectItem>
               <SelectItem value="development">Développement</SelectItem>
-              <SelectItem value="backup">Backup</SelectItem>
-              <SelectItem value="database">Base de données</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="os">Système d'exploitation*</Label>
+          <Label htmlFor="os">Système d&apos;exploitation*</Label>
           <Select
             value={formData.os}
             onValueChange={(value) => setFormData({ ...formData, os: value })}
@@ -142,7 +143,9 @@ export function ServerForm({ onSubmit, onCancel }: ServerFormProps) {
           <Label htmlFor="status">Statut initial*</Label>
           <Select
             value={formData.status}
-            onValueChange={(value: any) => setFormData({ ...formData, status: value })}
+            onValueChange={(value: 'online' | 'offline' | 'maintenance' | 'warning') => 
+              setFormData({ ...formData, status: value })
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un statut" />
@@ -151,6 +154,7 @@ export function ServerForm({ onSubmit, onCancel }: ServerFormProps) {
               <SelectItem value="offline">Hors ligne</SelectItem>
               <SelectItem value="maintenance">Maintenance</SelectItem>
               <SelectItem value="online">En ligne</SelectItem>
+              <SelectItem value="warning">Avertissement</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { PlusCircle, Search, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,10 +60,10 @@ export default function CahierDesChargesPage() {
 
   const { toast } = useToast();
 
-  useEffect(() => { fetchSpecs(); fetchStats(); loadFiles(); }, []);
-  useEffect(() => { filterSpecs(); }, [searchQuery, statusFilter, specs]);
+  useEffect(() => { fetchSpecs(); fetchStats(); loadFiles(); }, [fetchSpecs, fetchStats, loadFiles]);
+  useEffect(() => { filterSpecs(); }, [searchQuery, statusFilter, specs, filterSpecs]);
 
-  async function fetchSpecs() {
+  const fetchSpecs = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/cahier-des-charges"); if (!res.ok) throw new Error();
@@ -71,11 +71,11 @@ export default function CahierDesChargesPage() {
     } catch {
       toast({ title: "Erreur", description: "Impossible de charger les cahiers", variant: "destructive" });
     } finally { setIsLoading(false); }
-  }
-  async function fetchStats() {
+  }, [toast, setIsLoading, setSpecs]);
+  const fetchStats = useCallback(async () => {
     try { const res = await fetch("/api/cahier-des-charges/statistics"); if (res.ok) setStats(await res.json()); } catch {}
-  }
-  function filterSpecs() {
+  }, [setStats]);
+  const filterSpecs = useCallback(() => {
     let out = specs;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -83,38 +83,38 @@ export default function CahierDesChargesPage() {
     }
     if (statusFilter !== "all") out = out.filter(s => s.status === statusFilter);
     setFilteredSpecs(out);
-  }
-  async function handleCreate(spec: Partial<SpecificationType>) {
+  }, [specs, searchQuery, statusFilter, setFilteredSpecs]);
+  const handleCreate = useCallback(async (spec: Partial<SpecificationType>) => {
     try { const res = await fetch("/api/cahier-des-charges", {method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(spec)}); if (!res.ok) throw new Error();
       toast({ title: "Succès", description: "Cahier créé" }); setIsCreating(false); fetchSpecs(); fetchStats();
     } catch {
       toast({ title: "Erreur", description: "Création impossible", variant: "destructive" });
     }
-  }
-  async function handleUpdate(id: string, spec: Partial<SpecificationType>) {
+  }, [toast, setIsCreating, fetchSpecs, fetchStats]);
+  const handleUpdate = useCallback(async (id: string, spec: Partial<SpecificationType>) => {
     try { const res = await fetch(`/api/cahier-des-charges/${id}`, {method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(spec)}); if (!res.ok) throw new Error();
       toast({ title: "Succès", description: "Cahier mis à jour" }); setIsEditing(false); setSelectedSpec(null); fetchSpecs(); fetchStats();
     } catch {
       toast({ title: "Erreur", description: "Mise à jour impossible", variant: "destructive" });
     }
-  }
-  async function handleDeleteSpec(id: string) {
+  }, [toast, setIsEditing, setSelectedSpec, fetchSpecs, fetchStats]);
+  const handleDeleteSpec = useCallback(async (id: string) => {
     if (!confirm("Supprimer ce cahier ?")) return;
     try { const res = await fetch(`/api/cahier-des-charges/${id}`, {method: "DELETE"}); if (!res.ok) throw new Error();
       toast({ title: "Succès", description: "Cahier supprimé" }); setSelectedSpec(null); fetchSpecs(); fetchStats();
     } catch {
       toast({ title: "Erreur", description: "Suppression impossible", variant: "destructive" });
     }
-  }
-  async function loadFiles() {
+  }, [toast, setSelectedSpec, fetchSpecs, fetchStats]);
+  const loadFiles = useCallback(async () => {
     const { data, error } = await supabase.storage.from("cahiers").list("", {limit:1000, sortBy:{column:"updated_at",order:"desc"}});
     if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
     setFiles(data.filter(o => !o.name.endsWith("/")).map(o => {
       const { data:{publicUrl} } = supabase.storage.from("cahiers").getPublicUrl(o.name);
       return { name:o.name, updated_at:o.updated_at, url:publicUrl };
     }));
-  }
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  }, [toast, setFiles]);
+  const handleUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     const filename = `${Date.now()}_${file.name}`;
     const { error } = await supabase.storage.from("cahiers").upload(filename, file, {contentType:file.type});
@@ -122,14 +122,14 @@ export default function CahierDesChargesPage() {
     const { data:{publicUrl}} = supabase.storage.from("cahiers").getPublicUrl(filename);
     setFiles(prev => [{ name:filename, updated_at:new Date().toISOString(), url:publicUrl }, ...prev]);
     toast({ title: "Téléversé", description: "Fichier ajouté" }); e.target.value = "";
-  }
-  async function handleDeleteFile(file: StoredFile) {
+  }, [toast, setFiles]);
+  const handleDeleteFile = useCallback(async (file: StoredFile) => {
     if (!confirm(`Supprimer « ${file.name} » ?`)) return;
     const { error } = await supabase.storage.from("cahiers").remove([file.name]);
     if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
     setFiles(prev => prev.filter(f => f.name !== file.name));
     toast({ title: "Supprimé", description: "Fichier supprimé" });
-  }
+  }, [toast, setFiles]);
 
   return (
     <div className="ml-64 p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">

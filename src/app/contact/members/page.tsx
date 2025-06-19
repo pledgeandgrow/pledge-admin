@@ -48,6 +48,8 @@ interface Member {
   }[];
 }
 
+// Using useMemberStore instead of hardcoded members array
+/*
 const members: Member[] = [
   {
     id: '1',
@@ -104,6 +106,7 @@ const members: Member[] = [
     ]
   }
 ];
+*/
 
 export default function MembersPage() {
   const { members, addMember, updateMember, removeMember } = useMemberStore();

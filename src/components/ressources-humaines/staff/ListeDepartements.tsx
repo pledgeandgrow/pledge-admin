@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { 
   Table, 
   TableBody, 
-  TableCaption, 
   TableCell, 
   TableHead, 
   TableHeader, 
@@ -22,7 +21,6 @@ import {
   Users, 
   Wallet, 
   FolderKanban, 
-  UserPlus, 
   Search,
   PlusCircle
 } from 'lucide-react';
@@ -234,7 +232,7 @@ const ListeDepartements: React.FC<ListeDepartementsProps> = ({ departements }) =
           <Card className="border dark:border-gray-700">
             <CardHeader>
               <CardTitle className="text-gray-900 dark:text-white">Liste des Départements</CardTitle>
-              <CardDescription className="text-gray-500 dark:text-gray-400">Détails de tous les départements de l'entreprise</CardDescription>
+              <CardDescription className="text-gray-500 dark:text-gray-400">Détails de tous les départements de l&apos;entreprise</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>

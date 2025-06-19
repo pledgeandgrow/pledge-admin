@@ -46,7 +46,7 @@ export default function ImpactDurablePage() {
             <CardContent>
               <div className="text-2xl font-bold">-12.5%</div>
               <p className="text-xs text-muted-foreground">
-                par rapport à l'année précédente
+                par rapport à l&apos;année précédente
               </p>
               <Progress value={65} className="h-2 mt-2" />
             </CardContent>
@@ -121,7 +121,7 @@ export default function ImpactDurablePage() {
             <CardContent>
               <div className="text-2xl font-bold">72/100</div>
               <p className="text-xs text-muted-foreground">
-                +5 points depuis l'évaluation précédente
+                +5 points depuis l&apos;évaluation précédente
               </p>
               <Progress value={72} className="h-2 mt-2" />
             </CardContent>
@@ -135,7 +135,7 @@ export default function ImpactDurablePage() {
           onValueChange={setActiveTab}
         >
           <TabsList>
-            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
             <TabsTrigger value="engagements">Engagements</TabsTrigger>
             <TabsTrigger value="initiatives">Initiatives</TabsTrigger>
             <TabsTrigger value="reporting">Reporting</TabsTrigger>
@@ -146,7 +146,7 @@ export default function ImpactDurablePage() {
                 <CardHeader>
                   <CardTitle>Répartition des Émissions</CardTitle>
                   <CardDescription>
-                    Analyse par source d'émission
+                    Analyse par source d&apos;émission
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -157,14 +157,14 @@ export default function ImpactDurablePage() {
               </Card>
               <Card className="col-span-1">
                 <CardHeader>
-                  <CardTitle>Consommation d'Énergie</CardTitle>
+                  <CardTitle>Consommation d&apos;Énergie</CardTitle>
                   <CardDescription>
                     Évolution mensuelle
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                    Graphique de consommation d'énergie
+                    Graphique de consommation d&apos;énergie
                   </div>
                 </CardContent>
               </Card>
@@ -200,7 +200,7 @@ export default function ImpactDurablePage() {
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm">Chaîne d'approvisionnement durable</span>
+                        <span className="text-sm">Chaîne d&apos;approvisionnement durable</span>
                         <span className="text-sm font-medium">35%</span>
                       </div>
                       <Progress value={35} className="h-2" />
@@ -250,7 +250,7 @@ export default function ImpactDurablePage() {
               </CardHeader>
               <CardContent>
                 <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-                  Rapports et documentation sur l'impact durable
+                  Rapports et documentation sur l&apos;impact durable
                 </div>
               </CardContent>
             </Card>

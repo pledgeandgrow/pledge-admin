@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+// Badge import removed as it's unused
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -216,7 +216,7 @@ export function SocialPlatforms() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="engagement">Taux d'Engagement</Label>
+                    <Label htmlFor="engagement">Taux d&apos;Engagement</Label>
                     <Input
                       id="engagement"
                       value={newPlatform.engagement}

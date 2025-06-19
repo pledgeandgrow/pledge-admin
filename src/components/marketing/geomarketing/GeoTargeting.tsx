@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+// Input removed as it's unused
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -18,7 +18,7 @@ import {
 import { 
   MapPin, 
   Target, 
-  Users, 
+  // Users removed as it's unused
   Megaphone, 
   PlusCircle, 
   Trash2, 
@@ -178,7 +178,7 @@ export function GeoTargeting() {
     setEditForm({...editForm, interests: updatedInterests});
   };
   
-  const handleFormChange = (field: keyof TargetingCriteria, value: any) => {
+  const handleFormChange = (field: keyof TargetingCriteria, value: string | number | string[] | boolean) => {
     if (!editForm) return;
     setEditForm({...editForm, [field]: value});
   };
@@ -309,7 +309,7 @@ export function GeoTargeting() {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="age">Tranche d'âge</Label>
+                          <Label htmlFor="age">Tranche d&apos;âge</Label>
                           <Select 
                             value={editForm.age} 
                             onValueChange={(value) => handleFormChange('age', value)}
@@ -372,7 +372,7 @@ export function GeoTargeting() {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label>Centres d'intérêt</Label>
+                        <Label>Centres d&apos;intérêt</Label>
                         <div className="border rounded-md p-3 dark:border-gray-700 h-[220px] overflow-y-auto">
                           <div className="grid grid-cols-2 gap-2">
                             {interestOptions.map((interest) => (
@@ -391,7 +391,7 @@ export function GeoTargeting() {
                           </div>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Sélectionnez les centres d'intérêt pour affiner votre ciblage
+                          Sélectionnez les centres d&apos;intérêt pour affiner votre ciblage
                         </p>
                       </div>
                     </div>
@@ -455,7 +455,7 @@ export function GeoTargeting() {
                   </div>
                   
                   <div className="mt-3">
-                    <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Centres d'intérêt</h4>
+                    <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Centres d&apos;intérêt</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {item.interests.map((interest, i) => (
                         <Badge key={i} variant="secondary" className="text-xs">

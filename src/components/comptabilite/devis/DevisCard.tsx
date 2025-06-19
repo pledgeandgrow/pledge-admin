@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Receipt,
-  Calendar,
   Building2,
   CheckCircle,
   Clock,
   AlertTriangle,
   XCircle,
   FileText,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";
@@ -128,7 +128,7 @@ export function DevisCard({ devis, onClick }: DevisCardProps) {
             </p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Date d'échéance</p>
+            <p className="text-sm text-muted-foreground">Date d&apos;échéance</p>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span>{new Date(devis.due_date).toLocaleDateString()}</span>

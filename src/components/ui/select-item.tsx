@@ -1,8 +1,8 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-export interface SelectItemProps
-  extends React.OptionHTMLAttributes<HTMLOptionElement> {}
+// Using type alias instead of empty interface to avoid TypeScript warning
+export type SelectItemProps = React.OptionHTMLAttributes<HTMLOptionElement>
 
 const SelectItem = React.forwardRef<HTMLOptionElement, SelectItemProps>(
   ({ className, children, ...props }, ref) => {

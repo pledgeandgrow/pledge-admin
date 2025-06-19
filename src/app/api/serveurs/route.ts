@@ -12,6 +12,7 @@ async function readServers(): Promise<Server[]> {
     const data = await fs.readFile(dataFile, "utf-8");
     return JSON.parse(data);
   } catch (error) {
+    console.error("Error in API route:", error);
     // If file doesn't exist, create it with empty array
     await fs.writeFile(dataFile, "[]");
     return [];
@@ -28,6 +29,7 @@ export async function GET() {
     const servers = await readServers();
     return NextResponse.json(servers);
   } catch (error) {
+    console.error("Error in API route:", error);
     return NextResponse.json({ error: "Failed to fetch servers" }, { status: 500 });
   }
 }
@@ -65,6 +67,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newServer);
   } catch (error) {
+    console.error("Error in API route:", error);
     return NextResponse.json(
       { error: "Failed to create server" },
       { status: 500 }
@@ -106,6 +109,7 @@ export async function PATCH(request: Request) {
     await writeServers(servers);
     return NextResponse.json(servers[serverIndex]);
   } catch (error) {
+    console.error("Error in API route:", error);
     return NextResponse.json(
       { error: "Failed to update server" },
       { status: 500 }
@@ -138,6 +142,7 @@ export async function DELETE(request: Request) {
     await writeServers(filteredServers);
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Error in API route:", error);
     return NextResponse.json(
       { error: "Failed to delete server" },
       { status: 500 }

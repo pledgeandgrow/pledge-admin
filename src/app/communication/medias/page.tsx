@@ -257,7 +257,7 @@ const MediasPage: NextPage = () => {
               className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
               disabled={!nouvelleInteraction.contactId}
             >
-              Ajouter l'interaction
+              Ajouter l&apos;interaction
             </button>
           </div>
 

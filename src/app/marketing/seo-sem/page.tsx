@@ -123,7 +123,7 @@ export default function SEOSEMPage() {
           {/* Main Content Tabs */}
           <Tabs defaultValue="overview" className="mb-8">
             <TabsList className="grid w-full grid-cols-4 mb-8">
-              <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+              <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
               <TabsTrigger value="sem">Campagnes SEM</TabsTrigger>
               <TabsTrigger value="seo">Analyse SEO</TabsTrigger>
               <TabsTrigger value="content">Contenu</TabsTrigger>
@@ -159,7 +159,7 @@ export default function SEOSEMPage() {
                               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{page.url}</span>
                             </div>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              Mot-clé: "{page.keyword}"
+                              Mot-clé: &quot;{page.keyword}&quot;
                             </p>
                           </div>
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

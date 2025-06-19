@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search, Filter, Plus, FileText, Download, Eye, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface CompliancePolicy {
@@ -157,7 +157,7 @@ export function CompliancePolicies() {
             Politiques et Procédures
           </CardTitle>
           <CardDescription>
-            Gérez les politiques et procédures de conformité de l'entreprise
+            Gérez les politiques et procédures de conformité de l&apos;entreprise
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -332,7 +332,7 @@ export function CompliancePolicies() {
                   <div>
                     <p className="text-sm font-medium">Calendrier de conformité</p>
                     <p className="text-sm text-muted-foreground">
-                      Formation obligatoire pour tous les employés d'ici le 31/03/2025
+                      Formation obligatoire pour tous les employés d&apos;ici le 31/03/2025
                     </p>
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export function CompliancePolicies() {
                     <div>
                       <p className="text-sm font-medium">Action requise</p>
                       <p className="text-sm text-muted-foreground">
-                        Cette politique est en attente de révision. Veuillez la mettre à jour avant la date d'échéance.
+                        Cette politique est en attente de révision. Veuillez la mettre à jour avant la date d&apos;échéance.
                       </p>
                     </div>
                   </div>

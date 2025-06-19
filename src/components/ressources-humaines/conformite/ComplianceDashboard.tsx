@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// Tabs imports removed as they're unused
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -74,7 +74,7 @@ export function ComplianceDashboard() {
           <CardHeader>
             <CardTitle>Statut de Conformité par Département</CardTitle>
             <CardDescription>
-              Vue d'ensemble de la conformité par département
+              Vue d&apos;ensemble de la conformité par département
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -148,7 +148,7 @@ export function ComplianceDashboard() {
                     Formation RGPD expirée
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    12 employés n'ont pas complété la formation obligatoire RGPD
+                    12 employés n&apos;ont pas complété la formation obligatoire RGPD
                   </p>
                   <div className="flex items-center pt-2">
                     <Badge variant="outline" className="text-red-600 dark:text-red-500 border-red-600 dark:border-red-500">
@@ -168,7 +168,7 @@ export function ComplianceDashboard() {
                     Politique de sécurité à mettre à jour
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    La politique de sécurité IT doit être mise à jour d'ici le 15/03/2025
+                    La politique de sécurité IT doit être mise à jour d&apos;ici le 15/03/2025
                   </p>
                   <div className="flex items-center pt-2">
                     <Badge variant="outline" className="text-amber-600 dark:text-amber-500 border-amber-600 dark:border-amber-500">
@@ -188,7 +188,7 @@ export function ComplianceDashboard() {
                     Audit interne complété
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    L'audit interne du département Finance a été complété avec succès
+                    L&apos;audit interne du département Finance a été complété avec succès
                   </p>
                   <div className="flex items-center pt-2">
                     <Badge variant="outline" className="text-green-600 dark:text-green-500 border-green-600 dark:border-green-500">

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { 
   Card, 
   CardContent, 
@@ -26,8 +27,8 @@ import { Employee } from './ListeEmployes';
 import { Departement } from './ListeDepartements';
 import { 
   Users,
-  Briefcase,
-  Calendar,
+  // Briefcase,
+  // Calendar,
   TrendingUp,
   Award,
   Clock,
@@ -126,7 +127,7 @@ const StaffStatistics: React.FC<StaffStatisticsProps> = ({ employes, departement
           <CardContent>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{Math.floor(averageTenureMonths / 12)} ans {Math.round(averageTenureMonths % 12)} mois</div>
             <p className="text-xs text-muted-foreground dark:text-gray-400">
-              Basé sur les dates d'embauche
+              Basé sur les dates d&apos;embauche
             </p>
           </CardContent>
         </Card>
@@ -177,7 +178,7 @@ const StaffStatistics: React.FC<StaffStatisticsProps> = ({ employes, departement
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-gray-900 dark:text-white">Distribution des Performances</CardTitle>
-              <CardDescription className="text-gray-500 dark:text-gray-400">Nombre d'employés par niveau de performance</CardDescription>
+              <CardDescription className="text-gray-500 dark:text-gray-400">Nombre d&apos;employés par niveau de performance</CardDescription>
             </div>
             <BarChartIcon className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
@@ -227,14 +228,16 @@ const StaffStatistics: React.FC<StaffStatisticsProps> = ({ employes, departement
                 .filter(emp => emp.performance.noteAnnuelle > 0)
                 .sort((a, b) => b.performance.noteAnnuelle - a.performance.noteAnnuelle)
                 .slice(0, 5)
-                .map((emp, index) => (
+                .map((emp) => (
                   <div key={emp.id} className="flex items-center space-x-4">
                     <div className="relative w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
                       {emp.photo ? (
-                        <img 
+                        <Image 
                           src={emp.photo} 
                           alt={`${emp.prenom} ${emp.nom}`} 
-                          className="w-full h-full object-cover"
+                          width={40}
+                          height={40}
+                          className="object-cover"
                         />
                       ) : (
                         <span className="text-lg font-semibold text-gray-600 dark:text-gray-300">
@@ -258,7 +261,7 @@ const StaffStatistics: React.FC<StaffStatisticsProps> = ({ employes, departement
             </div>
           ) : (
             <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-              Aucun employé n'a encore été évalué
+              Aucun employé n&apos;a encore été évalué
             </div>
           )}
         </CardContent>

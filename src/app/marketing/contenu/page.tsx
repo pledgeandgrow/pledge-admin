@@ -4,18 +4,18 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { PostIdeas } from '@/components/marketing/content/PostIdeas';
 import { ContentStrategies } from '@/components/marketing/content/ContentStrategies';
 import { BestPractices } from '@/components/marketing/content/BestPractices';
-import { FileText, Calendar, Eye, Lightbulb, Target, BookOpen, Plus, BarChart, TrendingUp } from 'lucide-react';
+import { FileText, Calendar, Eye, Lightbulb, Target, BookOpen, Plus } from 'lucide-react';
 import { MegaMenu } from '@/components/layout/MegaMenu';
 
 export default function ContentPage() {
   const [activeTab, setActiveTab] = useState('posts');
-  const [showNewContentDialog, setShowNewContentDialog] = useState(false);
+
 
   const getDialogTitle = () => {
     switch (activeTab) {

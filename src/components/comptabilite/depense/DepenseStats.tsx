@@ -3,16 +3,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BanknoteIcon,
   CheckCircle2,
-  ClipboardList,
+  // ClipboardList removed - unused
   Clock,
   CreditCard,
   XCircle,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
-import { DepenseStats } from "@/types/depense";
+import { DepenseStats as DepenseStatsType } from "@/types/depense";
 
 interface DepenseStatsProps {
-  stats: DepenseStats;
+  stats: DepenseStatsType;
 }
 
 export function DepenseStats({ stats }: DepenseStatsProps) {
@@ -25,7 +25,7 @@ export function DepenseStats({ stats }: DepenseStatsProps) {
   }: {
     title: string;
     value: string | number;
-    icon: any;
+    icon: React.ElementType;
     description?: string;
     className?: string;
   }) => (

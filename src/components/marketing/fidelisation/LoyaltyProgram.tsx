@@ -150,8 +150,8 @@ const loyaltyTiers: LoyaltyTier[] = [
 
 export function LoyaltyProgram() {
   const [activeTab, setActiveTab] = useState('all');
-  const [userPoints, setUserPoints] = useState(7800);
-  const [currentTier, setCurrentTier] = useState(1); // 0-based index: 0=Bronze, 1=Argent, 2=Or, 3=Platine
+  const [userPoints] = useState(7800); // setUserPoints removed as it's unused
+  const [currentTier] = useState(1); // setCurrentTier removed as it's unused, 0-based index: 0=Bronze, 1=Argent, 2=Or, 3=Platine
   
   const nextTier = loyaltyTiers[currentTier + 1];
   const pointsToNextTier = nextTier ? nextTier.pointsRequired - userPoints : 0;

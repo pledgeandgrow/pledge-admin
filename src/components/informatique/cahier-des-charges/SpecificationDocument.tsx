@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileDown, Pencil } from "lucide-react";
 import { SpecificationType } from "./types";
-import { SpecificationEditor } from "./SpecificationEditor";
+
 
 interface SpecificationDocumentProps {
   specification: SpecificationType;
@@ -12,7 +12,7 @@ interface SpecificationDocumentProps {
   readOnly?: boolean;
 }
 
-export function SpecificationDocument({ specification, onEdit, readOnly = true }: SpecificationDocumentProps) {
+export function SpecificationDocument({ specification, onEdit }: SpecificationDocumentProps) {
   const handleExportPDF = async () => {
     try {
       const html2pdf = (await import("html2pdf.js")).default;

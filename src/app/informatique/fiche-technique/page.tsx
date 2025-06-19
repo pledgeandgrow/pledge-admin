@@ -23,6 +23,13 @@ interface TechInfo {
   icon?: React.ReactNode;
 }
 
+interface TechInfoFormData {
+  name: string;
+  value: string;
+  version?: string;
+  description?: string;
+}
+
 interface TechStack {
   category: string;
   status: 'production' | 'development' | 'testing';
@@ -86,7 +93,7 @@ export default function FicheTechniquePage() {
     setIsAddModalOpen(true);
   };
 
-  const handleSubmitEntity = (data: any) => {
+  const handleSubmitEntity = (data: TechInfoFormData) => {
     const newEntity: TechInfo = {
       name: data.name,
       value: data.value,
