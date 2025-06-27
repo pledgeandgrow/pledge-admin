@@ -1,9 +1,6 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { createClient } from '@/lib/supabase/client';
-
-// Initialize the Supabase client
-const supabase = createClient();
+import { NextResponse, type NextRequest } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
+import type { CookieOptions } from '@supabase/ssr';
 
 // Public routes that don't require authentication
 const publicRoutes = [
@@ -20,7 +17,7 @@ const publicRoutes = [
   '/_vercel',
   '/favicon.ico',
   '/logo',
-  '/api/auth/'
+  '/api/'
 ];
 
 // Auth routes that should redirect to dashboard if user is already authenticated
@@ -39,50 +36,89 @@ export async function middleware(request: NextRequest) {
     pathname === route || pathname.startsWith(`${route}/`)
   );
   
-  // Get the session
+  // Create a response object that we'll modify in the middleware
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
+
+  // Create a Supabase client configured to use cookies
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+            path: '/',
+          });
+          return Promise.resolve();
+        },
+        remove(name: string, options: CookieOptions) {
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+            path: '/',
+            maxAge: 0,
+          });
+          return Promise.resolve();
+        },
+      },
+    }
+  );
+
+  // Refresh session if expired - required for Server Components
   const { data: { session } } = await supabase.auth.getSession();
   const hasSession = !!session;
-  
+
   console.log(`[Middleware] Path: ${pathname}, Authenticated: ${hasSession}`);
   
   // Handle public routes
   if (isPublicRoute) {
-    // Redirect authenticated users away from auth pages to dashboard
-    if (hasSession && authRoutes.some(route => pathname.startsWith(route))) {
-      console.log('[Middleware] Redirecting authenticated user to /dashboard');
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+    // If user is on an auth page but already authenticated, redirect to dashboard
+    if (authRoutes.some(route => pathname.startsWith(route)) && hasSession) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/dashboard';
+      return NextResponse.redirect(url);
     }
-    return NextResponse.next();
+    return response;
   }
   
-  // Handle protected routes - redirect to signin if not authenticated
+  // Handle protected routes
   if (!hasSession) {
-    console.log('[Middleware] No session found, redirecting to signin');
-    const redirectUrl = new URL('/auth/signin', request.url);
-    redirectUrl.searchParams.set('redirectedFrom', pathname);
-    
-    // Create response that will redirect to signin
-    const response = NextResponse.redirect(redirectUrl);
+    // Redirect to signin if not authenticated
+    const url = request.nextUrl.clone();
+    url.pathname = '/auth/signin';
+    url.searchParams.set('redirectedFrom', pathname);
     
     // Clear any existing auth cookies
+    response = NextResponse.redirect(url);
     response.cookies.set({
       name: 'sb-access-token',
       value: '',
       path: '/',
-      expires: new Date(0),
+      maxAge: 0,
     });
     response.cookies.set({
       name: 'sb-refresh-token',
       value: '',
       path: '/',
-      expires: new Date(0),
+      maxAge: 0,
     });
-
+    
     return response;
   }
 
   // User is authenticated and trying to access a protected route
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

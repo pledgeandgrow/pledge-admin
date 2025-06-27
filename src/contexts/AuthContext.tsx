@@ -3,8 +3,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { Session, User } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 
+// Initialize the client-side Supabase client
 const supabase = createClient();
 
 type AuthError = { message: string };

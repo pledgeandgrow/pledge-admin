@@ -1,4 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/utils/supabase/client';
 
 type ApiResponse<T> = {
   data?: T;
@@ -73,7 +73,7 @@ export const apiFetch = async <T = unknown>(
     );
   }
 
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { data: { session } } = await supabase.auth.getSession();
   
   // Prepare headers with proper typing

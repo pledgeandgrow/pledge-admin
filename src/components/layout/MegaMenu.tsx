@@ -5,10 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/utils/supabase/client';
 
 // Initialize Supabase client
-const supabase = createClientComponentClient();
+const supabase = createClient();
 
 interface SubMenuItem {
   href: string;

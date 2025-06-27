@@ -5,7 +5,6 @@ import { PlusCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectTrigger,
@@ -43,6 +42,22 @@ const fmtDate = (iso: string) =>
     minute: "2-digit",
   });
 
+// Get status label
+const getStatusLabel = (status: 'draft' | 'in_review' | 'approved' | 'archived'): string => {
+  switch (status) {
+    case 'draft':
+      return 'Brouillon';
+    case 'in_review':
+      return 'En révision';
+    case 'approved':
+      return 'Approuvé';
+    case 'archived':
+      return 'Archivé';
+    default:
+      return status;
+  }
+};
+
 export default function CahierDesChargesPage() {
   const [specs, setSpecs] = useState<SpecificationType[]>([]);
   const [filteredSpecs, setFilteredSpecs] = useState<SpecificationType[]>([]);
@@ -61,6 +76,19 @@ export default function CahierDesChargesPage() {
   const [isLoading, setIsLoading] = useState(false);
   
   const { toast } = useToast();
+
+  // Memoized function to update statistics
+  const updateStats = useCallback((specifications: SpecificationType[] = specs) => {
+    const newStats = {
+      total: specifications.length,
+      draft: specifications.filter(s => s.status === 'draft').length,
+      review: specifications.filter(s => s.status === 'in_review').length,
+      approved: specifications.filter(s => s.status === 'approved').length,
+      archived: specifications.filter(s => s.status === 'archived').length,
+    };
+    setStats(newStats);
+    return newStats;
+  }, [specs]);
 
   // Load initial data
   useEffect(() => {
@@ -87,9 +115,9 @@ export default function CahierDesChargesPage() {
     };
     
     loadInitialData();
-  }, [toast]);
+  }, [toast, updateStats]);
 
-  // Update filtered specs when specs, search or filter changes
+  // Handle search and filter changes
   useEffect(() => {
     let result = [...specs];
     
@@ -103,24 +131,13 @@ export default function CahierDesChargesPage() {
     }
     
     // Apply status filter
-    if (statusFilter !== "all") {
+    if (statusFilter !== 'all') {
       result = result.filter(spec => spec.status === statusFilter);
     }
     
     setFilteredSpecs(result);
-  }, [specs, searchQuery, statusFilter]);
-
-  // Update statistics
-  const updateStats = useCallback((specifications: SpecificationType[]) => {
-    const stats = {
-      total: specifications.length,
-      draft: specifications.filter(s => s.status === 'draft').length,
-      review: specifications.filter(s => s.status === 'in_review').length,
-      approved: specifications.filter(s => s.status === 'approved').length,
-      archived: specifications.filter(s => s.status === 'archived').length,
-    };
-    setStats(stats);
-  }, []);
+    updateStats(result);
+  }, [specs, searchQuery, statusFilter, updateStats]);
 
   // Handle creating a new specification
   const handleCreate = useCallback((spec: Omit<SpecificationType, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -150,7 +167,7 @@ export default function CahierDesChargesPage() {
         variant: "destructive"
       });
     }
-  }, [specs, toast]);
+  }, [specs, toast, updateStats]);
 
   // Handle updating a specification
   const handleUpdate = useCallback((id: string, updates: Partial<SpecificationType>) => {
@@ -179,7 +196,7 @@ export default function CahierDesChargesPage() {
         variant: "destructive"
       });
     }
-  }, [specs, toast]);
+  }, [specs, toast, updateStats]);
 
   // Handle deleting a specification
   const handleDelete = useCallback((id: string) => {
@@ -190,6 +207,10 @@ export default function CahierDesChargesPage() {
       setSpecs(updatedSpecs);
       localStorage.setItem('cahierSpecs', JSON.stringify(updatedSpecs));
       updateStats(updatedSpecs);
+      
+      if (selectedSpec?.id === id) {
+        setSelectedSpec(null);
+      }
       
       toast({
         title: "Succès",
@@ -203,24 +224,35 @@ export default function CahierDesChargesPage() {
         variant: "destructive"
       });
     }
-  }, [specs, toast]);
+  }, [specs, toast, selectedSpec, updateStats]);
 
   // Handle status change
-  const handleStatusChange = useCallback((id: string, status: SpecificationType['status']) => {
+  const handleStatusChange = useCallback((id: string, status: 'draft' | 'in_review' | 'approved' | 'archived') => {
     try {
       const updatedSpecs = specs.map(spec => 
         spec.id === id 
-          ? { ...spec, status, updatedAt: new Date().toISOString() }
+          ? { ...spec, status, updatedAt: new Date().toISOString() } 
           : spec
       );
       
       setSpecs(updatedSpecs);
       localStorage.setItem('cahierSpecs', JSON.stringify(updatedSpecs));
       updateStats(updatedSpecs);
+      
+      // Show success message
+      toast({
+        title: "Statut mis à jour",
+        description: `Le statut a été mis à jour en "${getStatusLabel(status)}".`
+      });
     } catch (error) {
       console.error('Error updating status:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le statut",
+        variant: "destructive"
+      });
     }
-  }, [specs]);
+  }, [specs, toast, updateStats]);
 
   return (
     <div className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
@@ -447,9 +479,9 @@ export default function CahierDesChargesPage() {
                 </label>
                 <Select
                   value={selectedSpec?.status || 'draft'}
-                  onValueChange={(value) =>
+                  onValueChange={(value: 'draft' | 'in_review' | 'approved' | 'archived') =>
                     setSelectedSpec(prev =>
-                      prev ? { ...prev, status: value as any } : null
+                      prev ? { ...prev, status: value } : null
                     )
                   }
                 >

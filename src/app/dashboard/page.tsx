@@ -146,6 +146,14 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  // Sorting and pagination state (not currently used but kept for future implementation)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Client; direction: 'asc' | 'desc' } | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [currentPage, setCurrentPage] = useState(1);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isLoading, setIsLoading] = useState(true);
+  // Future pagination: const itemsPerPage = 10;
 
   const filteredClients = MOCK_CLIENTS.filter(client => {
     const matchesSearch = 
@@ -158,7 +166,6 @@ export default function DashboardPage() {
     
     return matchesSearch && matchesStatus && matchesPriority;
   });
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // If no session, redirect to signin

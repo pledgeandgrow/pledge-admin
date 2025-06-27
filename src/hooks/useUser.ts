@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
 type UserProfile = {
@@ -29,7 +29,7 @@ export function useUser(): UseUserReturn {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   // Fetch user profile from the database
   const fetchUserProfile = useCallback(async (userId: string) => {
