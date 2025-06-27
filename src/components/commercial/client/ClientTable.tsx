@@ -1,3 +1,4 @@
+// src/components/commercial/client/ClientTable.tsx
 'use client';
 
 import { Client } from '@/types/commercial';
@@ -12,69 +13,82 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface ClientTableProps {
   clients: Client[];
   onEdit: (client: Client) => void;
-  getStatusColor: (status: Client['status']) => string;
+  onDelete: (id: string) => void;
+  onView: (client: Client) => void;
+  getStatusColor: (status: string) => string;
 }
 
-export function ClientTable({ clients, onEdit, getStatusColor }: ClientTableProps) {
+export function ClientTable({ 
+  clients, 
+  onEdit, 
+  onDelete,
+  onView,
+  getStatusColor 
+}: ClientTableProps) {
+  
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      return format(new Date(dateString), 'PP', { locale: fr });
+    } catch {
+      return dateString;
+    }
+  };
+
   return (
     <div className="relative overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow className="border-b-2 border-gray-200 dark:border-gray-700">
-            <TableHead className="font-semibold">Date de début</TableHead>
-            <TableHead className="font-semibold">Nom</TableHead>
-            <TableHead className="font-semibold">Entreprise</TableHead>
+            <TableHead className="font-semibold">Date d&apos;ajout</TableHead>
+            <TableHead className="font-semibold">Type</TableHead>
+            <TableHead className="font-semibold">Nom/Entreprise</TableHead>
+            <TableHead className="font-semibold">Contact</TableHead>
             <TableHead className="hidden lg:table-cell font-semibold">Email</TableHead>
             <TableHead className="hidden lg:table-cell font-semibold">Téléphone</TableHead>
-            <TableHead className="font-semibold">Services</TableHead>
-            <TableHead className="hidden xl:table-cell font-semibold">Notes</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
+            <TableHead className="font-semibold">Pays</TableHead>
+            <TableHead className="font-semibold">Statut</TableHead>
             <TableHead className="text-right font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {clients.map((client) => (
             <TableRow 
-              key={client.email}
+              key={client.id}
               className="hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200"
             >
-              <TableCell className="font-medium">{client.startDate}</TableCell>
-              <TableCell>{client.name}</TableCell>
-              <TableCell>{client.company}</TableCell>
-              <TableCell className="hidden lg:table-cell">{client.email}</TableCell>
-              <TableCell className="hidden lg:table-cell">{client.phone}</TableCell>
+              <TableCell>{formatDate(client.created_at)}</TableCell>
               <TableCell>
-                <div className="flex flex-wrap gap-1">
-                  {client.services.map((service, index) => (
-                    <Badge 
-                      key={index}
-                      variant="secondary" 
-                      className="bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
-                    >
-                      {service}
-                    </Badge>
-                  ))}
-                </div>
-              </TableCell>
-              <TableCell className="hidden xl:table-cell max-w-xs truncate">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="cursor-help">{client.notes}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-sm whitespace-normal">{client.notes}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Badge variant="outline">
+                  {client.is_company ? 'Entreprise' : 'Particulier'}
+                </Badge>
               </TableCell>
               <TableCell>
-                <Badge className={`${getStatusColor(client.status)} shadow-sm`}>
-                  {client.status}
+                {client.is_company ? (
+                  <div className="font-medium">{client.company_name}</div>
+                ) : (
+                  <div className="font-medium">{client.name}</div>
+                )}
+              </TableCell>
+              <TableCell>
+                {client.name} {client.contact_person && `(${client.contact_person})`}
+              </TableCell>
+              <TableCell className="hidden lg:table-cell">
+                {client.email || '-'}
+              </TableCell>
+              <TableCell className="hidden lg:table-cell">
+                {client.phone || '-'}
+              </TableCell>
+              <TableCell>{client.country || '-'}</TableCell>
+              <TableCell>
+                <Badge className={`${getStatusColor(client.status || 'Active')} shadow-sm`}>
+                  {client.status || 'Active'}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -83,10 +97,28 @@ export function ClientTable({ clients, onEdit, getStatusColor }: ClientTableProp
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
-                          onClick={() => onEdit(client)}
+                          onClick={() => onView(client)}
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        >
+                          👁️
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Voir les détails</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => onEdit(client)}
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
                         >
                           ✏️
                         </Button>
@@ -101,6 +133,7 @@ export function ClientTable({ clients, onEdit, getStatusColor }: ClientTableProp
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
+                          onClick={() => client.id && onDelete(client.id)}
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -110,23 +143,6 @@ export function ClientTable({ clients, onEdit, getStatusColor }: ClientTableProp
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>Supprimer</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                        >
-                          📋
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Voir les détails</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

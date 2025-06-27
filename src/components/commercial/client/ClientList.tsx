@@ -1,122 +1,250 @@
+// src/components/commercial/client/ClientList.tsx
 'use client';
 
-import { useState } from 'react';
-import { Client } from '@/types/commercial';
-import { ClientTable } from './ClientTable';
+import { useState, useEffect, useMemo } from 'react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Search, Loader2 } from 'lucide-react';
+import { ClientTable } from './ClientTable';
+import { ClientForm } from './ClientForm';
+import { ClientModal } from './ClientModal';
+import { Client } from '@/types/commercial';
+import { useClientStore } from '@/stores/commercial/clientStore';
+import { toast } from '@/components/ui/use-toast';
 
-
-const mockClients: Client[] = [
-  {
-    name: 'Jean Dupont',
-    company: 'Tech Solutions SA',
-    email: 'jean.dupont@techsolutions.fr',
-    phone: '+33 6 12 34 56 78',
-    status: 'Active',
-    startDate: '2024-01-15',
-    services: ['Consulting', 'Formation'],
-    notes: 'Client fidèle depuis 2024'
-  },
-  {
-    name: 'Marie Martin',
-    company: 'Digital Agency',
-    email: 'marie.martin@digital.fr',
-    phone: '+33 6 23 45 67 89',
-    status: 'Active',
-    startDate: '2024-02-01',
-    services: ['Marketing', 'SEO'],
-    notes: 'Intéressée par nos services de formation'
-  },
-  {
-    name: 'Pierre Dubois',
-    company: 'Startup Innovation',
-    email: 'pierre.dubois@startup.fr',
-    phone: '+33 6 34 56 78 90',
-    status: 'Pending',
-    startDate: '2024-02-20',
-    services: ['Development'],
-    notes: 'En attente de signature du contrat'
+const getStatusColor = (status?: string) => {
+  switch (status?.toLowerCase()) {
+    case 'active':
+      return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300';
+    case 'inactive':
+      return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300';
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300';
+    default:
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
   }
-];
+};
 
 export function ClientList() {
-  const [clients] = useState<Client[]>(mockClients);
-  const [, setSelectedClient] = useState<Client | null>(null);
+  console.log('Rendering ClientList');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  const getStatusColor = (status: Client['status']) => {
-    const colors = {
-      'Active': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300',
-      'Inactive': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
-      'Pending': 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'
+  // Get state and actions from the store
+  const { 
+    clients, 
+    loading, 
+    error,
+    fetchClients, 
+    deleteClient 
+  } = useClientStore();
+
+  // Handle search input
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Handle edit client
+  const handleEdit = (client: Client) => {
+    setSelectedClient(client);
+    setIsFormOpen(true);
+  };
+
+  // Handle view client
+  const handleView = (client: Client) => {
+    setSelectedClient(client);
+    setIsModalOpen(true);
+  };
+
+  // Handle delete client
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
+      try {
+        await deleteClient(id);
+        toast({
+          title: 'Succès',
+          description: 'Client supprimé avec succès',
+        });
+      } catch (error) {
+        console.error('Error deleting client:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Une erreur est survenue lors de la suppression du client',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  // Handle form success
+  const handleSuccess = async () => {
+    console.log('Form submission successful, refreshing client list...');
+    try {
+      await fetchClients();
+      setIsFormOpen(false);
+      setSelectedClient(null);
+      toast({
+        title: 'Succès',
+        description: 'Opération effectuée avec succès',
+      });
+    } catch (error) {
+      console.error('Error refreshing client list:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Client enregistré mais erreur lors de la mise à jour de la liste',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Form and modal open/close is handled directly in the components
+
+  // Filter clients based on search term
+  const filteredClients = useMemo(() => {
+    if (!searchTerm) return clients;
+    const search = searchTerm.toLowerCase();
+    return clients.filter(client => (
+      client.name?.toLowerCase().includes(search) ||
+      client.email?.toLowerCase().includes(search) ||
+      client.phone?.includes(search) ||
+      client.company_name?.toLowerCase().includes(search) ||
+      client.vat_number?.includes(search)
+    ));
+  }, [clients, searchTerm]);
+
+  // Log state changes
+  useEffect(() => {
+    console.log('Clients in store:', clients);
+  }, [clients]);
+
+  // Initial data fetch
+  useEffect(() => {
+    console.log('Initializing ClientList - fetching clients');
+    const loadClients = async () => {
+      try {
+        console.log('Fetching clients...');
+        await fetchClients();
+      } catch (error) {
+        console.error('Error loading clients:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de charger la liste des clients: ' + 
+            (error instanceof Error ? error.message : 'Unknown error'),
+          variant: 'destructive',
+        });
+      }
     };
-    return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300';
-  };
 
-  const stats = {
-    total: clients.length,
-    active: clients.filter(c => c.status === 'Active').length,
-    inactive: clients.filter(c => c.status === 'Inactive').length,
-    pending: clients.filter(c => c.status === 'Pending').length
-  };
+    loadClients();
+  }, [fetchClients]);
+
+  // Loading state
+  if (loading && clients.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="p-4 text-red-500">
+        Erreur: {error}
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Clients</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-emerald-200 dark:border-emerald-900">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Actifs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.active}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-amber-200 dark:border-amber-900">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-amber-600 dark:text-amber-400">En Attente</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.pending}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-red-200 dark:border-red-900">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-red-600 dark:text-red-400">Inactifs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.inactive}</div>
-          </CardContent>
-        </Card>
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="relative w-full sm:w-96">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Rechercher un client..."
+            className="pl-10 w-full"
+            value={searchTerm}
+            onChange={handleSearch}
+          />
+        </div>
+        <Button 
+          className="w-full sm:w-auto" 
+          onClick={() => {
+            setSelectedClient(null);
+            setIsFormOpen(true);
+          }}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Nouveau client
+        </Button>
       </div>
 
-      {/* Client Table */}
-      <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Liste des Clients</CardTitle>
-          <Button 
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            Ajouter un Client
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <ClientTable
-            clients={clients}
-            onEdit={setSelectedClient}
-            getStatusColor={getStatusColor}
-          />
-        </CardContent>
-      </Card>
+      {filteredClients.length === 0 ? (
+        <div className="text-center py-12 border rounded-lg">
+          <p className="text-muted-foreground">
+            {searchTerm ? 
+              'Aucun client ne correspond à votre recherche' : 
+              'Aucun client trouvé. Commencez par ajouter un client.'}
+          </p>
+          {!searchTerm && (
+            <Button 
+              className="mt-4" 
+              onClick={() => setIsFormOpen(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Ajouter un client
+            </Button>
+          )}
+        </div>
+      ) : (
+        <ClientTable 
+          clients={filteredClients} 
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onView={handleView}
+          getStatusColor={getStatusColor}
+        />
+      )}
+
+      <ClientForm 
+        open={isFormOpen} 
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) setSelectedClient(null);
+        }}
+        client={selectedClient}
+        onSuccess={handleSuccess}
+      />
+
+      <ClientModal
+        client={selectedClient}
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onEdit={() => {
+          setIsModalOpen(false);
+          setIsFormOpen(true);
+        }}
+        onDelete={async (id) => {
+          try {
+            await deleteClient(id);
+            toast({
+              title: 'Succès',
+              description: 'Le client a été supprimé avec succès',
+            });
+          } catch (error) {
+            console.error('Error deleting client:', error);
+            toast({
+              title: 'Erreur',
+              description: 'Une erreur est survenue lors de la suppression du client',
+              variant: 'destructive',
+            });
+          }
+        }}
+      />
     </div>
   );
 }

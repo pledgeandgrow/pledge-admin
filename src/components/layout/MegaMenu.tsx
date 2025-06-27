@@ -5,6 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+
+// Initialize Supabase client
+const supabase = createClientComponentClient();
 
 interface SubMenuItem {
   href: string;
@@ -28,7 +32,13 @@ export function MegaMenu() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <div className="fixed left-0 top-0 h-screen w-64 bg-background border-r flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   const handleMenuClick = (menuId: string) => {
     setActiveMenu(activeMenu === menuId ? null : menuId);
@@ -309,13 +319,15 @@ export function MegaMenu() {
         {/* Logo and User Section */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-center mb-4">
-            <Image
-              src={theme === 'dark' ? '/logo/logo-white.png' : '/logo/logo-black.png'}
-              alt="Logo"
-              width={160}
-              height={64}
-              className="h-16 w-auto"
-            />
+            <Link href="/">
+              <Image
+                src={theme === 'dark' ? '/logo/logo-white.png' : '/logo/logo-black.png'}
+                alt="Logo"
+                width={160}
+                height={64}
+                className="h-16 w-auto cursor-pointer hover:opacity-90 transition-opacity"
+              />
+            </Link>
           </div>
           <div className="text-center">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -392,6 +404,27 @@ export function MegaMenu() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* Logout Button */}
+        <div className="border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={async () => {
+              try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                window.location.href = '/';
+              } catch (error) {
+                console.error('Error signing out:', error);
+              }
+            }}
+            className="w-full px-3 py-2 text-left flex items-center space-x-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span className="text-sm font-medium">Déconnexion</span>
+          </button>
         </div>
 
         {/* Parameters Section at Bottom - Made more discrete */}

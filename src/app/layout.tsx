@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
-import "./globals.css";
+import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthInitializer } from '@/components/auth/AuthInitializer';
+import './globals.css';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,11 +16,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// This is a Server Component, so we can export metadata
 export const metadata: Metadata = {
-  title: "Pledge Portal",
-  description: "Administrative portal for Pledge and Grow",
+  title: 'Pledge Portal',
+  description: 'Administrative portal for Pledge and Grow',
 };
 
+// This is a Server Component
 export default function RootLayout({
   children,
 }: {
@@ -26,18 +30,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AuthInitializer>
+              {children}
+              <Toaster />
+            </AuthInitializer>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

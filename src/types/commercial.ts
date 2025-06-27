@@ -11,14 +11,23 @@ export interface Lead {
 }
 
 export interface Client {
+  id?: string;
+  is_company: boolean;
   name: string;
-  company: string;
-  email: string;
-  phone: string;
-  status: 'Active' | 'Inactive' | 'Pending';
-  startDate: string;
-  services: string[];
-  notes: string;
+  address?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  country?: string | null;
+  company_name?: string | null;
+  contact_person?: string | null;
+  vat_number?: string | null;
+  registration_number?: string | null;
+  website?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  status?: 'Active' | 'Inactive' | 'Pending'; // Keeping status for backward compatibility
+  services?: string[]; // For backward compatibility
+  notes?: string; // For backward compatibility
 }
 
 export interface Formation {
