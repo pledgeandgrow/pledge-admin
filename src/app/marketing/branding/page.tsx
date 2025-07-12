@@ -1,14 +1,51 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
+import type { Asset } from '@/components/marketing/branding/BrandAssets';
 import { MegaMenu } from '@/components/layout/MegaMenu';
 import { BrandIdentity } from '@/components/marketing/branding/BrandIdentity';
 import { BrandGuidelines } from '@/components/marketing/branding/BrandGuidelines';
 import { BrandAssets } from '@/components/marketing/branding/BrandAssets';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { createClient } from '@/lib/supabase';
+import { Loader2 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
-// Sample data
-const initialColorScheme = {
+// Types for brand data
+interface BrandSettings {
+  id: string;
+  color_scheme: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    text: string;
+    success: string;
+    warning: string;
+    error: string;
+  };
+  typography: {
+    headingFont: string;
+    bodyFont: string;
+    scale: string;
+  };
+  logo: {
+    main: string;
+    alternative: string;
+    favicon: string;
+  };
+  updated_at: string;
+}
+
+interface GuidelineSection {
+  id: string;
+  title: string;
+  content: string;
+  lastUpdated: string;
+}
+
+// Default values in case there's no data in Supabase yet
+const defaultColorScheme = {
   primary: '#007AFF',
   secondary: '#5856D6',
   accent: '#FF2D55',
@@ -19,13 +56,13 @@ const initialColorScheme = {
   error: '#FF3B30'
 };
 
-const initialTypography = {
+const defaultTypography = {
   headingFont: 'Inter',
   bodyFont: 'Inter',
   scale: '1.250'
 };
 
-const initialLogo = {
+const defaultLogo = {
   main: '',
   alternative: '',
   favicon: ''
@@ -69,48 +106,89 @@ const brandGuidelines = {
   ]
 };
 
-const brandAssets = {
-  assets: [
-    {
-      id: '1',
-      name: 'Logo Principal.svg',
-      type: 'image',
-      url: '/assets/logo-main.svg',
-      size: '245 KB',
-      dimensions: '512x512',
-      lastModified: 'Il y a 2j'
-    },
-    {
-      id: '2',
-      name: 'Logo Alternatif.svg',
-      type: 'image',
-      url: '/assets/logo-alt.svg',
-      size: '220 KB',
-      dimensions: '512x512',
-      lastModified: 'Il y a 2j'
-    },
-    {
-      id: '3',
-      name: 'Présentation Marque.pdf',
-      type: 'document',
-      url: '/assets/brand-presentation.pdf',
-      size: '2.4 MB',
-      lastModified: 'Il y a 5j'
-    },
-    {
-      id: '4',
-      name: 'Vidéo Promotionnelle.mp4',
-      type: 'video',
-      url: '/assets/promo-video.mp4',
-      thumbnail: '/assets/video-thumb.jpg',
-      size: '24.5 MB',
-      dimensions: '1920x1080',
-      lastModified: 'Il y a 1sem'
-    }
-  ]
-};
-
 const Page: FC = () => {
+  const [brandAssets, setBrandAssets] = useState<Asset[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchBrandAssets() {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Fetch digital assets with type 'branding' in metadata
+        const { data, error } = await supabase
+          .from('assets')
+          .select('*')
+          .eq('type', 'digital')
+          .contains('metadata', { asset_category: 'branding' });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (data) {
+          // Transform Supabase data to match Asset type
+          const formattedAssets: Asset[] = data.map(asset => ({
+            id: asset.id,
+            name: asset.name,
+            type: determineAssetType(asset.file_path, asset.metadata?.asset_type),
+            url: asset.file_path,
+            thumbnail: asset.metadata?.thumbnail || undefined,
+            size: asset.metadata?.size || 'Unknown',
+            dimensions: asset.metadata?.dimensions || undefined,
+            lastModified: formatDate(asset.updated_at)
+          }));
+
+          setBrandAssets(formattedAssets);
+        }
+      } catch (err) {
+        console.error('Error fetching brand assets:', err);
+        setError('Failed to load brand assets. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchBrandAssets();
+  }, []);
+
+  // Helper function to determine asset type based on file extension or metadata
+  function determineAssetType(filePath: string, metadataType?: string): 'image' | 'video' | 'document' {
+    if (metadataType) {
+      if (['image', 'video', 'document'].includes(metadataType)) {
+        return metadataType as 'image' | 'video' | 'document';
+      }
+    }
+
+    // Fallback to extension detection
+    const extension = filePath.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '')) {
+      return 'image';
+    } else if (['mp4', 'webm', 'mov', 'avi'].includes(extension || '')) {
+      return 'video';
+    } else {
+      return 'document';
+    }
+  }
+
+  // Helper function to format dates
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Aujourd\'hui';
+    if (diffDays === 1) return 'Hier';
+    if (diffDays < 7) return `Il y a ${diffDays}j`;
+    if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)}sem`;
+    if (diffDays < 365) return `Il y a ${Math.floor(diffDays / 30)}mois`;
+    return `Il y a ${Math.floor(diffDays / 365)}ans`;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <MegaMenu />
@@ -125,9 +203,9 @@ const Page: FC = () => {
 
             <TabsContent value="identity">
               <BrandIdentity
-                colorScheme={initialColorScheme}
-                typography={initialTypography}
-                logo={initialLogo}
+                colorScheme={defaultColorScheme}
+                typography={defaultTypography}
+                logo={defaultLogo}
               />
             </TabsContent>
 
@@ -136,7 +214,18 @@ const Page: FC = () => {
             </TabsContent>
 
             <TabsContent value="assets">
-              <BrandAssets assets={brandAssets.assets} />
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="ml-2">Chargement des ressources...</span>
+                </div>
+              ) : error ? (
+                <div className="flex justify-center items-center h-64 text-red-500">
+                  {error}
+                </div>
+              ) : (
+                <BrandAssets assets={brandAssets} />
+              )}
             </TabsContent>
           </Tabs>
         </div>

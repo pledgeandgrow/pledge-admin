@@ -1,6 +1,8 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase';
+import { toast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,34 +33,196 @@ interface BrandGuidelinesProps {
 }
 
 export const BrandGuidelines: FC<BrandGuidelinesProps> = ({ sections: initialSections }) => {
-  const [sections, setSections] = useState<GuidelineSection[]>(initialSections);
+  const [sections, setSections] = useState<GuidelineSection[]>(initialSections || []);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [newSection, setNewSection] = useState<Partial<GuidelineSection>>({});
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const supabase = createClient();
+  
+  useEffect(() => {
+    // Only fetch from Supabase if no initial sections were provided
+    if (initialSections?.length === 0 || initialSections === undefined) {
+      fetchBrandGuidelines();
+    }
+  }, []);
+
+  const fetchBrandGuidelines = async () => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase
+        .from('brand_guidelines')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      if (data) {
+        // Transform Supabase data to match GuidelineSection type
+        const formattedSections: GuidelineSection[] = data.map(section => ({
+          id: section.id,
+          title: section.title,
+          content: section.content,
+          lastUpdated: formatDate(section.updated_at)
+        }));
+        
+        setSections(formattedSections);
+      }
+    } catch (err) {
+      console.error('Error fetching brand guidelines:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to load brand guidelines. Please try again later.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Helper function to format dates
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   const handleEdit = (id: string) => {
     setEditingSection(id);
   };
 
-  const handleSave = () => {
-    setEditingSection(null);
+  const handleSave = async (section: GuidelineSection) => {
+    try {
+      setIsSaving(true);
+      
+      // Check if this is an existing section in the database
+      const isExistingSection = !section.id.includes('temp-');
+      
+      if (isExistingSection) {
+        // Update existing section
+        const { error } = await supabase
+          .from('brand_guidelines')
+          .update({
+            title: section.title,
+            content: section.content,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', section.id);
+          
+        if (error) throw new Error(error.message);
+      } else {
+        // Create new section (if it was a temporary one being edited)
+        const { data, error } = await supabase
+          .from('brand_guidelines')
+          .insert([
+            {
+              title: section.title,
+              content: section.content
+            }
+          ])
+          .select();
+          
+        if (error) throw new Error(error.message);
+        
+        // Update the section ID with the database ID
+        if (data && data[0]) {
+          setSections(prevSections => 
+            prevSections.map(s => 
+              s.id === section.id ? { ...s, id: data[0].id } : s
+            )
+          );
+        }
+      }
+      
+      toast({
+        title: 'Succès',
+        description: 'Section sauvegardée avec succès',
+      });
+      
+      setEditingSection(null);
+    } catch (err) {
+      console.error('Error saving section:', err);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de sauvegarder la section',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setSections(sections.filter(section => section.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      // Check if this is a temporary section (not yet in database)
+      const isTemporarySection = id.includes('temp-');
+      
+      if (!isTemporarySection) {
+        // Delete from database if it's a real section
+        const { error } = await supabase
+          .from('brand_guidelines')
+          .delete()
+          .eq('id', id);
+          
+        if (error) throw new Error(error.message);
+      }
+      
+      // Remove from UI state
+      setSections(sections.filter(section => section.id !== id));
+      
+      toast({
+        title: 'Succès',
+        description: 'Section supprimée avec succès',
+      });
+    } catch (err) {
+      console.error('Error deleting section:', err);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer la section',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleAdd = () => {
-    const newId = Date.now().toString();
-    setSections([
-      ...sections,
-      {
-        id: newId,
+  const handleAdd = async () => {
+    try {
+      const tempId = `temp-${Date.now()}`;
+      const newSectionData = {
+        id: tempId,
         title: newSection.title || 'Nouvelle Section',
         content: newSection.content || '',
-        lastUpdated: new Date().toLocaleDateString('fr-FR')
-      }
-    ]);
-    setNewSection({});
+        lastUpdated: new Date().toLocaleDateString('fr-FR', { 
+          day: 'numeric', 
+          month: 'long', 
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      };
+      
+      // Add to UI immediately with temporary ID
+      setSections([...sections, newSectionData]);
+      setNewSection({});
+      
+      // Set to editing mode for the new section
+      setEditingSection(tempId);
+      
+    } catch (err) {
+      console.error('Error adding section:', err);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'ajouter la section',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
@@ -84,7 +248,21 @@ export const BrandGuidelines: FC<BrandGuidelinesProps> = ({ sections: initialSec
             </div>
 
             <ScrollArea className="h-[600px] pr-4">
-              <div className="space-y-6">
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin mr-2">⏳</div>
+                  <span>Chargement des sections...</span>
+                </div>
+              ) : sections.length === 0 ? (
+                <div className="flex flex-col justify-center items-center h-64 text-center">
+                  <FileText className="h-12 w-12 text-gray-300 mb-4" />
+                  <h3 className="text-lg font-medium">Aucune section trouvée</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Commencez par ajouter une section à votre guide de marque
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
                 {sections.map((section) => (
                   <Card key={section.id} className="relative group">
                     <CardHeader>
@@ -123,7 +301,7 @@ export const BrandGuidelines: FC<BrandGuidelinesProps> = ({ sections: initialSec
                       )}
                       <div className="flex justify-end gap-2">
                         {editingSection === section.id ? (
-                          <Button onClick={() => handleSave(section.id)}>
+                          <Button onClick={() => handleSave(section)}>
                             <Save className="h-4 w-4 mr-2" />
                             Enregistrer
                           </Button>
@@ -141,10 +319,23 @@ export const BrandGuidelines: FC<BrandGuidelinesProps> = ({ sections: initialSec
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
+                      {editingSection === section.id && (
+                        <div className="flex justify-end gap-2 mt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingSection(null)}
+                            disabled={isSaving}
+                          >
+                            Annuler
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
               </div>
+              )}
             </ScrollArea>
 
             {Object.keys(newSection).length > 0 && (

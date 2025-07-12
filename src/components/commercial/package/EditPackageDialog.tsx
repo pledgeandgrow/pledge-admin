@@ -19,14 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Package } from '@/types/package';
+import { Product, ProductStatus } from '@/types/products';
 import { Trash, Plus, X } from 'lucide-react';
 
 interface EditPackageDialogProps {
-  package?: Package;
+  package?: Product;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (pkg: Partial<Package>) => void;
+  onSave: (pkg: Partial<Product>) => void;
   onDelete?: () => void;
 }
 
@@ -39,24 +39,54 @@ export function EditPackageDialog({
 }: EditPackageDialogProps) {
   const isEditing = !!pkg;
 
-  const [formData, setFormData] = useState<Partial<Package>>(
-    pkg || {
-      title: '',
-      description: '',
-      price: 0,
-      duration: '',
-      status: 'Available',
-      features: [],
-      category: 'Consulting',
-      level: 'Basic'
-    }
-  );
+  // Extract metadata from package if editing
+  const initialMetadata = pkg?.metadata || {};
+
+  const [formData, setFormData] = useState<{
+    name: string;
+    description: string;
+    price: number;
+    status: ProductStatus;
+    duration: string;
+    features: string[];
+    category: string;
+    level: string;
+  }>({
+    name: pkg?.name || '',
+    description: pkg?.description || '',
+    price: pkg?.price || 0,
+    status: pkg?.status || 'active',
+    duration: initialMetadata.duration || '',
+    features: initialMetadata.features || [],
+    category: initialMetadata.category || 'Consulting',
+    level: initialMetadata.level || 'Basic'
+  });
 
   const [newFeature, setNewFeature] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Prepare the product data for Supabase
+    const productData: Partial<Product> = {
+      name: formData.name,
+      description: formData.description,
+      price: formData.price,
+      status: formData.status as any,
+      metadata: {
+        duration: formData.duration,
+        category: formData.category,
+        features: formData.features,
+        level: formData.level
+      }
+    };
+    
+    // If editing, include the ID
+    if (isEditing && pkg?.id) {
+      productData.id = pkg.id;
+    }
+    
+    onSave(productData);
     onOpenChange(false);
   };
 
@@ -93,8 +123,8 @@ export function EditPackageDialog({
             <div className="space-y-2">
               <Label>Titre</Label>
               <Input
-                value={formData.title}
-                onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                value={formData.name}
+                onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Titre du package"
                 required
               />
@@ -137,7 +167,7 @@ export function EditPackageDialog({
                 <Label>Catégorie</Label>
                 <Select
                   value={formData.category}
-                  onValueChange={value => setFormData(prev => ({ ...prev, category: value as Package['category'] }))}
+                  onValueChange={value => setFormData(prev => ({ ...prev, category: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner une catégorie" />
@@ -154,7 +184,7 @@ export function EditPackageDialog({
                 <Label>Niveau</Label>
                 <Select
                   value={formData.level}
-                  onValueChange={value => setFormData(prev => ({ ...prev, level: value as Package['level'] }))}
+                  onValueChange={value => setFormData(prev => ({ ...prev, level: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un niveau" />
@@ -173,16 +203,16 @@ export function EditPackageDialog({
               <Label>Statut</Label>
               <Select
                 value={formData.status}
-                onValueChange={value => setFormData(prev => ({ ...prev, status: value as Package['status'] }))}
+                onValueChange={value => setFormData(prev => ({ ...prev, status: value as ProductStatus }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Available">Available</SelectItem>
-                  <SelectItem value="Coming Soon">Coming Soon</SelectItem>
-                  <SelectItem value="Limited">Limited</SelectItem>
-                  <SelectItem value="Archived">Archived</SelectItem>
+                  <SelectItem value="active">Disponible</SelectItem>
+                  <SelectItem value="draft">Brouillon</SelectItem>
+                  <SelectItem value="discontinued">Limité</SelectItem>
+                  <SelectItem value="archived">Archivé</SelectItem>
                 </SelectContent>
               </Select>
             </div>

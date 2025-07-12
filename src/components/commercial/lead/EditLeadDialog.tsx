@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { contactService } from '@/services/contactService';
+import { ContactType } from '@/types/contact';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -80,7 +81,7 @@ export function EditLeadDialog({ lead, open, onOpenChange }: EditLeadDialogProps
         phone: editedLead.phone,
         notes: editedLead.commentaires,
         status: editedLead.status,
-        type: 'lead',
+        type: 'lead' as ContactType,
         metadata: {
           service: editedLead.service,
           source: editedLead.source || '',
@@ -92,7 +93,8 @@ export function EditLeadDialog({ lead, open, onOpenChange }: EditLeadDialogProps
       };
       
       // Update contact in Supabase
-      await contactService.updateContact(contactData);
+      const { id, ...contactDataWithoutId } = contactData;
+      await contactService.updateContact(id, contactDataWithoutId);
       
       toast({
         title: "Lead mis à jour",

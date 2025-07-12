@@ -7,16 +7,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Mail, Phone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { WaitlistEntry } from '@/types/waitlist';
+import { Mail, Phone, Calendar } from 'lucide-react';
+import { WaitlistContact } from '@/types/contact';
 
 interface ViewWaitlistDialogProps {
-  entry: WaitlistEntry;
+  entry: WaitlistContact;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  getStatusColor: (status: WaitlistEntry['status']) => string;
-  getStatusText: (status: WaitlistEntry['status']) => string;
+  getStatusColor: (status: string) => string;
+  getStatusText: (status: string) => string;
 }
 
 export function ViewWaitlistDialog({
@@ -32,7 +33,7 @@ export function ViewWaitlistDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center justify-between">
             <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              {entry.name}
+              {`${entry.first_name} ${entry.last_name}`}
             </span>
             <Badge variant="outline" className={getStatusColor(entry.status)}>
               {getStatusText(entry.status)}
@@ -66,7 +67,7 @@ export function ViewWaitlistDialog({
             <h3 className="text-lg font-semibold">Date souhaitée</h3>
             <div className="flex items-center text-sm">
               <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span>{new Date(entry.date).toLocaleDateString('fr-FR')}</span>
+              <span>{entry.joined_at ? new Date(entry.joined_at).toLocaleDateString('fr-FR') : 'Non spécifiée'}</span>
             </div>
           </div>
 

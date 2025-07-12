@@ -5,248 +5,258 @@ import { MegaMenu } from '@/components/layout/MegaMenu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Loader2 } from 'lucide-react';
 import { InternalProjectCard } from '@/components/informatique/projets-interne/InternalProjectCard';
 import { InternalProjectForm } from '@/components/informatique/projets-interne/InternalProjectForm';
 import { InternalProjectStatistics } from '@/components/informatique/projets-interne/InternalProjectStatistics';
-import { InternalProjectType, InternalProjectStatisticsType } from '@/components/informatique/projets-interne/types';
+import { InternalProjectStatisticsType, InternalProjectType } from '@/components/informatique/projets-interne/types';
 import { useToast } from '@/components/ui/use-toast';
+import { projectService, BaseProject, ProjectStatus } from '@/services/projectService';
 
-export default function ProjetsInternesPage() {
-  const { toast } = useToast();
+const ProjetsInternesPage = () => {
   const [projects, setProjects] = useState<InternalProjectType[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<InternalProjectType[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<InternalProjectType | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<InternalProjectType | null>(null);
   const [statistics, setStatistics] = useState<InternalProjectStatisticsType>({
     total: 0,
     enCours: 0,
     termine: 0,
     enRetard: 0
   });
-
+  
+  const { toast } = useToast();
+  
+  // Fetch projects using projectService
   const fetchProjects = useCallback(async () => {
     try {
-      const response = await fetch('/api/internal-projects');
-      if (!response.ok) throw new Error('Failed to fetch projects');
-      const data = await response.json();
-      setProjects(data);
-      updateStatistics(data);
+      setIsLoading(true);
+      
+      const internalProjects = await projectService.getInternalProjects();
+      setProjects(internalProjects as InternalProjectType[]);
+      setFilteredProjects(internalProjects as InternalProjectType[]);
+      
+      // Fetch statistics
+      const stats = await projectService.getInternalProjectStatistics();
+      // Convert the stats to match InternalProjectStatisticsType
+      setStatistics({
+        total: stats.total || 0,
+        enCours: stats.active || 0,
+        termine: stats.completed || 0,
+        enRetard: stats.onHold || 0
+      });
     } catch (error) {
-      console.error('Error in internal project operation:', error);
+      console.error('Error fetching projects:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les projets.",
-        variant: "destructive",
+        title: 'Erreur',
+        description: 'Impossible de charger les projets internes',
+        variant: 'destructive'
       });
     } finally {
       setIsLoading(false);
     }
   }, [toast]);
-
+  
+  // Filter projects based on search term
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    
+    if (!term.trim()) {
+      setFilteredProjects(projects);
+      return;
+    }
+    
+    const filtered = projects.filter(project => 
+      project.name.toLowerCase().includes(term) ||
+      project.description?.toLowerCase().includes(term) ||
+      (project.tags && project.tags.some(tag => tag.toLowerCase().includes(term)))
+    );
+    
+    setFilteredProjects(filtered);
+  };
+  
+  // Handle creating a new project
+  const handleCreateProject = async (projectData: Partial<InternalProjectType>) => {
+    try {
+      // Ensure project_type is set to 'internal'
+      const newProject = {
+        ...projectData,
+        project_type: 'Internal' as const,
+        created_at: new Date().toISOString()
+      };
+      
+      const createdProject = await projectService.createProject(newProject as BaseProject);
+      
+      if (createdProject) {
+        // Refresh projects list
+        fetchProjects();
+        
+        toast({
+          title: 'Projet créé',
+          description: 'Le projet a été créé avec succès.'
+        });
+      }
+      
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de créer le projet',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  // Handle updating an existing project
+  const handleUpdateProject = async (projectData: Partial<InternalProjectType>) => {
+    if (!selectedProject?.id) return;
+    
+    try {
+      const updatedProject = {
+        ...projectData,
+        updated_at: new Date().toISOString()
+      };
+      
+      await projectService.updateProject(selectedProject.id, updatedProject);
+      
+      // Refresh projects list
+      fetchProjects();
+      
+      toast({
+        title: 'Projet mis à jour',
+        description: 'Le projet a été mis à jour avec succès.'
+      });
+      
+      setIsDialogOpen(false);
+      setSelectedProject(null);
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de mettre à jour le projet',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  // Handle deleting a project
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      await projectService.deleteProject(projectId);
+      
+      // Refresh projects list
+      fetchProjects();
+      
+      toast({
+        title: 'Projet supprimé',
+        description: 'Le projet a été supprimé avec succès.'
+      });
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer le projet',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  // Open dialog for editing a project
+  const handleEditProject = (project: InternalProjectType) => {
+    setSelectedProject(project);
+    setIsDialogOpen(true);
+  };
+  
+  // Handle dialog submission
+  const handleDialogSubmit = (projectData: Partial<InternalProjectType>) => {
+    if (selectedProject) {
+      handleUpdateProject(projectData);
+    } else {
+      handleCreateProject(projectData);
+    }
+  };
+  
+  // Fetch projects on component mount
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
-
-  useEffect(() => {
-    // Filter projects based on search query
-    const filtered = projects.filter(project =>
-      project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.technologies.some(tech => 
-        tech.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    );
-    setFilteredProjects(filtered);
-  }, [searchQuery, projects]);
-
-  const updateStatistics = (projectList: InternalProjectType[]) => {
-    const now = new Date();
-    const stats: InternalProjectStatisticsType = {
-      total: projectList.length,
-      enCours: projectList.filter(p => p.statut === 'En cours').length,
-      termine: projectList.filter(p => p.statut === 'Terminé').length,
-      enRetard: projectList.filter(p => {
-        const endDate = new Date(p.dateFin.split('/').reverse().join('-'));
-        return endDate < now && p.statut !== 'Terminé';
-      }).length
-    };
-    setStatistics(stats);
-  };
-
-  const handleCreateProject = async (project: Omit<InternalProjectType, 'id'>) => {
-    try {
-      const response = await fetch('/api/internal-projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(project),
-      });
-
-      if (!response.ok) throw new Error('Failed to create project');
-      const newProject = await response.json();
-      
-      setProjects(prev => [...prev, newProject]);
-      setIsCreating(false);
-      toast({
-        title: "Projet créé",
-        description: "Le projet a été créé avec succès.",
-      });
-    } catch (error) {
-      console.error('Error in internal project operation:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de créer le projet.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleUpdateProject = async (project: InternalProjectType | Omit<InternalProjectType, 'id'>) => {
-    try {
-      // If the project has an id, it's an update, otherwise it's a create
-      const projectData = 'id' in project ? project : { ...project, id: selectedProject?.id };
-      
-      if (!projectData.id) {
-        throw new Error('Project ID is required for update');
-      }
-      
-      const response = await fetch('/api/internal-projects', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(projectData),
-      });
-
-      if (!response.ok) throw new Error('Failed to update project');
-      const updatedProject = await response.json();
-      
-      setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-      setSelectedProject(null);
-      toast({
-        title: "Projet mis à jour",
-        description: "Les modifications ont été enregistrées.",
-      });
-    } catch (error) {
-      console.error('Error in internal project operation:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le projet.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteProject = async (projectId: string) => {
-    try {
-      const response = await fetch(`/api/internal-projects?id=${projectId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Failed to delete project');
-      
-      setProjects(prev => prev.filter(p => p.id !== projectId));
-      setSelectedProject(null);
-      toast({
-        title: "Projet supprimé",
-        description: "Le projet a été supprimé avec succès.",
-        variant: "destructive",
-      });
-    } catch (error) {
-      console.error('Error in internal project operation:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le projet.",
-        variant: "destructive",
-      });
-    }
-  };
-
+  
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="container mx-auto py-6">
       <MegaMenu />
-      <main className="flex-1 ml-64 min-h-screen overflow-auto">
-        <div className="max-w-7xl mx-auto py-4">
-          <div className="p-6 space-y-6">
-            {/* Header */}
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                  Projets Internes
-                </h1>
-                <p className="text-muted-foreground">
-                  Gérez et suivez les projets internes de l&apos;entreprise
-                </p>
-              </div>
-              <Button onClick={() => setIsCreating(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Nouveau Projet
-              </Button>
-            </div>
-
-            {/* Statistics */}
-            <div className="rounded-lg border bg-card">
-              <InternalProjectStatistics statistics={statistics} />
-            </div>
-
-            {/* Search Bar */}
-            <div className="relative w-full sm:w-96">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher un projet..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            {/* Project Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {isLoading ? (
-                <div className="col-span-full text-center py-12 text-muted-foreground">
-                  Chargement des projets...
-                </div>
-              ) : filteredProjects.length > 0 ? (
-                filteredProjects.map(project => (
-                  <InternalProjectCard
-                    key={project.id}
-                    project={project}
-                    onClick={() => setSelectedProject(project)}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-12 text-muted-foreground">
-                  Aucun projet trouvé
-                </div>
-              )}
-            </div>
-          </div>
+      
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Projets Internes</h1>
+        <Button onClick={() => {
+          setSelectedProject(null);
+          setIsDialogOpen(true);
+        }}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Nouveau Projet
+        </Button>
+      </div>
+      
+      {/* Statistics Section */}
+      <div className="mb-8">
+        <InternalProjectStatistics statistics={statistics} />
+      </div>
+      
+      {/* Search and Filter */}
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <Input
+          placeholder="Rechercher un projet..."
+          value={searchTerm}
+          onChange={handleSearch}
+          className="pl-10"
+        />
+      </div>
+      
+      {/* Projects Grid */}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2">Chargement des projets...</span>
         </div>
-      </main>
-
-      {/* Create Project Dialog */}
-      <Dialog open={isCreating} onOpenChange={setIsCreating}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <InternalProjectForm
-            onSubmit={handleCreateProject}
-            onCancel={() => setIsCreating(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Project Dialog */}
-      <Dialog open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          {selectedProject && (
-            <InternalProjectForm
-              project={selectedProject}
-              onSubmit={handleUpdateProject}
-              onCancel={() => setSelectedProject(null)}
-              onDelete={() => handleDeleteProject(selectedProject.id)}
+      ) : filteredProjects.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map(project => (
+            <InternalProjectCard
+              key={project.id}
+              project={project}
+              onClick={() => handleEditProject(project)}
             />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-lg text-gray-500">
+            {searchTerm ? 'Aucun projet ne correspond à votre recherche.' : 'Aucun projet interne n\'a été créé.'}
+          </p>
+          {searchTerm && (
+            <Button variant="outline" className="mt-4" onClick={() => setSearchTerm('')}>
+              Effacer la recherche
+            </Button>
           )}
+        </div>
+      )}
+      
+      {/* Create/Edit Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <InternalProjectForm
+            project={selectedProject || undefined}
+            onSubmit={handleDialogSubmit}
+            onCancel={() => setIsDialogOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>
   );
-}
+};
+
+export default ProjetsInternesPage;

@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { 
   Test, 
-  TestCheckItem, 
-  TestStatus, 
   TestCard, 
   TestForm, 
   TestStats, 
@@ -70,7 +68,7 @@ export default function TestValidationPage() {
         variant: "destructive",
       });
     }
-  }, [toast, setTests]);
+  }, [toast, setTests, supabase]);
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -89,7 +87,7 @@ export default function TestValidationPage() {
         variant: "destructive",
       });
     }
-  }, [supabase, toast]);
+  }, [supabase, toast, setProjects]);
 
   const handleCreateTest = async (testData: Test) => {
     try {
@@ -206,7 +204,8 @@ export default function TestValidationPage() {
     }
   };
 
-  // Add a function to handle test deletion
+  // Add a function to handle test deletion (will be used in future implementation)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDeleteTest = async (testId: string) => {
     try {
       // Delete check items first (due to foreign key constraints)

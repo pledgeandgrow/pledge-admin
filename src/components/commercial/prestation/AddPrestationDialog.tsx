@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Prestation } from '@/types/commercial';
+import { Product, ProductStatus } from '@/types/products';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,13 +26,17 @@ interface AddPrestationDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const initialPrestation: Partial<Prestation> = {
+const initialPrestation: Partial<Product> = {
   name: '',
   description: '',
   price: 0,
-  duration: '',
-  category: '',
-  status: 'Available'
+  type: 'service',
+  status: 'active',
+  metadata: {
+    duration: '',
+    category: '',
+    features: []
+  }
 };
 
 const categories = [
@@ -46,7 +50,7 @@ const categories = [
 ];
 
 export function AddPrestationDialog({ open, onOpenChange }: AddPrestationDialogProps) {
-  const [formData, setFormData] = useState<Partial<Prestation>>(initialPrestation);
+  const [formData, setFormData] = useState<Partial<Product>>(initialPrestation);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,8 +80,14 @@ export function AddPrestationDialog({ open, onOpenChange }: AddPrestationDialogP
             <div className="grid gap-2">
               <Label htmlFor="category">Catégorie</Label>
               <Select
-                value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                value={formData.metadata?.category || ''}
+                onValueChange={(value) => setFormData({ 
+                  ...formData, 
+                  metadata: { 
+                    ...formData.metadata,
+                    category: value 
+                  } 
+                })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionnez une catégorie" />
@@ -119,8 +129,14 @@ export function AddPrestationDialog({ open, onOpenChange }: AddPrestationDialogP
                 <Label htmlFor="duration">Durée</Label>
                 <Input
                   id="duration"
-                  value={formData.duration}
-                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  value={formData.metadata?.duration || ''}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    metadata: { 
+                      ...formData.metadata,
+                      duration: e.target.value 
+                    } 
+                  })}
                   placeholder="Ex: 2 heures"
                 />
               </div>
@@ -130,14 +146,16 @@ export function AddPrestationDialog({ open, onOpenChange }: AddPrestationDialogP
               <Label htmlFor="status">Statut</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value: Prestation['status']) => setFormData({ ...formData, status: value })}
+                onValueChange={(value: ProductStatus) => setFormData({ ...formData, status: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionnez un statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Available">Disponible</SelectItem>
-                  <SelectItem value="Unavailable">Indisponible</SelectItem>
+                  <SelectItem value="active">Disponible</SelectItem>
+                  <SelectItem value="draft">Brouillon</SelectItem>
+                  <SelectItem value="discontinued">Limité</SelectItem>
+                  <SelectItem value="archived">Archivé</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { createClient } from '@/lib/supabase';
 import { 
   Card, 
   CardContent, 
@@ -33,23 +34,62 @@ import {
   Award,
   Clock,
   PieChart as PieChartIcon,
-  BarChart as BarChartIcon
+  BarChart as BarChartIcon,
+  Loader2
 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
-interface StaffStatisticsProps {
-  employes: Employee[];
-  departements: Departement[];
-}
+const StaffStatistics: React.FC = () => {
+  const [employes, setEmployes] = useState<Employee[]>([]);
+  const [departements, setDepartements] = useState<Departement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+  const supabase = createClient();
 
-const StaffStatistics: React.FC<StaffStatisticsProps> = ({ employes, departements }) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch employees from Supabase
+        const { data: employeesData, error: employeesError } = await supabase
+          .from('employees')
+          .select('*');
+        
+        if (employeesError) throw employeesError;
+        
+        // Fetch departments from Supabase
+        const { data: departmentsData, error: departmentsError } = await supabase
+          .from('departments')
+          .select('*');
+        
+        if (departmentsError) throw departmentsError;
+        
+        setEmployes(employeesData || []);
+        setDepartements(departmentsData || []);
+      } catch (error) {
+        console.error('Error fetching staff data:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de charger les données du personnel',
+          variant: 'destructive'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [supabase, toast]);
+
   // Calculate statistics
   const totalEmployees = employes.length;
-  const averagePerformance = employes.reduce((acc, emp) => acc + emp.performance.noteAnnuelle, 0) / totalEmployees || 0;
+  const averagePerformance = employes.reduce((acc, emp) => acc + (emp.performance?.noteAnnuelle || 0), 0) / totalEmployees || 0;
   
   // Calculate tenure statistics
   const currentDate = new Date();
   const tenureData = employes.map(emp => {
-    const hireDate = new Date(emp.dateEmbauche);
+    const hireDate = new Date(emp.dateEmbauche || new Date());
     const tenureMonths = (currentDate.getFullYear() - hireDate.getFullYear()) * 12 + 
                          (currentDate.getMonth() - hireDate.getMonth());
     return {
@@ -77,7 +117,7 @@ const StaffStatistics: React.FC<StaffStatisticsProps> = ({ employes, departement
   ];
   
   employes.forEach(emp => {
-    const score = emp.performance.noteAnnuelle;
+    const score = emp.performance?.noteAnnuelle || 0;
     if (score >= 0 && score < 4) performanceRanges[0].count++;
     else if (score >= 4 && score < 6) performanceRanges[1].count++;
     else if (score >= 6 && score < 8) performanceRanges[2].count++;
@@ -90,6 +130,15 @@ const StaffStatistics: React.FC<StaffStatisticsProps> = ({ employes, departement
   // Check if we have data for charts
   const hasDepartmentData = departmentDistribution.length > 0;
   const hasPerformanceData = performanceRanges.some(range => range.count > 0);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-2 text-sm text-muted-foreground">Chargement des statistiques...</p>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">

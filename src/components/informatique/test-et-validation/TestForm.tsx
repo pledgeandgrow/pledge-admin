@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -180,7 +180,7 @@ export function TestForm({ onSubmit, onCancel, initialData, projects }: TestForm
             </div>
 
             <div>
-              <Label htmlFor="due_date">Date d'échéance</Label>
+              <Label htmlFor="due_date">Date d&apos;échéance</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button

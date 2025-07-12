@@ -1,8 +1,8 @@
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { createClient } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  const supabase = createSupabaseServerClient();
+  const supabase = createClient();
   const { searchParams } = new URL(request.url);
   
   const from_date = searchParams.get("from_date");

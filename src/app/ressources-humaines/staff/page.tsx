@@ -167,7 +167,7 @@ export default function Staff() {
           </TabsContent>
           
           <TabsContent value="departements" className="mt-6">
-            <ListeDepartements departements={departements} />
+            <ListeDepartements />
           </TabsContent>
         </Tabs>
       </div>

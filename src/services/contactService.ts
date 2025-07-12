@@ -4,8 +4,8 @@ import { BaseContact, Contact, ContactType } from '@/types/contact';
 
 const supabase = createClient();
 
-// Interface for contacts with joined_at field (member contacts)
-interface ContactWithJoinedAt extends BaseContact {
+// Interface for contacts with joined_at field (board members and waitlist contacts)
+export interface ContactWithJoinedAt extends BaseContact {
   joined_at: string;
 }
 
@@ -137,14 +137,6 @@ export const createContact = async (contact: Omit<BaseContact, 'id' | 'created_a
         }
         // Remove the joined_at property as it's not in the MemberContact interface
         delete (contactData as ContactWithJoinedAt).joined_at;
-      }
-    }
-    
-    // For board members and waitlist contacts, ensure joined_at is properly set
-    if (contactData.type === 'board-member' || contactData.type === 'waitlist') {
-      // If metadata.join_date exists but joined_at doesn't, copy it
-      if (!('joined_at' in contactData) && contactData.metadata?.join_date) {
-        (contactData as ContactWithJoinedAt).joined_at = contactData.metadata.join_date;
       }
     }
     
@@ -338,7 +330,7 @@ export const getContactStatsByStatus = async (type?: ContactType) => {
   try {
     // Use raw SQL query with Supabase to get grouped stats
     // This avoids TypeScript errors with the .group() method
-    let query = supabase
+    const query = supabase
       .rpc('get_contact_status_stats', { 
         type_filter: type || null 
       });

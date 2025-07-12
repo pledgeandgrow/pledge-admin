@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase';
+import { toast } from '@/components/ui/use-toast';
 import { 
   Table, 
   TableBody, 
@@ -33,11 +35,13 @@ export interface Departement {
   projetsEnCours: number;
 }
 
-interface ListeDepartementsProps {
-  departements: Departement[];
-}
+interface ListeDepartementsProps {}
 
-const ListeDepartements: React.FC<ListeDepartementsProps> = ({ departements }) => {
+const ListeDepartements: React.FC<ListeDepartementsProps> = () => {
+  const [departements, setDepartements] = useState<Departement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
+  
   // Calculate total employees across all departments
   const totalEmployees = departements.reduce((acc, dept) => acc + dept.effectif, 0);
   
@@ -55,6 +59,111 @@ const ListeDepartements: React.FC<ListeDepartementsProps> = ({ departements }) =
     budgetFormation: 0,
     projetsEnCours: 0
   });
+  
+  useEffect(() => {
+    fetchDepartements();
+  }, []);
+  
+  const fetchDepartements = async () => {
+    try {
+      setIsLoading(true);
+      
+      // First, get all contacts with type 'member' to count department members
+      const { data: contacts, error: contactsError } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('type', 'member');
+      
+      if (contactsError) throw contactsError;
+      
+      // Then, get all departments from the departments table
+      const { data: deptData, error: deptError } = await supabase
+        .from('departments')
+        .select('*');
+      
+      if (deptError) throw deptError;
+      
+      // Map the data to our Departement interface
+      const mappedDepartments = deptData.map(dept => {
+        // Count employees in this department
+        const deptEmployees = contacts ? contacts.filter(c => c.metadata?.department === dept.name).length : 0;
+        
+        return {
+          nom: dept.name || '',
+          effectif: deptEmployees,
+          responsable: dept.manager_name || '',
+          budgetFormation: dept.training_budget || 0,
+          projetsEnCours: dept.active_projects || 0
+        };
+      });
+      
+      setDepartements(mappedDepartments);
+    } catch (err) {
+      console.error('Error fetching departments:', err);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de récupérer les départements',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleAddDepartement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      // Insert the new department into Supabase
+      const { data, error } = await supabase
+        .from('departments')
+        .insert([
+          {
+            name: newDepartement.nom,
+            manager_name: newDepartement.responsable,
+            training_budget: newDepartement.budgetFormation,
+            active_projects: newDepartement.projetsEnCours
+          }
+        ])
+        .select();
+      
+      if (error) throw error;
+      
+      // Add the new department to the local state
+      if (data && data[0]) {
+        const newDept: Departement = {
+          nom: data[0].name,
+          effectif: 0, // New department has no employees yet
+          responsable: data[0].manager_name,
+          budgetFormation: data[0].training_budget,
+          projetsEnCours: data[0].active_projects
+        };
+        
+        setDepartements([...departements, newDept]);
+        
+        // Reset the form and close the dialog
+        setNewDepartement({
+          nom: '',
+          responsable: '',
+          budgetFormation: 0,
+          projetsEnCours: 0
+        });
+        setIsAddDialogOpen(false);
+        
+        toast({
+          title: 'Succès',
+          description: 'Département ajouté avec succès',
+        });
+      }
+    } catch (err) {
+      console.error('Error adding department:', err);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'ajouter le département',
+        variant: 'destructive'
+      });
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -87,7 +196,7 @@ const ListeDepartements: React.FC<ListeDepartementsProps> = ({ departements }) =
               <DialogHeader>
                 <DialogTitle className="text-gray-900 dark:text-white">Ajouter un nouveau département</DialogTitle>
               </DialogHeader>
-              <form className="space-y-4 mt-4">
+              <form className="space-y-4 mt-4" onSubmit={handleAddDepartement}>
                 <div className="space-y-2">
                   <Label htmlFor="nom" className="text-gray-900 dark:text-white">Nom du département</Label>
                   <Input

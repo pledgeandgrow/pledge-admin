@@ -1,6 +1,6 @@
 'use client';
 
-import { Prestation } from '@/types/prestation';
+import { Product, ProductStatus } from '@/types/products';
 import {
   Dialog,
   DialogContent,
@@ -15,18 +15,22 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 
 interface ViewPrestationDialogProps {
-  prestation: Prestation;
+  prestation: Product;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  getStatusColor: (status: Prestation['status']) => string;
+  onEdit: () => void;
+  onDelete: () => void;
+  getStatusColor: (status: ProductStatus) => string;
   getCategoryColor: (category: string) => string;
-  getStatusText: (status: Prestation['status']) => string;
+  getStatusText: (status: ProductStatus) => string;
 }
 
 export function ViewPrestationDialog({
   prestation,
   open,
   onOpenChange,
+  onEdit,
+  onDelete,
   getStatusColor,
   getCategoryColor,
   getStatusText,
@@ -37,63 +41,92 @@ export function ViewPrestationDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl">
             <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              {prestation.title}
+              {prestation.name}
             </span>
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-muted-foreground">Description</Label>
-            <p className="text-sm">{prestation.description}</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Fourchette de prix</Label>
-              <p className="text-lg font-semibold">{prestation.priceMin.toLocaleString('fr-FR')} - {prestation.priceMax.toLocaleString('fr-FR')} €</p>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Durée</Label>
-              <p className="text-lg font-semibold">{prestation.duration}</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-muted-foreground">Catégorie</Label>
             <div>
-              <Badge variant="outline" className={getCategoryColor(prestation.category)}>
-                {prestation.category}
-              </Badge>
+              <Label className="text-sm font-medium">Description</Label>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {prestation.description || 'Aucune description disponible'}
+              </p>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-muted-foreground">Statut</Label>
             <div>
-              <Badge variant="outline" className={getStatusColor(prestation.status)}>
-                {getStatusText(prestation.status)}
-              </Badge>
+              <Label className="text-sm font-medium">Prix</Label>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {prestation.price ? `${prestation.price.toLocaleString('fr-FR')} €` : 'Sur devis'}
+              </p>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-muted-foreground">Caractéristiques</Label>
-            <ul className="list-disc list-inside text-sm space-y-1 pl-2">
-              {prestation.features.map((feature, index) => (
-                <li key={index} className="text-sm">{feature}</li>
-              ))}
-            </ul>
-          </div>
+            <div>
+              <Label className="text-sm font-medium">Durée</Label>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {prestation.metadata?.duration || 'Non spécifié'}
+              </p>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium">Catégorie</Label>
+              <div className="mt-1">
+                <Badge variant="outline" className={getCategoryColor(prestation.metadata?.category || 'Development')}>
+                  {prestation.metadata?.category || 'Development'}
+                </Badge>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium">Statut</Label>
+              <div className="mt-1">
+                <Badge className={getStatusColor(prestation.status as ProductStatus)}>
+                  {getStatusText(prestation.status as ProductStatus)}
+                </Badge>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium">Caractéristiques</Label>
+              {(() => {
+                // Ensure features is always an array
+                const features = prestation.metadata?.features;
+                const featuresArray = Array.isArray(features) ? features : [];
+                
+                return featuresArray.length > 0 ? (
+                  <ul className="list-disc list-inside text-sm text-gray-500 dark:text-gray-400 mt-1 space-y-1">
+                    {featuresArray.map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Aucune caractéristique spécifiée</p>
+                );
+              })()}
+            </div>
         </div>
 
         <Separator className="my-6 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20" />
 
-        <DialogFooter>
+        <DialogFooter className="flex justify-between w-full">
+          <div>
+            <Button
+              variant="destructive"
+              onClick={onDelete}
+              className="mr-2"
+            >
+              Supprimer
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={onEdit}
+            >
+              Modifier
+            </Button>
+          </div>
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="hover:bg-white/20 dark:hover:bg-gray-800/50"
           >
             Fermer
           </Button>

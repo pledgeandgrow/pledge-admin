@@ -202,7 +202,11 @@ export default function Recrutement() {
         <CandidateModal
           isOpen={isCandidateModalOpen}
           onClose={handleCloseModal}
-          onSave={handleAddCandidate}
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAddCandidate(newCandidate);
+            handleCloseModal();
+          }}
           candidate={newCandidate}
           setCandidate={setNewCandidate}
         />

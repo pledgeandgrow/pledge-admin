@@ -1,6 +1,8 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase';
+import { toast } from '@/components/ui/use-toast';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,6 +62,54 @@ export const BrandIdentity: FC<BrandIdentityProps> = ({
   const [colorScheme, setColorScheme] = useState<ColorScheme>(initialColorScheme);
   const [typography, setTypography] = useState<Typography>(initialTypography);
   const [logo, setLogo] = useState<Logo>(initialLogo);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [brandSettingsId, setBrandSettingsId] = useState<string | null>(null);
+  const supabase = createClient();
+  
+  useEffect(() => {
+    // Fetch brand settings from Supabase
+    fetchBrandSettings();
+  }, []);
+  
+  const fetchBrandSettings = async () => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase
+        .from('brand_settings')
+        .select('*')
+        .order('updated_at', { ascending: false })
+        .limit(1);
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      if (data && data.length > 0) {
+        const settings = data[0];
+        setBrandSettingsId(settings.id);
+        
+        // Only update state if we have values from the database
+        if (settings.color_scheme) {
+          setColorScheme(settings.color_scheme);
+        }
+        
+        if (settings.typography) {
+          setTypography(settings.typography);
+        }
+        
+        if (settings.logo) {
+          setLogo(settings.logo);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching brand settings:', err);
+      // Don't show error toast here as we'll fallback to the default values
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleColorChange = (key: keyof ColorScheme, value: string) => {
     setColorScheme(prev => ({
@@ -81,6 +131,58 @@ export const BrandIdentity: FC<BrandIdentityProps> = ({
       [key]: value
     }));
   };
+  
+  const saveBrandSettings = async () => {
+    try {
+      setIsSaving(true);
+      
+      const brandData = {
+        color_scheme: colorScheme,
+        typography: typography,
+        logo: logo,
+        updated_at: new Date().toISOString()
+      };
+      
+      let result;
+      
+      if (brandSettingsId) {
+        // Update existing settings
+        result = await supabase
+          .from('brand_settings')
+          .update(brandData)
+          .eq('id', brandSettingsId);
+      } else {
+        // Create new settings
+        result = await supabase
+          .from('brand_settings')
+          .insert([brandData])
+          .select();
+          
+        // Store the new ID
+        if (result.data && result.data[0]) {
+          setBrandSettingsId(result.data[0].id);
+        }
+      }
+      
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+      
+      toast({
+        title: 'Succès',
+        description: 'Paramètres de marque sauvegardés avec succès',
+      });
+    } catch (err) {
+      console.error('Error saving brand settings:', err);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de sauvegarder les paramètres de marque',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -95,8 +197,17 @@ export const BrandIdentity: FC<BrandIdentityProps> = ({
         </div>
         <Button
           className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+          onClick={saveBrandSettings}
+          disabled={isSaving}
         >
-          Sauvegarder les modifications
+          {isSaving ? (
+            <>
+              <span className="animate-spin mr-2">⏳</span>
+              Sauvegarde...
+            </>
+          ) : (
+            'Sauvegarder les modifications'
+          )}
         </Button>
       </div>
 

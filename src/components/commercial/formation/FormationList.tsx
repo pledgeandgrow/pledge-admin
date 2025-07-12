@@ -281,7 +281,7 @@ export function FormationList() {
       )}
 
       <EditFormationDialog
-        formation={selectedFormation}
+        formation={selectedFormation || undefined}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         onSave={handleSave}

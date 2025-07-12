@@ -29,10 +29,16 @@ export default function SignUpPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    
     // If user is already logged in, redirect to dashboard
-    if (supabase.auth.session()) {
-      router.push('/dashboard');
-    }
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.push('/dashboard');
+      }
+    };
+    
+    checkSession();
   }, [supabase, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

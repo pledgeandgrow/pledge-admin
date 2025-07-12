@@ -19,14 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { WaitlistEntry } from '@/types/waitlist';
+import { WaitlistContact } from '@/types/contact';
 import { Trash } from 'lucide-react';
 
 interface EditWaitlistDialogProps {
-  entry?: WaitlistEntry;
+  entry?: WaitlistContact;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (entry: Partial<WaitlistEntry>) => void;
+  onSave: (entry: Partial<WaitlistContact>) => void;
   onDelete?: () => void;
 }
 
@@ -39,14 +39,16 @@ export function EditWaitlistDialog({
 }: EditWaitlistDialogProps) {
   const isEditing = !!entry;
 
-  const [formData, setFormData] = useState<Partial<WaitlistEntry>>(
+  const [formData, setFormData] = useState<Partial<WaitlistContact>>(
     entry || {
-      name: '',
+      first_name: '',
+      last_name: '',
       email: '',
       phone: '',
       service: '',
       status: 'Pending',
-      date: new Date().toISOString().split('T')[0],
+      type: 'waitlist',
+      joined_at: new Date().toISOString(),
       notes: '',
     }
   );
@@ -70,14 +72,25 @@ export function EditWaitlistDialog({
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            <div className="space-y-2">
-              <Label>Nom complet</Label>
-              <Input
-                value={formData.name}
-                onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Nom du client"
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Prénom</Label>
+                <Input
+                  value={formData.first_name}
+                  onChange={e => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                  placeholder="Prénom"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Nom</Label>
+                <Input
+                  value={formData.last_name}
+                  onChange={e => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                  placeholder="Nom de famille"
+                  required
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -117,7 +130,7 @@ export function EditWaitlistDialog({
                 <Label>Statut</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={value => setFormData(prev => ({ ...prev, status: value as WaitlistEntry['status'] }))}
+                  onValueChange={value => setFormData(prev => ({ ...prev, status: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un statut" />
@@ -134,8 +147,8 @@ export function EditWaitlistDialog({
                 <Label>Date souhaitée</Label>
                 <Input
                   type="date"
-                  value={formData.date}
-                  onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  value={formData.joined_at ? new Date(formData.joined_at).toISOString().split('T')[0] : ''}
+                  onChange={e => setFormData(prev => ({ ...prev, joined_at: new Date(e.target.value).toISOString() }))}
                   required
                 />
               </div>

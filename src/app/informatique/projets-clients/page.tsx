@@ -8,22 +8,19 @@ import { ClientProjectCard } from '@/components/informatique/projets-clients/Cli
 import { ClientProjectForm } from '@/components/informatique/projets-clients/ClientProjectForm';
 import { ClientProjectStatistics } from '@/components/informatique/projets-clients/ClientProjectStatistics';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { BaseProject, projectService } from '@/services/projectService';
 
-// Types temporaires en attendant l'implémentation des composants
-interface ClientProjectType {
-  id: string;
-  name: string;
-  client: string;
-  status: string;
-  deadline: string;
-  description: string;
+// Client project type extending the base project type
+interface ClientProjectType extends BaseProject {
+  client?: string; // For backward compatibility
+  deadline?: string; // For backward compatibility
 }
 
 interface ClientProjectStatisticsType {
   total: number;
   active: number;
   completed: number;
-  delayed: number;
+  delayed: number; // Maps to 'On Hold' status
 }
 
 export default function ProjetsClientsPage() {
@@ -42,11 +39,21 @@ export default function ProjetsClientsPage() {
   // Define fetchProjectsData with useCallback to avoid React Hook warnings
   const fetchProjectsData = useCallback(async () => {
     try {
-      const response = await fetch('/api/client-projects');
-      if (!response.ok) throw new Error('Failed to fetch projects');
-      const data = await response.json();
-      setProjects(data.projects);
-      setStatistics(data.statistics);
+      // Use projectService to get client projects
+      const projects = await projectService.getClientProjects();
+      setProjects(projects);
+      
+      // Get statistics using projectService
+      const stats = await projectService.getClientProjectStatistics();
+      
+      // Map statistics to match the UI component's expected format
+      setStatistics({
+        total: stats.total,
+        active: stats.active,
+        completed: stats.completed,
+        delayed: stats.onHold // Map 'On Hold' to 'delayed' for UI compatibility
+      });
+      
       setIsLoading(false);
     } catch (error) {
       console.error('Error in client project operation:', error);
@@ -57,7 +64,7 @@ export default function ProjetsClientsPage() {
       });
       setIsLoading(false);
     }
-  }, [toast, setProjects, setStatistics, setIsLoading]);
+  }, [toast]);
   
   // Using useEffect with proper dependency array
   useEffect(() => {
@@ -68,14 +75,16 @@ export default function ProjetsClientsPage() {
 
   const handleCreateProject = async (project: Omit<ClientProjectType, 'id'>) => {
     try {
-      const response = await fetch('/api/client-projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(project),
-      });
-
-      if (!response.ok) throw new Error('Failed to create project');
-      const newProject = await response.json();
+      // Ensure project_type is set to 'Client'
+      const clientProject = {
+        ...project,
+        project_type: 'Client' as const
+      };
+      
+      // Use projectService to create the project
+      const { success, data: newProject, error: projectError } = await projectService.createProject(clientProject);
+      
+      if (!success || !newProject) throw projectError || new Error('Failed to create project');
       
       setProjects(prev => [...prev, newProject]);
       setIsCreating(false);
@@ -95,14 +104,23 @@ export default function ProjetsClientsPage() {
 
   const handleUpdateProject = async (project: ClientProjectType) => {
     try {
-      const response = await fetch('/api/client-projects', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(project),
-      });
-
-      if (!response.ok) throw new Error('Failed to update project');
-      const updatedProject = await response.json();
+      if (!project.id) {
+        throw new Error('Project ID is required for update');
+      }
+      
+      // Ensure project_type is set to 'Client'
+      const clientProject = {
+        ...project,
+        project_type: 'Client' as const
+      };
+      
+      // Use projectService to update the project
+      const { success, data: updatedProject, error: projectError } = await projectService.updateProject(
+        project.id,
+        clientProject
+      );
+      
+      if (!success || !updatedProject) throw projectError || new Error('Failed to update project');
       
       setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
       setSelectedProject(null);
@@ -122,11 +140,10 @@ export default function ProjetsClientsPage() {
 
   const handleDeleteProject = async (projectId: string) => {
     try {
-      const response = await fetch(`/api/client-projects?id=${projectId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Failed to delete project');
+      // Use projectService to delete the project
+      const { success, error: projectError } = await projectService.deleteProject(projectId);
+      
+      if (!success) throw projectError || new Error('Failed to delete project');
       
       setProjects(prev => prev.filter(p => p.id !== projectId));
       setSelectedProject(null);
@@ -213,7 +230,7 @@ export default function ProjetsClientsPage() {
               project={selectedProject}
               onSubmit={handleUpdateProject}
               onCancel={() => setSelectedProject(null)}
-              onDelete={() => handleDeleteProject(selectedProject.id)}
+              onDelete={() => handleDeleteProject(selectedProject?.id as string)}
             />
           )}
         </DialogContent>

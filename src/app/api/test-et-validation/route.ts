@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase";
-import { Test } from "@/components/informatique/test-et-validation/types";
 
 // Create Supabase client
 const supabase = createClient();
@@ -81,9 +80,16 @@ export async function POST(request: Request) {
 
     if (testError) throw testError;
 
+    // Define interface for check items
+    interface CheckItem {
+      description: string;
+      is_completed?: boolean;
+      created_at?: string;
+    }
+
     // Insert check items if provided
     if (body.check_items && body.check_items.length > 0 && test) {
-      const checkItemsToInsert = body.check_items.map((item: any) => ({
+      const checkItemsToInsert = body.check_items.map((item: CheckItem) => ({
         test_id: test.id,
         description: item.description,
         is_completed: item.is_completed || false,
@@ -154,7 +160,14 @@ export async function PATCH(request: Request) {
 
       // Insert updated check items
       if (body.check_items.length > 0) {
-        const checkItemsToInsert = body.check_items.map((item: any) => ({
+        // Reuse the CheckItem interface defined earlier
+        interface CheckItem {
+          description: string;
+          is_completed?: boolean;
+          created_at?: string;
+        }
+        
+        const checkItemsToInsert = body.check_items.map((item: CheckItem) => ({
           test_id: id,
           description: item.description,
           is_completed: item.is_completed || false,

@@ -33,6 +33,7 @@ export function ClientList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   // Use the realtime contacts hook to get clients
@@ -42,7 +43,7 @@ export function ClientList() {
   const clients = useMemo(() => {
     return contactsData.map((contact: Contact) => {
       // Extract metadata fields from contact
-      const metadata = contact.metadata as Record<string, any> || {};
+      const metadata = contact.metadata as Record<string, string | number | boolean | null | Record<string, unknown>> || {};
       
       return {
         id: contact.id,

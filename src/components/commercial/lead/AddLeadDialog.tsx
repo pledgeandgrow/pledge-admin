@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { contactService } from '@/services/contactService';
+import { ContactType } from '@/types/contact';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -74,7 +75,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
         phone: newLead.phone,
         notes: newLead.commentaires,
         status: newLead.status,
-        type: 'lead',
+        type: 'lead' as ContactType,
         metadata: {
           service: newLead.service,
           source: '',

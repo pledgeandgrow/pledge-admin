@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase';
+import { toast } from '@/components/ui/use-toast';
 import Image from 'next/image';
 import { 
   Card, 
@@ -31,7 +33,7 @@ import {
 } from 'lucide-react';
 
 export interface Employee {
-  id: number;
+  id: string;
   nom: string;
   prenom: string;
   photo: string;
@@ -48,13 +50,57 @@ export interface Employee {
   };
 }
 
+// Mapping between our Employee interface and Supabase contacts table
+const mapContactToEmployee = (contact: any): Employee => ({
+  id: contact.id,
+  nom: contact.last_name,
+  prenom: contact.first_name,
+  photo: contact.metadata?.photo || '/placeholder-avatar.jpg',
+  departement: contact.metadata?.departement || '',
+  poste: contact.position || '',
+  dateEmbauche: contact.metadata?.hire_date || '',
+  email: contact.email || '',
+  telephone: contact.phone || '',
+  competences: contact.tags || [],
+  performance: contact.metadata?.performance || {
+    noteAnnuelle: 0,
+    objectifsAtteints: '',
+    progression: ''
+  }
+});
+
+const mapEmployeeToContact = (employee: Omit<Employee, 'id' | 'photo' | 'performance'>) => ({
+  first_name: employee.prenom,
+  last_name: employee.nom,
+  email: employee.email,
+  phone: employee.telephone,
+  type: 'member',
+  status: 'active',
+  position: employee.poste,
+  tags: employee.competences,
+  metadata: {
+    departement: employee.departement,
+    hire_date: employee.dateEmbauche,
+    photo: '/placeholder-avatar.jpg',
+    performance: {
+      noteAnnuelle: 0,
+      objectifsAtteints: '',
+      progression: ''
+    }
+  }
+});
+
 interface ListeEmployesProps {
-  employes: Employee[];
-  setEmployes: React.Dispatch<React.SetStateAction<Employee[]>>;
-  onAddEmploye: (nouvelEmploye: Omit<Employee, 'id' | 'photo' | 'performance'>) => void;
+  // These props are kept for backward compatibility but are no longer used
+  employes?: Employee[];
+  setEmployes?: React.Dispatch<React.SetStateAction<Employee[]>>;
+  onAddEmploye?: (nouvelEmploye: Omit<Employee, 'id' | 'photo' | 'performance'>) => void;
 }
 
-const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, onAddEmploye }) => {
+const ListeEmployes: React.FC<ListeEmployesProps> = ({}) => {
+  const [employes, setEmployes] = useState<Employee[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartement, setSelectedDepartement] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -79,34 +125,118 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, on
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const competencesArray = newEmploye.competences
-      .split(',')
-      .map(comp => comp.trim())
-      .filter(comp => comp !== '');
-    
-    onAddEmploye({
-      ...newEmploye,
-      competences: competencesArray
-    });
-    
-    setNewEmploye({
-      nom: '',
-      prenom: '',
-      departement: '',
-      poste: '',
-      dateEmbauche: '',
-      email: '',
-      telephone: '',
-      competences: ''
-    });
-    
-    setIsAddDialogOpen(false);
+  // Fetch employees from Supabase on component mount
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('type', 'member');
+      
+      if (error) {
+        throw error;
+      }
+      
+      const mappedEmployees = data.map(mapContactToEmployee);
+      setEmployes(mappedEmployees);
+    } catch (err) {
+      console.error('Error fetching employees:', err);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger la liste des employés',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setEmployes(employes.filter(emp => emp.id !== id));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const competencesArray = newEmploye.competences
+        .split(',')
+        .map(comp => comp.trim())
+        .filter(comp => comp !== '');
+      
+      const contactData = mapEmployeeToContact({
+        ...newEmploye,
+        competences: competencesArray
+      });
+      
+      const { data, error } = await supabase
+        .from('contacts')
+        .insert([contactData])
+        .select();
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data && data[0]) {
+        const newEmployee = mapContactToEmployee(data[0]);
+        setEmployes(prev => [...prev, newEmployee]);
+        
+        toast({
+          title: 'Succès',
+          description: 'Nouvel employé ajouté avec succès',
+        });
+      }
+      
+      setNewEmploye({
+        nom: '',
+        prenom: '',
+        departement: '',
+        poste: '',
+        dateEmbauche: '',
+        email: '',
+        telephone: '',
+        competences: ''
+      });
+      
+      setIsAddDialogOpen(false);
+    } catch (err) {
+      console.error('Error adding employee:', err);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'ajouter le nouvel employé',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('contacts')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setEmployes(prev => prev.filter(emp => emp.id !== id));
+      
+      toast({
+        title: 'Succès',
+        description: 'Employé supprimé avec succès',
+      });
+    } catch (err) {
+      console.error('Error deleting employee:', err);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer l\'employé',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleView = (employee: Employee) => {
@@ -125,7 +255,7 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, on
     return matchesSearch && matchesDepartement;
   });
 
-  const departements = [...new Set(employes.map(emp => emp.departement))];
+  const departements = [...new Set(employes.map(emp => emp.departement || 'Non spécifié'))].filter(Boolean);
 
   return (
     <Card className="w-full border dark:border-gray-700">
@@ -202,7 +332,7 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, on
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="dateEmbauche">Date d&apos;embauche</Label>
+                  <Label htmlFor="dateEmbauche">Date d'embauche</Label>
                   <Input
                     id="dateEmbauche"
                     name="dateEmbauche"
@@ -284,7 +414,7 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({ employes, setEmployes, on
             <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
               <SelectItem value="all">Tous les départements</SelectItem>
               {departements.map((dept, index) => (
-                <SelectItem key={index} value={dept}>{dept}</SelectItem>
+                <SelectItem key={index} value={dept || `dept-${index}`}>{dept || 'Non spécifié'}</SelectItem>
               ))}
             </SelectContent>
           </Select>

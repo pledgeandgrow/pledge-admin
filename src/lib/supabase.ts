@@ -1,13 +1,12 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createBrowserClient } from '@supabase/ssr';
-import { type CookieOptions } from '@supabase/ssr';
 
 // Valeurs par défaut pour le développement (ne contiennent pas de données réelles)
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-url.supabase.co';
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
 
 // Fonction pour vérifier si Supabase est correctement configuré
-const isSupabaseConfigured = () => {
+export const isSupabaseConfigured = () => {
   return process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 };
 

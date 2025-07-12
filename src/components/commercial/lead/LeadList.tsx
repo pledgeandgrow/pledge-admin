@@ -36,7 +36,7 @@ const contactToLead = (contact: Contact): Lead => {
     const validStatuses: Lead['status'][] = [
       "New", "In Progress", "Converted", "Contacted", "Qualified", "Lost"
     ];
-    return validStatuses.includes(status as any) ? 
+    return validStatuses.includes(status as Lead['status']) ? 
       (status as Lead['status']) : "New";
   };
   
@@ -44,7 +44,7 @@ const contactToLead = (contact: Contact): Lead => {
   const metadata = contact.metadata || {};
   const getMetadataValue = <T,>(key: string, defaultValue: T): T => {
     if (typeof metadata === 'object' && metadata !== null) {
-      return (metadata as Record<string, any>)[key] as T || defaultValue;
+      return (metadata as Record<string, string | number | boolean | null | Record<string, unknown>>)[key] as T || defaultValue;
     }
     return defaultValue;
   };
@@ -74,6 +74,7 @@ export function LeadList() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Use the existing useRealtimeContacts hook with lead type filter
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { contacts, loading } = useRealtimeContacts({
     type: 'lead',
     autoFetch: true

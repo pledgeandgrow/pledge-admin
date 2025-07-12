@@ -5,7 +5,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect } from 'react';
-import { Prestation } from '@/types/prestation';
+import { Product, ProductStatus } from '@/types/products';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,26 +26,25 @@ import {
 } from '@/components/ui/select';
 
 interface EditPrestationDialogProps {
-  prestation: Prestation | null;
+  prestation: Product | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (prestationData: Partial<Prestation>) => void;
+  onSave: (prestationData: Partial<Product>) => void;
   onDelete?: () => void;
 }
 
 // Define the schema
 const formSchema = z.object({
-  title: z.string().min(1, 'Veuillez entrer un titre'),
+  name: z.string().min(1, 'Veuillez entrer un nom'),
   description: z.string().min(1, 'Veuillez entrer une description'),
-  priceMin: z.number().min(0, 'Veuillez entrer un prix minimum valide'),
-  priceMax: z.number().min(0, 'Veuillez entrer un prix maximum valide')
-    .refine(val => val >= 0, {
-      message: 'Le prix maximum doit être positif',
-    }),
-  duration: z.string().min(1, 'Veuillez entrer une durée'),
-  category: z.string().min(1, 'Veuillez sélectionner une catégorie'),
-  status: z.string().min(1, 'Veuillez sélectionner un statut'),
-  features: z.array(z.string()).min(1, 'Veuillez entrer au moins une caractéristique'),
+  price: z.number().min(0, 'Veuillez entrer un prix valide'),
+  type: z.literal('service'),
+  status: z.enum(['active', 'draft', 'discontinued', 'archived']),
+  metadata: z.object({
+    duration: z.string().min(1, 'Veuillez entrer une durée'),
+    category: z.string().min(1, 'Veuillez sélectionner une catégorie'),
+    features: z.array(z.string()).min(1, 'Veuillez entrer au moins une caractéristique'),
+  }),
 });
 
 // Infer the type from the schema
@@ -57,14 +56,16 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: prestation?.title || '',
+      name: prestation?.name || '',
       description: prestation?.description || '',
-      priceMin: prestation?.priceMin || 0,
-      priceMax: prestation?.priceMax || 0,
-      duration: prestation?.duration || '',
-      category: prestation?.category || 'Site Web',
-      status: prestation?.status || 'Available',
-      features: prestation?.features || [],
+      price: prestation?.price || 0,
+      type: 'service',
+      status: prestation?.status || 'active',
+      metadata: {
+        duration: prestation?.metadata?.duration || '',
+        category: prestation?.metadata?.category || 'Site Web',
+        features: prestation?.metadata?.features || [],
+      },
     },
   });
 
@@ -72,14 +73,16 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
   useEffect(() => {
     if (prestation) {
       form.reset({
-        title: prestation.title,
+        name: prestation.name,
         description: prestation.description,
-        priceMin: prestation.priceMin,
-        priceMax: prestation.priceMax,
-        duration: prestation.duration,
-        category: prestation.category,
+        price: prestation.price,
+        type: 'service',
         status: prestation.status,
-        features: prestation.features,
+        metadata: {
+          duration: prestation.metadata?.duration || '',
+          category: prestation.metadata?.category || '',
+          features: prestation.metadata?.features || [],
+        },
       });
     }
   }, [prestation, form]);
@@ -88,12 +91,11 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
 
   // Handle form submission
   const onSubmit = (values: FormValues) => {
-    // Convert form values to Prestation type
-    const prestationData: Partial<Prestation> = {
+    // Convert form values to Product type
+    const prestationData: Partial<Product> = {
       ...values,
-      // Explicitly cast string values to their proper types
-      category: values.category as Prestation['category'],
-      status: values.status as Prestation['status'],
+      type: 'service',
+      status: values.status as ProductStatus,
     };
     onSave(prestationData);
   };
@@ -116,10 +118,10 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
-              name="title"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Titre</FormLabel>
+                  <FormLabel>Nom</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Développement Web..." 
@@ -151,10 +153,10 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="priceMin"
+                name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Prix minimum (€)</FormLabel>
+                    <FormLabel>Prix (€)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
@@ -173,26 +175,7 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
 
               <FormField
                 control={form.control}
-                name="priceMax"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prix maximum (€)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="5000"
-                        {...field} 
-                        onChange={e => field.onChange(parseFloat(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="duration"
+                name="metadata.duration"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Durée</FormLabel>
@@ -208,7 +191,7 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="category"
+                name="metadata.category"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Catégorie</FormLabel>
@@ -254,8 +237,10 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Available">Disponible</SelectItem>
-                        <SelectItem value="Unavailable">Indisponible</SelectItem>
+                        <SelectItem value="active">Actif</SelectItem>
+                        <SelectItem value="draft">Brouillon</SelectItem>
+                        <SelectItem value="discontinued">Discontinué</SelectItem>
+                        <SelectItem value="archived">Archivé</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -266,7 +251,7 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
 
             <FormField
               control={form.control}
-              name="features"
+              name="metadata.features"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Caractéristiques (une par ligne)</FormLabel>
@@ -274,7 +259,7 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
                     <Textarea 
                       placeholder="Analyse des besoins&#10;Développement sur mesure&#10;Tests et déploiement"
                       {...field} 
-                      value={field.value.join('\n')}
+                      value={Array.isArray(field.value) ? field.value.join('\n') : ''}
                       onChange={e => field.onChange(e.target.value.split('\n').filter(Boolean))}
                     />
                   </FormControl>

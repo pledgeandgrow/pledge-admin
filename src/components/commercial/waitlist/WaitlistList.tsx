@@ -1,111 +1,181 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Plus, Eye, Pencil, Mail, Phone } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { WaitlistEntry } from '@/types/waitlist';
+import { WaitlistContact } from '@/types/contact';
 import { ViewWaitlistDialog } from './ViewWaitlistDialog';
 import { EditWaitlistDialog } from './EditWaitlistDialog';
 import { useToast } from '@/components/ui/use-toast';
 
-const mockWaitlist: WaitlistEntry[] = [
-  {
-    id: '1',
-    name: 'Sophie Martin',
-    email: 'sophie.martin@email.com',
-    phone: '+33 6 12 34 56 78',
-    service: 'Consultation Stratégique',
-    status: 'Pending',
-    date: '2025-03-15',
-    notes: 'Intéressée par une consultation pour sa startup fintech'
-  },
-  {
-    id: '2',
-    name: 'Pierre Dubois',
-    email: 'pierre.dubois@email.com',
-    phone: '+33 6 23 45 67 89',
-    service: 'Développement Web',
-    status: 'Contacted',
-    date: '2025-03-20',
-    notes: 'Besoin d\'un site e-commerce pour son entreprise'
-  },
-  {
-    id: '3',
-    name: 'Marie Lambert',
-    email: 'marie.lambert@email.com',
-    phone: '+33 6 34 56 78 90',
-    service: 'Formation Cloud',
-    status: 'Scheduled',
-    date: '2025-04-01',
-    notes: 'Formation AWS pour son équipe de 5 personnes'
-  }
-];
+// Helper function to prepare contact data for Supabase
+const prepareContactData = (contact: Partial<WaitlistContact>) => {
+  return {
+    first_name: contact.first_name || '',
+    last_name: contact.last_name || '',
+    email: contact.email || '',
+    phone: contact.phone || '',
+    type: 'waitlist',
+    status: contact.status || 'Pending',
+    service: contact.service || '',
+    notes: contact.notes || '',
+    joined_at: contact.joined_at || new Date().toISOString()
+  };
+};
 
 export function WaitlistList() {
-  const [entries, setEntries] = useState<WaitlistEntry[]>(mockWaitlist);
-  const [selectedEntry, setSelectedEntry] = useState<WaitlistEntry | undefined>(undefined);
+  const [entries, setEntries] = useState<WaitlistContact[]>([]);
+  const [selectedEntry, setSelectedEntry] = useState<WaitlistContact | undefined>(undefined);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const supabase = createClient();
+  
+  const fetchWaitlistEntries = async () => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('type', 'waitlist');
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Use the data directly as WaitlistContact objects
+      setEntries(data as WaitlistContact[]);
+    } catch (err) {
+      console.error('Error fetching waitlist entries:', err);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger la liste d\'attente',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Fetch waitlist entries from Supabase on component mount
+  useEffect(() => {
+    fetchWaitlistEntries();
+  }, []);  // Intentionally leaving dependency array empty as fetchWaitlistEntries doesn't depend on props or state
 
-  const getStatusColor = (status: WaitlistEntry['status']) => {
+  const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {
       'Pending': 'text-yellow-500 border-yellow-500/20 bg-yellow-500/10',
       'Contacted': 'text-blue-500 border-blue-500/20 bg-blue-500/10',
       'Scheduled': 'text-green-500 border-green-500/20 bg-green-500/10',
       'Cancelled': 'text-red-500 border-red-500/20 bg-red-500/10'
     };
-    return colors[status];
+    return colors[status] || colors['Pending'];
   };
 
-  const getStatusText = (status: WaitlistEntry['status']) => {
+  const getStatusText = (status: string) => {
     const texts: { [key: string]: string } = {
       'Pending': 'En attente',
       'Contacted': 'Contacté',
       'Scheduled': 'Planifié',
       'Cancelled': 'Annulé'
     };
-    return texts[status];
+    return texts[status] || texts['Pending'];
   };
 
-  const handleSave = (entryData: Partial<WaitlistEntry>) => {
-    if (selectedEntry) {
-      // Update existing entry
-      setEntries(prev =>
-        prev.map(e => (e.id === selectedEntry.id ? { ...e, ...entryData } : e))
-      );
-      toast({
-        title: 'Contact mis à jour',
-        description: 'Le contact a été modifié avec succès.',
-      });
-    } else {
-      // Add new entry
-      const newEntry = {
-        ...entryData,
-        id: Math.random().toString(36).substr(2, 9),
-      } as WaitlistEntry;
-      setEntries(prev => [...prev, newEntry]);
-      toast({
-        title: 'Contact ajouté',
-        description: 'Le nouveau contact a été ajouté avec succès.',
-      });
-    }
-    setEditDialogOpen(false);
-    setSelectedEntry(undefined);
-  };
-
-  const handleDelete = () => {
-    if (selectedEntry) {
-      setEntries(prev => prev.filter(e => e.id !== selectedEntry.id));
-      toast({
-        title: 'Contact supprimé',
-        description: 'Le contact a été supprimé avec succès.',
-        variant: 'destructive',
-      });
+  const handleSave = async (entryData: Partial<WaitlistContact>) => {
+    try {
+      const contactData = prepareContactData(entryData);
+      
+      if (selectedEntry) {
+        // Update existing entry
+        const { error } = await supabase
+          .from('contacts')
+          .update(contactData)
+          .eq('id', selectedEntry.id);
+        
+        if (error) {
+          throw error;
+        }
+        
+        // Update local state
+        setEntries(prev =>
+          prev.map(e => (e.id === selectedEntry.id ? { ...e, ...entryData } : e))
+        );
+        
+        toast({
+          title: 'Contact mis à jour',
+          description: 'Le contact a été modifié avec succès.',
+        });
+      } else {
+        // Add new entry
+        const { data, error } = await supabase
+          .from('contacts')
+          .insert([contactData])
+          .select();
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data && data[0]) {
+          // Use the data directly instead of mapContactToWaitlistEntry
+          const newEntry = data[0];
+          setEntries(prev => [...prev, newEntry]);
+          
+          toast({
+            title: 'Contact ajouté',
+            description: 'Le nouveau contact a été ajouté avec succès.',
+          });
+        }
+      }
+      
       setEditDialogOpen(false);
       setSelectedEntry(undefined);
+    } catch (err) {
+      console.error('Error saving waitlist entry:', err);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de sauvegarder le contact',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedEntry) {
+      try {
+        const { error } = await supabase
+          .from('contacts')
+          .delete()
+          .eq('id', selectedEntry.id);
+        
+        if (error) {
+          throw error;
+        }
+        
+        // Update local state
+        setEntries(prev => prev.filter(e => e.id !== selectedEntry.id));
+        
+        toast({
+          title: 'Contact supprimé',
+          description: 'Le contact a été supprimé avec succès.',
+        });
+        
+        setViewDialogOpen(false);
+        setSelectedEntry(undefined);
+      } catch (err) {
+        console.error('Error deleting waitlist entry:', err);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de supprimer le contact',
+          variant: 'destructive'
+        });
+      }
     }
   };
 
@@ -113,31 +183,45 @@ export function WaitlistList() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="space-y-1">
-          <h2 className="text-2xl font-semibold tracking-tight">Liste d&apos;attente</h2>
-          <p className="text-sm text-muted-foreground">
-            Gérez vos contacts en attente
-          </p>
+          <h2 className="text-3xl font-bold">Liste d&apos;attente</h2>
         </div>
-        <Button
-          onClick={() => {
-            setSelectedEntry(undefined);
-            setEditDialogOpen(true);
-          }}
-          className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:opacity-90"
-        >
+        <Button onClick={() => {
+          setSelectedEntry(undefined);
+          setEditDialogOpen(true);
+        }}>
           <Plus className="mr-2 h-4 w-4" /> Ajouter un contact
         </Button>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {entries.map((entry) => (
-          <Card key={entry.id} className="bg-white/10 dark:bg-gray-950/50 backdrop-blur-xl hover:bg-white/20 dark:hover:bg-gray-900/60 transition-colors">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-xl">{entry.name}</CardTitle>
-                <Badge variant="outline" className={getStatusColor(entry.status)}>
-                  {getStatusText(entry.status)}
-                </Badge>
+      
+      {isLoading ? (
+        <div className="flex justify-center items-center py-10">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+          <span className="ml-3">Chargement...</span>
+        </div>
+      ) : entries.length === 0 ? (
+        <div className="text-center py-10 text-gray-500">
+          <p>Aucun contact dans la liste d&apos;attente</p>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => {
+              setSelectedEntry(undefined);
+              setEditDialogOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Ajouter un contact
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {entries.map((entry) => (
+            <Card key={entry.id} className="bg-white/10 dark:bg-gray-950/50 backdrop-blur-xl hover:bg-white/20 dark:hover:bg-gray-900/60 transition-colors">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-xl">{`${entry.first_name} ${entry.last_name}`}</CardTitle>
+                  <Badge variant="outline" className={getStatusColor(entry.status)}>
+                    {getStatusText(entry.status)}
+                  </Badge>
               </div>
               <CardDescription className="line-clamp-2">{entry.service}</CardDescription>
             </CardHeader>
@@ -156,13 +240,13 @@ export function WaitlistList() {
                   </a>
                 </div>
                 <div className="space-y-2">
-                  <span className="text-sm text-muted-foreground">Date souhaitée</span>
+                  <span className="text-sm text-muted-foreground">Date d&apos;inscription</span>
                   <p className="text-sm font-medium">
-                    {new Date(entry.date).toLocaleDateString('fr-FR', {
+                    {entry.joined_at ? new Date(entry.joined_at).toLocaleDateString('fr-FR', {
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric'
-                    })}
+                    }) : 'Non spécifiée'}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -200,6 +284,7 @@ export function WaitlistList() {
           </Card>
         ))}
       </div>
+      )}
 
       {selectedEntry && (
         <ViewWaitlistDialog

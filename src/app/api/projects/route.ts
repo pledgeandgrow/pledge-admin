@@ -1,55 +1,96 @@
 import { NextResponse } from 'next/server';
-import { fileStorage } from '@/utils/fileStorage';
+import { createClient } from '@/lib/supabase';
+
+// Initialize Supabase client
+const supabase = createClient();
 
 export async function GET() {
-  const projects = fileStorage.readClientProjects();
-  return NextResponse.json(projects);
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*');
+    
+    if (error) throw error;
+    
+    return NextResponse.json(data || []);
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
-  const projects = fileStorage.readClientProjects();
-  const newProject = await request.json();
-  
-  // Add new project with ID
-  const projectWithId = {
-    ...newProject,
-    id: Date.now().toString()
-  };
-  projects.push(projectWithId);
-  
-  fileStorage.writeClientProjects(projects);
-  return NextResponse.json(projectWithId);
+  try {
+    const newProject = await request.json();
+    
+    // Remove id if provided to let the database generate it
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...projectData } = newProject;
+    
+    const { data, error } = await supabase
+      .from('projects')
+      .insert(projectData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error creating project:', error);
+    return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
+  }
 }
 
 export async function PUT(request: Request) {
-  const projects = fileStorage.readClientProjects();
-  const updatedProject = await request.json();
-  
-  const index = projects.findIndex((p: { id: string }) => p.id === updatedProject.id);
-  if (index !== -1) {
-    projects[index] = updatedProject;
-    fileStorage.writeClientProjects(projects);
-    return NextResponse.json(updatedProject);
+  try {
+    const updatedProject = await request.json();
+    
+    if (!updatedProject.id) {
+      return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+    }
+    
+    const { id, ...projectData } = updatedProject;
+    
+    const { data, error } = await supabase
+      .from('projects')
+      .update(projectData)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    if (!data) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
+    
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error updating project:', error);
+    return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
   }
-  
-  return NextResponse.json({ error: 'Project not found' }, { status: 404 });
 }
 
 export async function DELETE(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
-  
-  if (!id) {
-    return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    
+    if (!id) {
+      return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+    }
+    
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });
   }
-  
-  const projects = fileStorage.readClientProjects();
-  const filteredProjects = projects.filter((p: { id: string }) => p.id !== id);
-  
-  if (filteredProjects.length === projects.length) {
-    return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-  }
-  
-  fileStorage.writeClientProjects(filteredProjects);
-  return NextResponse.json({ success: true });
 }
