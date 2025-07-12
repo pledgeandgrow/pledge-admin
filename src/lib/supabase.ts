@@ -1,6 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import { type CookieOptions } from '@supabase/ssr';
 
 // Valeurs par défaut pour le développement (ne contiennent pas de données réelles)
@@ -13,77 +12,61 @@ const isSupabaseConfigured = () => {
 };
 
 // Fonction pour créer un client Supabase côté serveur (API routes)
+// This is now a mock implementation only - server components should use a separate file
 export function createSupabaseServerClient() {
-  // Si Supabase n'est pas configuré, retourner un client mock
-  if (!isSupabaseConfigured()) {
-    console.warn('Supabase n\'est pas configuré. Utilisation d\'un client mock.');
-    return {
-      from: () => ({
-        select: () => ({
-          eq: () => ({
-            order: () => ({
-              data: [],
-              error: null
-            })
-          }),
+  console.warn('createSupabaseServerClient should not be used in client components. Use a server component or API route instead.');
+  // Create a mock client that includes the rpc method
+  const mockClient = {
+    from: () => ({
+      select: () => ({
+        eq: () => ({
           order: () => ({
             data: [],
             error: null
-          }),
+          })
+        }),
+        order: () => ({
           data: [],
           error: null
         }),
-        insert: () => ({
-          data: null,
-          error: new Error('Supabase n\'est pas configuré')
-        }),
-        update: () => ({
-          data: null,
-          error: new Error('Supabase n\'est pas configuré')
-        }),
-        delete: () => ({
-          data: null,
-          error: new Error('Supabase n\'est pas configuré')
-        })
+        data: [],
+        error: null
+      }),
+      insert: () => ({
+        data: null,
+        error: new Error('Server client cannot be used in client components')
+      }),
+      update: () => ({
+        data: null,
+        error: new Error('Server client cannot be used in client components')
+      }),
+      delete: () => ({
+        data: null,
+        error: new Error('Server client cannot be used in client components')
       })
-    };
-  }
-
-  const cookieStore = cookies();
-  
-  return createServerClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          try {
-            // Dans Next.js 15.3.1, cookies() n'est plus une promesse
-            cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Gérer les erreurs silencieusement
-            console.error('Erreur lors de la définition du cookie:', error);
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            // Dans Next.js 15.3.1, cookies() n'est plus une promesse
-            cookieStore.set({ name, value: '', ...options });
-          } catch (error) {
-            // Gérer les erreurs silencieusement
-            console.error('Erreur lors de la suppression du cookie:', error);
-          }
-        },
-      },
+    }),
+    rpc: () => ({
+      data: null,
+      error: new Error('Server client cannot be used in client components')
+    }),
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null }, error: null })
     }
-  );
+  };
+  
+  return mockClient;
 }
 
 // Client Supabase pour le côté client
-export const supabaseClient = createClient(
+export const supabaseClient = createSupabaseClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
+
+// Function to create a browser client (for client components)
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}

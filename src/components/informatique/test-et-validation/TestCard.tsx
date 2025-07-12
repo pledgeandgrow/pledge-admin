@@ -1,164 +1,95 @@
-import { Test } from "./types";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
-  ClipboardList,
-  CheckCircle,
-  XCircle,
-  Clock,
-  AlertCircle,
-  Calendar,
-  User,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Test } from './types';
+import { CalendarIcon, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface TestCardProps {
   test: Test;
-  onClick?: () => void;
+  onClick: () => void;
 }
 
 export function TestCard({ test, onClick }: TestCardProps) {
-  const getStatusDetails = (status: string) => {
-    switch (status) {
-      case "passed":
-        return {
-          label: "Réussi",
-          icon: CheckCircle,
-          color: "text-green-500",
-          bgColor: "bg-green-500/5",
-          borderColor: "border-green-500/20",
-        };
-      case "failed":
-        return {
-          label: "Échoué",
-          icon: XCircle,
-          color: "text-red-500",
-          bgColor: "bg-red-500/5",
-          borderColor: "border-red-500/20",
-        };
-      case "in_progress":
-        return {
-          label: "En cours",
-          icon: Clock,
-          color: "text-yellow-500",
-          bgColor: "bg-yellow-500/5",
-          borderColor: "border-yellow-500/20",
-        };
-      case "pending":
-        return {
-          label: "En attente",
-          icon: AlertCircle,
-          color: "text-blue-500",
-          bgColor: "bg-blue-500/5",
-          borderColor: "border-blue-500/20",
-        };
-      default:
-        return {
-          label: status,
-          icon: ClipboardList,
-          color: "text-gray-500",
-          bgColor: "bg-gray-500/5",
-          borderColor: "border-gray-500/20",
-        };
-    }
+  const statusColors = {
+    pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    in_progress: 'bg-blue-100 text-blue-800 border-blue-300',
+    passed: 'bg-green-100 text-green-800 border-green-300',
+    failed: 'bg-red-100 text-red-800 border-red-300',
   };
 
-  const statusDetails = getStatusDetails(test.status);
-  const StatusIcon = statusDetails.icon;
+  const priorityColors = {
+    low: 'bg-gray-100 text-gray-800',
+    medium: 'bg-orange-100 text-orange-800',
+    high: 'bg-red-100 text-red-800',
+  };
+
+  const completedItems = test.check_items?.filter(item => item.is_completed).length || 0;
+  const totalItems = test.check_items?.length || 0;
+  const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
   return (
-    <Card
-      className={cn(
-        "transition-all hover:shadow-md cursor-pointer",
-        statusDetails.bgColor,
-        statusDetails.borderColor
-      )}
+    <Card 
+      className={`cursor-pointer hover:shadow-md transition-shadow border-l-4 ${
+        statusColors[test.status].split(' ')[0].replace('bg-', 'border-')
+      }`}
       onClick={onClick}
     >
-      <CardHeader className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ClipboardList className="h-5 w-5" />
-            <h3 className="font-semibold">{test.name}</h3>
-          </div>
-          <Badge
-            variant="outline"
-            className={cn(
-              "flex items-center gap-1 font-medium",
-              statusDetails.color,
-              statusDetails.borderColor
-            )}
-          >
-            <StatusIcon className="h-3 w-3" />
-            {statusDetails.label}
-          </Badge>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary">{test.project}</Badge>
-          <Badge variant="outline">{test.type}</Badge>
-          <Badge
-            variant="outline"
-            className={cn(
-              test.priority === "critical"
-                ? "border-red-500 text-red-500"
-                : test.priority === "high"
-                ? "border-orange-500 text-orange-500"
-                : test.priority === "medium"
-                ? "border-yellow-500 text-yellow-500"
-                : "border-blue-500 text-blue-500"
-            )}
-          >
-            {test.priority}
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-lg font-medium">{test.title}</CardTitle>
+          <Badge className={statusColors[test.status]}>
+            {test.status === 'pending' && 'En attente'}
+            {test.status === 'in_progress' && 'En cours'}
+            {test.status === 'passed' && 'Réussi'}
+            {test.status === 'failed' && 'Échoué'}
           </Badge>
         </div>
       </CardHeader>
-
-      <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {test.description}
-        </p>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <User className="h-4 w-4" />
-              {test.assignee}
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              {new Date(test.due_date).toLocaleDateString()}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Avancement</span>
-              <span className="font-medium">{test.progress}%</span>
-            </div>
-            <Progress
-              value={test.progress}
-              className="h-2"
-              indicatorClassName={cn(
-                test.progress === 100
-                  ? "bg-green-500"
-                  : test.progress >= 70
-                  ? "bg-yellow-500"
-                  : "bg-blue-500"
-              )}
-            />
-          </div>
-
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>{test.steps.length} étapes</span>
-            <span>
-              {test.steps.filter((step) => step.status === "passed").length}{" "}
-              terminées
-            </span>
-          </div>
+      <CardContent className="pb-2">
+        <p className="text-sm text-gray-500 line-clamp-2 mb-3">{test.description}</p>
+        
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-gray-500">Progression</span>
+          <span className="text-xs font-medium">{completedItems}/{totalItems}</span>
+        </div>
+        <Progress value={progress} className="h-2" />
+        
+        <div className="mt-4 flex flex-wrap gap-2">
+          {test.project_name && (
+            <Badge variant="outline" className="text-xs">
+              {test.project_name}
+            </Badge>
+          )}
+          <Badge variant="outline" className={`text-xs ${priorityColors[test.priority]}`}>
+            {test.priority === 'low' && 'Priorité basse'}
+            {test.priority === 'medium' && 'Priorité moyenne'}
+            {test.priority === 'high' && 'Priorité haute'}
+          </Badge>
         </div>
       </CardContent>
+      <CardFooter className="pt-2 text-xs text-gray-500 flex justify-between">
+        <div className="flex items-center">
+          {test.due_date && (
+            <>
+              <CalendarIcon className="h-3 w-3 mr-1" />
+              <span>
+                {new Date(test.due_date) < new Date() 
+                  ? 'En retard' 
+                  : `Échéance: ${new Date(test.due_date).toLocaleDateString('fr-FR')}`}
+              </span>
+            </>
+          )}
+        </div>
+        <div className="flex items-center">
+          <Clock className="h-3 w-3 mr-1" />
+          <span>
+            {test.created_at && formatDistanceToNow(new Date(test.created_at), { addSuffix: true, locale: fr })}
+          </span>
+        </div>
+      </CardFooter>
     </Card>
   );
 }

@@ -1,32 +1,47 @@
 import { NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
-import { promises as fs } from "fs";
-import path from "path";
+import { createClient } from "@/lib/supabase";
 import { Test } from "@/components/informatique/test-et-validation/types";
 
-const dataFile = path.join(process.cwd(), "src/data/tests.json");
+// Create Supabase client
+const supabase = createClient();
 
-// Helper function to read tests
-async function readTests(): Promise<Test[]> {
+// Helper function to get tests with check items
+async function getTests() {
   try {
-    const data = await fs.readFile(dataFile, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    console.error("Error in API route:", error);
-    // If file doesn't exist, create it with empty array
-    await fs.writeFile(dataFile, "[]");
-    return [];
-  }
-}
+    // Get all tests
+    const { data: tests, error: testsError } = await supabase
+      .from('tests')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-// Helper function to write tests
-async function writeTests(tests: Test[]) {
-  await fs.writeFile(dataFile, JSON.stringify(tests, null, 2));
+    if (testsError) throw testsError;
+
+    // Get all check items
+    const { data: checkItems, error: checkItemsError } = await supabase
+      .from('test_check_items')
+      .select('*');
+
+    if (checkItemsError) throw checkItemsError;
+
+    // Map check items to their respective tests
+    const testsWithCheckItems = tests.map(test => {
+      const testCheckItems = checkItems.filter(item => item.test_id === test.id);
+      return {
+        ...test,
+        check_items: testCheckItems
+      };
+    });
+
+    return testsWithCheckItems;
+  } catch (error) {
+    console.error("Error fetching tests:", error);
+    throw error;
+  }
 }
 
 export async function GET() {
   try {
-    const tests = await readTests();
+    const tests = await getTests();
     return NextResponse.json(tests);
   } catch (error) {
     console.error("Error in API route:", error);
@@ -37,30 +52,57 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const tests = await readTests();
 
     // Validate required fields
-    if (!body.name || !body.project || !body.type || !body.priority || !body.environment) {
+    if (!body.title) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Title is required" },
         { status: 400 }
       );
     }
 
     // Create new test
-    const newTest: Test = {
-      id: uuidv4(),
-      created_at: new Date().toISOString(),
-      status: body.status || "pending",
-      progress: 0,
-      steps: [],
-      ...body,
-    };
+    const now = new Date().toISOString();
+    const { data: test, error: testError } = await supabase
+      .from('tests')
+      .insert({
+        title: body.title,
+        description: body.description || null,
+        status: body.status || 'pending',
+        priority: body.priority || 'medium',
+        project_id: body.project_id || null,
+        project_name: body.project_name || null,
+        due_date: body.due_date || null,
+        created_at: now,
+        updated_at: now
+      })
+      .select()
+      .single();
 
-    tests.push(newTest);
-    await writeTests(tests);
+    if (testError) throw testError;
 
-    return NextResponse.json(newTest);
+    // Insert check items if provided
+    if (body.check_items && body.check_items.length > 0 && test) {
+      const checkItemsToInsert = body.check_items.map((item: any) => ({
+        test_id: test.id,
+        description: item.description,
+        is_completed: item.is_completed || false,
+        created_at: now
+      }));
+
+      const { error: checkItemsError } = await supabase
+        .from('test_check_items')
+        .insert(checkItemsToInsert);
+
+      if (checkItemsError) throw checkItemsError;
+    }
+
+    // Get the complete test with check items
+    const completeTest = await getTests().then(tests => 
+      tests.find(t => t.id === test.id)
+    );
+
+    return NextResponse.json(completeTest || test);
   } catch (error) {
     console.error("Error in API route:", error);
     return NextResponse.json(
@@ -83,26 +125,56 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const tests = await readTests();
-    const testIndex = tests.findIndex((t) => t.id === id);
+    // Update the test
+    const { error: testError } = await supabase
+      .from('tests')
+      .update({
+        title: body.title,
+        description: body.description,
+        status: body.status,
+        priority: body.priority,
+        project_id: body.project_id || null,
+        project_name: body.project_name || null,
+        due_date: body.due_date || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
 
-    if (testIndex === -1) {
-      return NextResponse.json(
-        { error: "Test not found" },
-        { status: 404 }
-      );
+    if (testError) throw testError;
+
+    // Update check items if provided
+    if (body.check_items) {
+      // Delete existing check items
+      const { error: deleteError } = await supabase
+        .from('test_check_items')
+        .delete()
+        .eq('test_id', id);
+
+      if (deleteError) throw deleteError;
+
+      // Insert updated check items
+      if (body.check_items.length > 0) {
+        const checkItemsToInsert = body.check_items.map((item: any) => ({
+          test_id: id,
+          description: item.description,
+          is_completed: item.is_completed || false,
+          created_at: item.created_at || new Date().toISOString()
+        }));
+
+        const { error: checkItemsError } = await supabase
+          .from('test_check_items')
+          .insert(checkItemsToInsert);
+
+        if (checkItemsError) throw checkItemsError;
+      }
     }
 
-    // Update test while preserving existing fields
-    tests[testIndex] = {
-      ...tests[testIndex],
-      ...body,
-      id, // Ensure ID cannot be changed
-      updated_at: new Date().toISOString(),
-    };
+    // Get the updated test with check items
+    const updatedTest = await getTests().then(tests => 
+      tests.find(t => t.id === id)
+    );
 
-    await writeTests(tests);
-    return NextResponse.json(tests[testIndex]);
+    return NextResponse.json(updatedTest || { id });
   } catch (error) {
     console.error("Error in API route:", error);
     return NextResponse.json(
@@ -124,17 +196,22 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const tests = await readTests();
-    const filteredTests = tests.filter((t) => t.id !== id);
+    // Delete check items first (due to foreign key constraints)
+    const { error: checkItemsError } = await supabase
+      .from('test_check_items')
+      .delete()
+      .eq('test_id', id);
 
-    if (filteredTests.length === tests.length) {
-      return NextResponse.json(
-        { error: "Test not found" },
-        { status: 404 }
-      );
-    }
+    if (checkItemsError) throw checkItemsError;
 
-    await writeTests(filteredTests);
+    // Delete the test
+    const { error: testError } = await supabase
+      .from('tests')
+      .delete()
+      .eq('id', id);
+
+    if (testError) throw testError;
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error in API route:", error);

@@ -5,12 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Client } from '@/types/commercial';
-import { useClientStore } from '@/stores/commercial/clientStore';
 import { useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
+import { contactService } from '@/services/contactService';
 
 interface ClientFormProps {
   open: boolean;
@@ -20,7 +20,6 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientFormProps) {
-  const { addClient, updateClient } = useClientStore();
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<Client>({
     defaultValues: client || {
       is_company: false,
@@ -63,23 +62,53 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
 
   const onSubmit = async (formData: Client) => {
     try {
-      // Prepare the data to be saved
-      const dataToSave = {
-        ...formData,
-        // Ensure name is set based on company status
-        name: formData.is_company ? formData.company_name || '' : formData.name || '',
+      // Split name into first_name and last_name if not a company
+      let firstName = '';
+      let lastName = '';
+      
+      if (!formData.is_company && formData.name) {
+        const nameParts = formData.name.trim().split(' ');
+        firstName = nameParts[0] || '';
+        lastName = nameParts.slice(1).join(' ') || '';
+      } else {
+        // For companies, use company name as last_name and contact person as first_name
+        firstName = formData.contact_person || '';
+        lastName = formData.company_name || formData.name || '';
+      }
+
+      // Prepare the data to be saved in the format expected by contactService
+      const contactData = {
+        first_name: firstName,
+        last_name: lastName,
+        email: formData.email || undefined,
+        phone: formData.phone || undefined,
+        type: 'client' as const,
+        status: formData.status || 'Active',
+        company: formData.is_company ? formData.company_name || '' : '',
+        // Store all client-specific fields in metadata
+        metadata: {
+          is_company: formData.is_company,
+          address: formData.address,
+          website: formData.website,
+          country: formData.country,
+          company_name: formData.company_name,
+          contact_person: formData.contact_person,
+          vat_number: formData.vat_number,
+          registration_number: formData.registration_number,
+          notes: formData.notes
+        }
       };
 
-      console.log('Submitting form data:', dataToSave);
+      console.log('Submitting client data:', contactData);
 
       if (client?.id) {
-        await updateClient(client.id, dataToSave);
+        await contactService.updateContact(client.id, contactData);
         toast({
           title: 'Succès',
           description: 'Client mis à jour avec succès',
         });
       } else {
-        await addClient(dataToSave);
+        await contactService.addContact(contactData);
         toast({
           title: 'Succès',
           description: 'Client créé avec succès',

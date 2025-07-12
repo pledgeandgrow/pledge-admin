@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useAuth } from '@/contexts/AuthContext';
+import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,15 +25,15 @@ export default function SignUpPage() {
   const [isMounted, setIsMounted] = useState(false);
   
   const router = useRouter();
-  const { signUp, session } = useAuth();
+  const supabase = createClient();
 
   useEffect(() => {
     setIsMounted(true);
     // If user is already logged in, redirect to dashboard
-    if (session) {
+    if (supabase.auth.session()) {
       router.push('/dashboard');
     }
-  }, [session, router]);
+  }, [supabase, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -41,6 +41,66 @@ export default function SignUpPage() {
       ...prev,
       [name]: value
     }));
+  };
+
+  // Function to handle user signup and profile creation
+  const signUp = async (email: string, password: string, userData: { firstName: string; lastName: string }) => {
+    try {
+      console.log('Starting signup process for:', email);
+      
+      // 1. Create the auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (authError) {
+        console.error('Auth signup error:', authError);
+        return { error: authError };
+      }
+
+      if (!authData.user) {
+        console.error('No user returned from auth signup');
+        return { error: { message: 'Failed to create user account' } };
+      }
+
+      console.log('Auth user created successfully:', authData.user.id);
+
+      // 2. Create user profile directly in the users table
+      const { firstName, lastName } = userData;
+      
+      // Generate avatar URL from initials
+      const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : '';
+      const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
+      const initials = firstInitial + lastInitial;
+      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=random`;
+      
+      const { data: profileData, error: profileError } = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          email: email.toLowerCase(),
+          first_name: firstName || null,
+          last_name: lastName || null,
+          avatar_url: avatarUrl,
+          email_verified: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        return { error: { message: 'Account created but profile setup failed. Please contact support.' } };
+      }
+
+      console.log('User profile created successfully:', profileData);
+      return { data: authData, profile: profileData };
+    } catch (error) {
+      console.error('Unexpected error during signup:', error);
+      return { error: { message: 'An unexpected error occurred during signup' } };
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

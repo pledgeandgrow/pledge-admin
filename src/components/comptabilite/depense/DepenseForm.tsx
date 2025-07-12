@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/components/ui/use-toast";
+import PdfUploader from "@/components/functions/PdfUploader";
 
 interface DepenseFormProps {
   onSubmit: (data: Depense) => Promise<void>;
@@ -382,15 +383,23 @@ export function DepenseForm({
         )}
 
         <div>
-          <Label htmlFor="justificatif_url">Justificatif (URL)</Label>
-          <Input
-            id="justificatif_url"
-            value={formData.justificatif_url || ""}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, justificatif_url: e.target.value }))
-            }
-            placeholder="URL du justificatif (optionnel)"
-          />
+          <Label>Justificatif</Label>
+          {initialData?.id ? (
+            <PdfUploader
+              documentId={initialData.id}
+              documentType="expense"
+              label="Justificatif de dépense"
+              existingPdfUrl={formData.justificatif_url || undefined}
+              existingPdfName={formData.justificatif_url ? 'Justificatif' : undefined}
+              onUploadSuccess={(url) => {
+                setFormData((prev) => ({ ...prev, justificatif_url: url }))
+              }}
+            />
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              Vous pourrez ajouter un justificatif PDF après avoir créé la dépense
+            </div>
+          )}
         </div>
 
         <div>

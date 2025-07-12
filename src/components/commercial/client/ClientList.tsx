@@ -9,7 +9,9 @@ import { ClientTable } from './ClientTable';
 import { ClientForm } from './ClientForm';
 import { ClientModal } from './ClientModal';
 import { Client } from '@/types/commercial';
-import { useClientStore } from '@/stores/commercial/clientStore';
+import { Contact } from '@/types/contact';
+import useRealtimeContacts from '@/hooks/useRealtimeContacts';
+import { contactService } from '@/services/contactService';
 import { toast } from '@/components/ui/use-toast';
 
 const getStatusColor = (status?: string) => {
@@ -31,15 +33,34 @@ export function ClientList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  // Get state and actions from the store
-  const { 
-    clients, 
-    loading, 
-    error,
-    fetchClients, 
-    deleteClient 
-  } = useClientStore();
+  // Use the realtime contacts hook to get clients
+  const { contacts: contactsData, loading, error } = useRealtimeContacts({ type: 'client' });
+  
+  // Convert contacts to clients
+  const clients = useMemo(() => {
+    return contactsData.map((contact: Contact) => {
+      // Extract metadata fields from contact
+      const metadata = contact.metadata as Record<string, any> || {};
+      
+      return {
+        id: contact.id,
+        name: contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : contact.first_name || contact.last_name || '',
+        company: contact.company || '',
+        email: contact.email || '',
+        phone: contact.phone || '',
+        status: contact.status || 'active',
+        address: metadata.address || '',
+        website: metadata.website || '',
+        industry: metadata.industry || '',
+        notes: metadata.notes || '',
+        created_at: contact.created_at,
+        updated_at: contact.updated_at,
+        is_company: metadata.is_company || false
+      } as Client;
+    });
+  }, [contactsData]);
 
   // Handle search input
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,43 +81,37 @@ export function ClientList() {
 
   // Handle delete client
   const handleDelete = async (id: string) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
+    if (confirm('Are you sure you want to delete this client?')) {
+      setIsDeleting(id);
       try {
-        await deleteClient(id);
+        await contactService.deleteContact(id);
         toast({
-          title: 'Succès',
-          description: 'Client supprimé avec succès',
+          title: 'Client deleted',
+          description: 'Client has been deleted successfully',
         });
       } catch (error) {
         console.error('Error deleting client:', error);
         toast({
-          title: 'Erreur',
-          description: 'Une erreur est survenue lors de la suppression du client',
+          title: 'Error',
+          description: 'Failed to delete client',
           variant: 'destructive',
         });
+      } finally {
+        setIsDeleting(null);
       }
     }
   };
 
   // Handle form success
-  const handleSuccess = async () => {
-    console.log('Form submission successful, refreshing client list...');
-    try {
-      await fetchClients();
-      setIsFormOpen(false);
-      setSelectedClient(null);
-      toast({
-        title: 'Succès',
-        description: 'Opération effectuée avec succès',
-      });
-    } catch (error) {
-      console.error('Error refreshing client list:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Client enregistré mais erreur lors de la mise à jour de la liste',
-        variant: 'destructive',
-      });
-    }
+  const handleSuccess = () => {
+    console.log('Form submission successful');
+    // No need to refresh clients as useRealtimeContacts will handle it
+    setIsFormOpen(false);
+    setSelectedClient(null);
+    toast({
+      title: 'Succès',
+      description: 'Opération effectuée avec succès',
+    });
   };
 
   // Form and modal open/close is handled directly in the components
@@ -116,29 +131,8 @@ export function ClientList() {
 
   // Log state changes
   useEffect(() => {
-    console.log('Clients in store:', clients);
+    console.log('Clients data updated:', clients.length);
   }, [clients]);
-
-  // Initial data fetch
-  useEffect(() => {
-    console.log('Initializing ClientList - fetching clients');
-    const loadClients = async () => {
-      try {
-        console.log('Fetching clients...');
-        await fetchClients();
-      } catch (error) {
-        console.error('Error loading clients:', error);
-        toast({
-          title: 'Erreur',
-          description: 'Impossible de charger la liste des clients: ' + 
-            (error instanceof Error ? error.message : 'Unknown error'),
-          variant: 'destructive',
-        });
-      }
-    };
-
-    loadClients();
-  }, [fetchClients]);
 
   // Loading state
   if (loading && clients.length === 0) {
@@ -153,7 +147,7 @@ export function ClientList() {
   if (error) {
     return (
       <div className="p-4 text-red-500">
-        Erreur: {error}
+        Erreur: {error.message || 'Une erreur est survenue'}
       </div>
     );
   }
@@ -230,7 +224,7 @@ export function ClientList() {
         }}
         onDelete={async (id) => {
           try {
-            await deleteClient(id);
+            await contactService.deleteContact(id);
             toast({
               title: 'Succès',
               description: 'Le client a été supprimé avec succès',

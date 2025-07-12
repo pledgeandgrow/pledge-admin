@@ -1,27 +1,96 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Lead } from '@/types/commercial';
-import { useLeadStore } from '@/stores/commercial/leadStore';
+import { useState, useMemo } from 'react';
+import { Contact } from '@/types/contact';
+import useRealtimeContacts from '@/hooks/useRealtimeContacts';
 import { LeadTable } from './LeadTable';
 import { AddLeadDialog } from './AddLeadDialog';
 import { EditLeadDialog } from './EditLeadDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+// Define the Lead interface expected by the components
+interface Lead {
+  id?: string;
+  name: string;
+  position: string;
+  company: string;
+  email: string;
+  phone: string;
+  commentaires: string;
+  status: "New" | "In Progress" | "Converted" | "Contacted" | "Qualified" | "Lost";
+  service: string;
+  source?: string;
+  probability?: number;
+  last_contacted_at?: string;
+  next_follow_up?: string;
+  estimated_value?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Convert Contact to Lead format
+const contactToLead = (contact: Contact): Lead => {
+  // Convert status to the expected enum type or default to "New"
+  const mapStatus = (status: string): Lead['status'] => {
+    const validStatuses: Lead['status'][] = [
+      "New", "In Progress", "Converted", "Contacted", "Qualified", "Lost"
+    ];
+    return validStatuses.includes(status as any) ? 
+      (status as Lead['status']) : "New";
+  };
+  
+  // Safely access metadata properties
+  const metadata = contact.metadata || {};
+  const getMetadataValue = <T,>(key: string, defaultValue: T): T => {
+    if (typeof metadata === 'object' && metadata !== null) {
+      return (metadata as Record<string, any>)[key] as T || defaultValue;
+    }
+    return defaultValue;
+  };
+  
+  return {
+    id: contact.id,
+    name: `${contact.first_name} ${contact.last_name}`,
+    position: contact.position || '',
+    company: contact.company || '',
+    email: contact.email || '',
+    phone: contact.phone || '',
+    commentaires: contact.notes || '',
+    status: mapStatus(contact.status),
+    service: getMetadataValue<string>('service', ''),
+    source: getMetadataValue<string>('source', ''),
+    probability: getMetadataValue<number | undefined>('probability', undefined),
+    last_contacted_at: getMetadataValue<string | undefined>('last_contacted_at', undefined),
+    next_follow_up: getMetadataValue<string | undefined>('next_follow_up', undefined),
+    estimated_value: getMetadataValue<number | undefined>('estimated_value', undefined),
+    created_at: contact.created_at,
+    updated_at: contact.updated_at
+  };
+};
 
 export function LeadList() {
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const { leads, fetchLeads } = useLeadStore();
+  // Use the existing useRealtimeContacts hook with lead type filter
+  const { contacts, loading } = useRealtimeContacts({
+    type: 'lead',
+    autoFetch: true
+  });
+  
+  // Convert contacts to leads format for the UI components
+  const leads = useMemo(() => {
+    return contacts.map(contact => contactToLead(contact));
+  }, [contacts]);
+  
+  // Keep track of the selected lead for editing
+  const selectedLead = useMemo(() => {
+    return selectedContact ? contactToLead(selectedContact) : null;
+  }, [selectedContact]);
 
-  useEffect(() => {
-    fetchLeads();
-  }, [fetchLeads]);
-
-  const getStatusColor = (status: Lead['status']) => {
-    const colors = {
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
       'New': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
       'In Progress': 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300',
       'Contacted': 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300',
@@ -40,45 +109,48 @@ export function LeadList() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2">
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Leads</h1>
+        <Button onClick={() => setIsAddModalOpen(true)}>Add Lead</Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Leads</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-        <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-blue-200 dark:border-blue-900">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-blue-600 dark:text-blue-400">Nouveaux</CardTitle>
+            <CardTitle className="text-sm font-medium">New Leads</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.new}</div>
+            <div className="text-2xl font-bold">{stats.new}</div>
           </CardContent>
         </Card>
-        <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-amber-200 dark:border-amber-900">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-amber-600 dark:text-amber-400">En Cours</CardTitle>
+            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.inProgress}</div>
+            <div className="text-2xl font-bold">{stats.inProgress}</div>
           </CardContent>
         </Card>
-        <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-emerald-200 dark:border-emerald-900">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Convertis</CardTitle>
+            <CardTitle className="text-sm font-medium">Converted</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.converted}</div>
+            <div className="text-2xl font-bold">{stats.converted}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Lead Table */}
-      <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Liste des Leads</CardTitle>
           <Button 
@@ -92,7 +164,10 @@ export function LeadList() {
         <CardContent>
           <LeadTable
             leads={leads}
-            onEdit={setSelectedLead}
+            onEdit={(lead) => {
+              const contact = contacts.find(c => c.id === lead.id);
+              if (contact) setSelectedContact(contact);
+            }}
             getStatusColor={getStatusColor}
           />
         </CardContent>
@@ -107,7 +182,7 @@ export function LeadList() {
         <EditLeadDialog
           lead={selectedLead}
           open={!!selectedLead}
-          onOpenChange={(open) => !open && setSelectedLead(null)}
+          onOpenChange={(open) => !open && setSelectedContact(null)}
         />
       )}
     </div>

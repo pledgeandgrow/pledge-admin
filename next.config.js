@@ -14,6 +14,12 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     return config;
   },
+  // Enable Turbopack (now stable, no longer experimental)
+  turbopack: {
+    rules: {
+      // Configure Turbopack rules here
+    },
+  },
   // Required for Supabase SSR
   experimental: {
     serverActions: {

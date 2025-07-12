@@ -1,13 +1,9 @@
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { SearchIcon, FilterIcon } from "lucide-react";
+import React from 'react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
 
 interface TestFiltersProps {
   search: string;
@@ -17,6 +13,8 @@ interface TestFiltersProps {
   projectFilter: string;
   onProjectFilterChange: (value: string) => void;
   projects: string[];
+  activeFilters: number;
+  onClearFilters: () => void;
 }
 
 export function TestFilters({
@@ -27,43 +25,39 @@ export function TestFilters({
   projectFilter,
   onProjectFilterChange,
   projects,
+  activeFilters,
+  onClearFilters,
 }: TestFiltersProps) {
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1 md:w-[300px]">
-          <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="bg-white p-4 rounded-lg border shadow-sm">
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
           <Input
-            placeholder="Rechercher un test..."
-            className="pl-8"
+            placeholder="Rechercher des tests..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full"
           />
         </div>
-      </div>
-
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-2">
-          <FilterIcon className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Filtres:</span>
-        </div>
         
-        <div className="flex gap-2">
+        <div className="w-full md:w-48">
           <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Status" />
+            <SelectTrigger>
+              <SelectValue placeholder="Statut" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les status</SelectItem>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              <SelectItem value="pending">En attente</SelectItem>
+              <SelectItem value="in_progress">En cours</SelectItem>
               <SelectItem value="passed">Réussis</SelectItem>
               <SelectItem value="failed">Échoués</SelectItem>
-              <SelectItem value="in_progress">En cours</SelectItem>
-              <SelectItem value="pending">En attente</SelectItem>
             </SelectContent>
           </Select>
-
+        </div>
+        
+        <div className="w-full md:w-48">
           <Select value={projectFilter} onValueChange={onProjectFilterChange}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger>
               <SelectValue placeholder="Projet" />
             </SelectTrigger>
             <SelectContent>
@@ -75,19 +69,17 @@ export function TestFilters({
               ))}
             </SelectContent>
           </Select>
-
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => {
-              onStatusFilterChange("all");
-              onProjectFilterChange("all");
-              onSearchChange("");
-            }}
-          >
-            ×
-          </Button>
         </div>
+        
+        {activeFilters > 0 && (
+          <Button variant="ghost" onClick={onClearFilters} className="flex items-center">
+            <X className="h-4 w-4 mr-1" />
+            Effacer les filtres
+            <Badge variant="secondary" className="ml-2">
+              {activeFilters}
+            </Badge>
+          </Button>
+        )}
       </div>
     </div>
   );

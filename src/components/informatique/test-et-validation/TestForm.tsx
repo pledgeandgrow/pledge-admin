@@ -1,234 +1,261 @@
-import { useState } from "react";
-import { Test, TestStep } from "./types";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { PlusIcon, Trash2Icon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { Test, TestCheckItem } from './types';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface TestFormProps {
-  onSubmit: (test: Partial<Test>) => void;
+  onSubmit: (data: Test) => void;
   onCancel: () => void;
+  initialData?: Test;
   projects: { id: string; name: string }[];
-  initialData?: Partial<Test>;
 }
 
-export function TestForm({ onSubmit, onCancel, projects, initialData }: TestFormProps) {
-  const [formData, setFormData] = useState<Partial<Test>>(
-    initialData || {
-      name: "",
-      description: "",
-      project: "",
-      type: "functional",
-      priority: "medium",
-      environment: "development",
-      steps: [],
-    }
-  );
+export function TestForm({ onSubmit, onCancel, initialData, projects }: TestFormProps) {
+  const [formData, setFormData] = useState<Test>({
+    title: '',
+    description: '',
+    status: 'pending',
+    priority: 'medium',
+    check_items: [],
+    ...initialData,
+  });
 
-  const [steps, setSteps] = useState<Partial<TestStep>[]>(
-    initialData?.steps || [
-      {
-        description: "",
-        expected_result: "",
-        status: "pending",
-      },
-    ]
-  );
+  const [newCheckItem, setNewCheckItem] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleDateChange = (date: Date | undefined) => {
+    setFormData(prev => ({ ...prev, due_date: date ? date.toISOString() : undefined }));
+  };
+
+  const handleProjectChange = (projectId: string) => {
+    const selectedProject = projects.find(p => p.id === projectId);
+    setFormData(prev => ({
+      ...prev,
+      project_id: projectId,
+      project_name: selectedProject?.name
+    }));
+  };
+
+  const addCheckItem = () => {
+    if (!newCheckItem.trim()) return;
+    
+    const newItem: TestCheckItem = {
+      test_id: formData.id || '',
+      description: newCheckItem,
+      is_completed: false,
+      created_at: new Date().toISOString()
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      check_items: [...(prev.check_items || []), newItem]
+    }));
+    
+    setNewCheckItem('');
+  };
+
+  const removeCheckItem = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      check_items: prev.check_items?.filter((_, i) => i !== index)
+    }));
+  };
+
+  const toggleCheckItem = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      check_items: prev.check_items?.map((item, i) => 
+        i === index ? { ...item, is_completed: !item.is_completed } : item
+      )
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      ...formData,
-      steps: steps.map((step, index) => ({
-        ...step,
-        id: step.id || crypto.randomUUID(),
-        order: index + 1,
-      })),
-    });
-  };
-
-  const addStep = () => {
-    setSteps([
-      ...steps,
-      {
-        description: "",
-        expected_result: "",
-        status: "pending",
-      },
-    ]);
-  };
-
-  const removeStep = (index: number) => {
-    setSteps(steps.filter((_, i) => i !== index));
-  };
-
-  const updateStep = (index: number, field: string, value: string) => {
-    const newSteps = [...steps];
-    newSteps[index] = { ...newSteps[index], [field]: value };
-    setSteps(newSteps);
+    onSubmit(formData);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="project">Projet</Label>
-            <Select
-              value={formData.project}
-              onValueChange={(value) => setFormData({ ...formData, project: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un projet" />
-              </SelectTrigger>
-              <SelectContent>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="title">Titre du test</Label>
+            <Input
+              id="title"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="Titre du test"
+              required
+            />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="priority">Priorité</Label>
-            <Select
-              value={formData.priority}
-              onValueChange={(value: string) => setFormData({ ...formData, priority: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une priorité" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Basse</SelectItem>
-                <SelectItem value="medium">Moyenne</SelectItem>
-                <SelectItem value="high">Haute</SelectItem>
-                <SelectItem value="critical">Critique</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="name">Nom du test</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Nom du test"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Description détaillée du test"
-            rows={3}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="type">Type de test</Label>
-            <Select
-              value={formData.type}
-              onValueChange={(value) => setFormData({ ...formData, type: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="functional">Fonctionnel</SelectItem>
-                <SelectItem value="integration">Intégration</SelectItem>
-                <SelectItem value="performance">Performance</SelectItem>
-                <SelectItem value="security">Sécurité</SelectItem>
-                <SelectItem value="usability">Utilisabilité</SelectItem>
-              </SelectContent>
-            </Select>
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Description détaillée du test"
+              rows={4}
+              required
+            />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="environment">Environnement</Label>
-            <Select
-              value={formData.environment}
-              onValueChange={(value) => setFormData({ ...formData, environment: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un environnement" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="development">Développement</SelectItem>
-                <SelectItem value="staging">Pré-production</SelectItem>
-                <SelectItem value="production">Production</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="status">Statut</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => handleSelectChange('status', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">En attente</SelectItem>
+                  <SelectItem value="in_progress">En cours</SelectItem>
+                  <SelectItem value="passed">Réussi</SelectItem>
+                  <SelectItem value="failed">Échoué</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="priority">Priorité</Label>
+              <Select
+                value={formData.priority}
+                onValueChange={(value) => handleSelectChange('priority', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une priorité" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Basse</SelectItem>
+                  <SelectItem value="medium">Moyenne</SelectItem>
+                  <SelectItem value="high">Haute</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="project">Projet</Label>
+              <Select
+                value={formData.project_id || ''}
+                onValueChange={handleProjectChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un projet" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Aucun projet</SelectItem>
+                  {projects.map(project => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="due_date">Date d'échéance</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.due_date ? (
+                      format(new Date(formData.due_date), 'PPP', { locale: fr })
+                    ) : (
+                      <span>Sélectionner une date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={formData.due_date ? new Date(formData.due_date) : undefined}
+                    onSelect={handleDateChange}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Étapes du test</Label>
-            <Button type="button" variant="outline" size="sm" onClick={addStep}>
-              <PlusIcon className="h-4 w-4 mr-1" />
-              Ajouter une étape
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {steps.map((step, index) => (
-              <div
-                key={index}
-                className={cn(
-                  "space-y-3 p-4 rounded-lg border",
-                  "bg-card/50 hover:bg-card/80 transition-colors"
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Étape {index + 1}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeStep(index)}
-                  >
-                    <Trash2Icon className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Textarea
-                    value={step.description}
-                    onChange={(e) => updateStep(index, "description", e.target.value)}
-                    placeholder="Description de l'étape"
-                    rows={2}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Résultat attendu</Label>
-                  <Textarea
-                    value={step.expected_result}
-                    onChange={(e) => updateStep(index, "expected_result", e.target.value)}
-                    placeholder="Résultat attendu"
-                    rows={2}
-                  />
-                </div>
+          <div>
+            <Label>Éléments à vérifier</Label>
+            <div className="mt-2 space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  value={newCheckItem}
+                  onChange={(e) => setNewCheckItem(e.target.value)}
+                  placeholder="Ajouter un élément à vérifier"
+                  className="flex-1"
+                />
+                <Button type="button" onClick={addCheckItem} size="sm">
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
-            ))}
+
+              <div className="space-y-2 max-h-[300px] overflow-y-auto border rounded-md p-2">
+                {formData.check_items && formData.check_items.length > 0 ? (
+                  formData.check_items.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 border rounded bg-white">
+                      <Checkbox
+                        checked={item.is_completed}
+                        onCheckedChange={() => toggleCheckItem(index)}
+                        id={`check-${index}`}
+                      />
+                      <Label
+                        htmlFor={`check-${index}`}
+                        className={`flex-1 text-sm ${item.is_completed ? 'line-through text-gray-400' : ''}`}
+                      >
+                        {item.description}
+                      </Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCheckItem(index)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    Aucun élément à vérifier
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -238,7 +265,7 @@ export function TestForm({ onSubmit, onCancel, projects, initialData }: TestForm
           Annuler
         </Button>
         <Button type="submit">
-          {initialData ? "Mettre à jour" : "Créer"} le test
+          {initialData ? 'Mettre à jour' : 'Créer'} le test
         </Button>
       </div>
     </form>

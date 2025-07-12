@@ -1,6 +1,7 @@
+'use client';
+
 import { useState } from 'react';
-import { Lead } from '@/types/commercial';
-import { useLeadStore } from '@/stores/commercial/leadStore';
+import { contactService } from '@/services/contactService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,8 +20,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from '@/components/ui/use-toast';
 
-const initialLead: Lead = {
+// Define the Lead interface for the form
+interface LeadFormData {
+  name: string;
+  position: string;
+  company: string;
+  email: string;
+  phone: string;
+  commentaires: string;
+  status: "New" | "In Progress" | "Converted" | "Contacted" | "Qualified" | "Lost";
+  service: string;
+}
+
+const initialLead: LeadFormData = {
   name: '',
   position: '',
   company: '',
@@ -37,108 +51,175 @@ interface AddLeadDialogProps {
 }
 
 export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
-  const [newLead, setNewLead] = useState<Lead>(initialLead);
-  const { addLead } = useLeadStore();
+  const [newLead, setNewLead] = useState<LeadFormData>(initialLead);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addLead(newLead);
-    setNewLead(initialLead);
-    onOpenChange(false);
+    setIsSubmitting(true);
+    
+    try {
+      // Split the name into first_name and last_name
+      const nameParts = newLead.name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      // Create contact object from lead form data
+      const contactData = {
+        first_name: firstName,
+        last_name: lastName,
+        position: newLead.position,
+        company: newLead.company,
+        email: newLead.email,
+        phone: newLead.phone,
+        notes: newLead.commentaires,
+        status: newLead.status,
+        type: 'lead',
+        metadata: {
+          service: newLead.service,
+          source: '',
+          probability: 0,
+          last_contacted_at: new Date().toISOString(),
+          next_follow_up: '',
+          estimated_value: 0
+        }
+      };
+      
+      // Add contact to Supabase
+      await contactService.addContact(contactData);
+      
+      toast({
+        title: "Lead ajouté",
+        description: "Le lead a été ajouté avec succès.",
+      });
+      
+      setNewLead(initialLead);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error adding lead:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout du lead.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Lead</DialogTitle>
+          <DialogTitle>Ajouter un Lead</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={newLead.name}
-              onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="position">Position</Label>
-            <Input
-              id="position"
-              value={newLead.position}
-              onChange={(e) => setNewLead({ ...newLead, position: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="company">Company</Label>
-            <Input
-              id="company"
-              value={newLead.company}
-              onChange={(e) => setNewLead({ ...newLead, company: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={newLead.email}
-              onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="phone">Phone</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={newLead.phone}
-              onChange={(e) => setNewLead({ ...newLead, phone: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="commentaires">Comments</Label>
-            <Textarea
-              id="commentaires"
-              value={newLead.commentaires}
-              onChange={(e) => setNewLead({ ...newLead, commentaires: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={newLead.status}
-              onValueChange={(value) => setNewLead({ ...newLead, status: value as Lead['status'] })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="New">New</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Contacted">Contacted</SelectItem>
-                <SelectItem value="Qualified">Qualified</SelectItem>
-                <SelectItem value="Converted">Converted</SelectItem>
-                <SelectItem value="Lost">Lost</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="service">Service</Label>
-            <Input
-              id="service"
-              value={newLead.service}
-              onChange={(e) => setNewLead({ ...newLead, service: e.target.value })}
-              required
-            />
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Nom
+              </Label>
+              <Input
+                id="name"
+                value={newLead.name}
+                onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
+                className="col-span-3"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="position" className="text-right">
+                Poste
+              </Label>
+              <Input
+                id="position"
+                value={newLead.position}
+                onChange={(e) => setNewLead({ ...newLead, position: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="company" className="text-right">
+                Entreprise
+              </Label>
+              <Input
+                id="company"
+                value={newLead.company}
+                onChange={(e) => setNewLead({ ...newLead, company: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={newLead.email}
+                onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="phone" className="text-right">
+                Téléphone
+              </Label>
+              <Input
+                id="phone"
+                value={newLead.phone}
+                onChange={(e) => setNewLead({ ...newLead, phone: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="status" className="text-right">
+                Statut
+              </Label>
+              <Select
+                value={newLead.status}
+                onValueChange={(value) => setNewLead({ ...newLead, status: value as LeadFormData['status'] })}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Sélectionner un statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="New">Nouveau</SelectItem>
+                  <SelectItem value="Contacted">Contacté</SelectItem>
+                  <SelectItem value="In Progress">En cours</SelectItem>
+                  <SelectItem value="Qualified">Qualifié</SelectItem>
+                  <SelectItem value="Converted">Converti</SelectItem>
+                  <SelectItem value="Lost">Perdu</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="service" className="text-right">
+                Service
+              </Label>
+              <Input
+                id="service"
+                value={newLead.service}
+                onChange={(e) => setNewLead({ ...newLead, service: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="commentaires" className="text-right">
+                Commentaires
+              </Label>
+              <Textarea
+                id="commentaires"
+                value={newLead.commentaires}
+                onChange={(e) => setNewLead({ ...newLead, commentaires: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Add Lead</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Ajout en cours...' : 'Ajouter'}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

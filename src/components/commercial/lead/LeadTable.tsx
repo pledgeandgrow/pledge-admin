@@ -1,6 +1,6 @@
-import { Lead } from '@/types/commercial';
-import { useLeadStore } from '@/stores/commercial/leadStore';
-import { Button } from '@/components/ui/button';
+'use client';
+
+import { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -9,144 +9,134 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal, Edit, Trash } from 'lucide-react';
+import { contactService } from '@/services/contactService';
+import { toast } from '@/components/ui/use-toast';
+
+// Define the Lead interface for the table
+interface Lead {
+  id?: string;
+  name: string;
+  position: string;
+  company: string;
+  email: string;
+  phone: string;
+  commentaires: string;
+  status: "New" | "In Progress" | "Converted" | "Contacted" | "Qualified" | "Lost";
+  service: string;
+  source?: string;
+  probability?: number;
+  last_contacted_at?: string;
+  next_follow_up?: string;
+  estimated_value?: number;
+  created_at?: string;
+  updated_at?: string;
+}
 
 interface LeadTableProps {
   leads: Lead[];
   onEdit: (lead: Lead) => void;
-  getStatusColor: (status: Lead['status']) => string;
+  getStatusColor: (status: string) => string;
 }
 
 export function LeadTable({ leads, onEdit, getStatusColor }: LeadTableProps) {
-  const { deleteLead, moveLead } = useLeadStore();
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string | undefined) => {
+    if (!id) return;
+    
+    setIsDeleting(id);
+    try {
+      await contactService.deleteContact(id);
+      toast({
+        title: "Lead supprimé",
+        description: "Le lead a été supprimé avec succès.",
+      });
+    } catch (error) {
+      console.error("Error deleting lead:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression du lead.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(null);
+    }
+  };
 
   return (
-    <div className="relative overflow-x-auto">
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
-          <TableRow className="border-b-2 border-gray-200 dark:border-gray-700">
-            <TableHead className="font-semibold">Date</TableHead>
-            <TableHead className="font-semibold">Nom</TableHead>
-            <TableHead className="hidden md:table-cell font-semibold">Position</TableHead>
-            <TableHead className="font-semibold">Entreprise</TableHead>
-            <TableHead className="hidden lg:table-cell font-semibold">Email</TableHead>
-            <TableHead className="hidden lg:table-cell font-semibold">Téléphone</TableHead>
-            <TableHead className="hidden xl:table-cell font-semibold">Commentaires</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
-            <TableHead className="font-semibold">Service</TableHead>
-            <TableHead className="text-right font-semibold">Actions</TableHead>
+          <TableRow>
+            <TableHead>Nom</TableHead>
+            <TableHead>Entreprise</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Téléphone</TableHead>
+            <TableHead>Statut</TableHead>
+            <TableHead>Service</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leads.map((lead, index) => (
-            <TableRow 
-              key={lead.email} 
-              className="hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200"
-            >
-              <TableCell className="font-medium">{lead.date}</TableCell>
-              <TableCell>{lead.name}</TableCell>
-              <TableCell className="hidden md:table-cell">{lead.position}</TableCell>
-              <TableCell>{lead.company}</TableCell>
-              <TableCell className="hidden lg:table-cell">{lead.email}</TableCell>
-              <TableCell className="hidden lg:table-cell">{lead.phone}</TableCell>
-              <TableCell className="hidden xl:table-cell max-w-xs truncate">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="cursor-help">{lead.commentaires}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-sm whitespace-normal">{lead.commentaires}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </TableCell>
-              <TableCell>
-                <Badge className={`${getStatusColor(lead.status)} shadow-sm`}>
-                  {lead.status}
-                </Badge>
-              </TableCell>
-              <TableCell>{lead.service}</TableCell>
-              <TableCell>
-                <div className="flex justify-end space-x-2">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={() => onEdit(lead)}
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                        >
-                          ✏️
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Modifier</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={() => deleteLead(lead)}
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        >
-                          🗑️
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Supprimer</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={() => moveLead(index, 'up')}
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-800"
-                          disabled={index === 0}
-                        >
-                          ⬆️
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Déplacer vers le haut</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={() => moveLead(index, 'down')}
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-800"
-                          disabled={index === leads.length - 1}
-                        >
-                          ⬇️
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Déplacer vers le bas</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
+          {leads.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center py-4">
+                Aucun lead trouvé
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            leads.map((lead) => (
+              <TableRow key={lead.id}>
+                <TableCell className="font-medium">{lead.name}</TableCell>
+                <TableCell>{lead.company}</TableCell>
+                <TableCell>{lead.email}</TableCell>
+                <TableCell>{lead.phone}</TableCell>
+                <TableCell>
+                  <Badge className={getStatusColor(lead.status)}>
+                    {lead.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>{lead.service}</TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => onEdit(lead)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Modifier
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => lead.id && handleDelete(lead.id)}
+                        disabled={isDeleting === lead.id}
+                        className="text-red-600"
+                      >
+                        <Trash className="mr-2 h-4 w-4" />
+                        {isDeleting === lead.id ? 'Suppression...' : 'Supprimer'}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

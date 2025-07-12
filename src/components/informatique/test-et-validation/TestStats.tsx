@@ -1,92 +1,60 @@
-import { Test } from "./types";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ClipboardList,
-  CheckCircle,
-  XCircle,
-  Clock,
-  AlertCircle,
-} from "lucide-react";
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Test } from './types';
 
 interface TestStatsProps {
-  tests: Test[];
+  stats: {
+    total_count: number;
+    pending_count: number;
+    in_progress_count: number;
+    passed_count: number;
+    failed_count: number;
+    completion_rate: number;
+  };
 }
 
-export function TestStats({ tests }: TestStatsProps) {
-  const stats = {
-    total: tests.length,
-    passed: tests.filter(t => t.status === "passed").length,
-    failed: tests.filter(t => t.status === "failed").length,
-    pending: tests.filter(t => t.status === "pending").length,
-    inProgress: tests.filter(t => t.status === "in_progress").length,
-  };
-
+export function TestStats({ stats }: TestStatsProps) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-      <Card className="bg-card border-border/50">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Tests</CardTitle>
-          <ClipboardList className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.total}</div>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <Card>
+        <CardContent className="p-4 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold">{stats.total_count}</span>
+          <span className="text-sm text-gray-500">Total des tests</span>
         </CardContent>
       </Card>
-
-      <Card className="bg-green-500/5 border-green-500/20 dark:bg-green-500/10">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Réussis</CardTitle>
-          <CheckCircle className="h-4 w-4 text-green-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.passed}</div>
-          <p className="text-xs text-muted-foreground">
-            {((stats.passed / stats.total) * 100).toFixed(1)}% des tests
-          </p>
+      
+      <Card className="bg-yellow-50">
+        <CardContent className="p-4 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-yellow-700">{stats.pending_count}</span>
+          <span className="text-sm text-yellow-700">En attente</span>
         </CardContent>
       </Card>
-
-      <Card className="bg-red-500/5 border-red-500/20 dark:bg-red-500/10">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Échoués</CardTitle>
-          <XCircle className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.failed}</div>
-          <p className="text-xs text-muted-foreground">
-            {((stats.failed / stats.total) * 100).toFixed(1)}% des tests
-          </p>
+      
+      <Card className="bg-blue-50">
+        <CardContent className="p-4 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-blue-700">{stats.in_progress_count}</span>
+          <span className="text-sm text-blue-700">En cours</span>
         </CardContent>
       </Card>
-
-      <Card className="bg-yellow-500/5 border-yellow-500/20 dark:bg-yellow-500/10">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">En cours</CardTitle>
-          <Clock className="h-4 w-4 text-yellow-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.inProgress}</div>
-          <p className="text-xs text-muted-foreground">
-            {((stats.inProgress / stats.total) * 100).toFixed(1)}% des tests
-          </p>
+      
+      <Card className="bg-green-50">
+        <CardContent className="p-4 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-green-700">{stats.passed_count}</span>
+          <span className="text-sm text-green-700">Réussis</span>
         </CardContent>
       </Card>
-
-      <Card className="bg-blue-500/5 border-blue-500/20 dark:bg-blue-500/10">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">En attente</CardTitle>
-          <AlertCircle className="h-4 w-4 text-blue-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.pending}</div>
-          <p className="text-xs text-muted-foreground">
-            {((stats.pending / stats.total) * 100).toFixed(1)}% des tests
-          </p>
+      
+      <Card className="bg-red-50">
+        <CardContent className="p-4 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-red-700">{stats.failed_count}</span>
+          <span className="text-sm text-red-700">Échoués</span>
+        </CardContent>
+      </Card>
+      
+      <Card className="bg-purple-50">
+        <CardContent className="p-4 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-purple-700">{stats.completion_rate}%</span>
+          <span className="text-sm text-purple-700">Taux de complétion</span>
         </CardContent>
       </Card>
     </div>

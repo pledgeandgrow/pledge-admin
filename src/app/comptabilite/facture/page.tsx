@@ -24,7 +24,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase";
+
+const supabase = createClient();
 
 type StoredFile = { name: string; updated_at: string; url: string };
 
