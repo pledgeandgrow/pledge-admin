@@ -80,7 +80,7 @@ export function AddPrestationDialog({ open, onOpenChange }: AddPrestationDialogP
             <div className="grid gap-2">
               <Label htmlFor="category">Catégorie</Label>
               <Select
-                value={formData.metadata?.category || ''}
+                value={formData.metadata?.category as string || ''}
                 onValueChange={(value) => setFormData({ 
                   ...formData, 
                   metadata: { 
@@ -129,7 +129,7 @@ export function AddPrestationDialog({ open, onOpenChange }: AddPrestationDialogP
                 <Label htmlFor="duration">Durée</Label>
                 <Input
                   id="duration"
-                  value={formData.metadata?.duration || ''}
+                  value={formData.metadata?.duration as string || ''}
                   onChange={(e) => setFormData({ 
                     ...formData, 
                     metadata: { 

@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Client } from '@/types/commercial';
+import { Contact } from '@/types/contact';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Edit, Mail, Phone, Globe, MapPin, Building2, User, FileText, Hash, Calendar } from 'lucide-react';

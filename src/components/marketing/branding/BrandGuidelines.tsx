@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,11 +21,26 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
+// Supabase data type for brand_guidelines table
+interface BrandGuidelineData {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  organization_id?: string;
+  status?: 'published' | 'draft';
+  metadata?: Record<string, unknown>;
+}
+
+// Frontend representation type
 interface GuidelineSection {
   id: string;
   title: string;
   content: string;
   lastUpdated: string;
+  status?: 'published' | 'draft';
+  metadata?: Record<string, unknown>;
 }
 
 interface BrandGuidelinesProps {
@@ -40,14 +55,8 @@ export const BrandGuidelines: FC<BrandGuidelinesProps> = ({ sections: initialSec
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const supabase = createClient();
   
-  useEffect(() => {
-    // Only fetch from Supabase if no initial sections were provided
-    if (initialSections?.length === 0 || initialSections === undefined) {
-      fetchBrandGuidelines();
-    }
-  }, []);
-
-  const fetchBrandGuidelines = async () => {
+  // Fetch brand guidelines from Supabase
+  const fetchGuidelines = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -57,16 +66,18 @@ export const BrandGuidelines: FC<BrandGuidelinesProps> = ({ sections: initialSec
         .order('created_at', { ascending: false });
       
       if (error) {
-        throw new Error(error.message);
+        throw error;
       }
       
       if (data) {
         // Transform Supabase data to match GuidelineSection type
-        const formattedSections: GuidelineSection[] = data.map(section => ({
+        const formattedSections: GuidelineSection[] = data.map((section: BrandGuidelineData) => ({
           id: section.id,
           title: section.title,
           content: section.content,
-          lastUpdated: formatDate(section.updated_at)
+          lastUpdated: formatDate(section.updated_at),
+          status: section.status || 'published',
+          metadata: section.metadata
         }));
         
         setSections(formattedSections);
@@ -81,7 +92,7 @@ export const BrandGuidelines: FC<BrandGuidelinesProps> = ({ sections: initialSec
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
   
   // Helper function to format dates
   const formatDate = (dateString: string): string => {
@@ -94,6 +105,11 @@ export const BrandGuidelines: FC<BrandGuidelinesProps> = ({ sections: initialSec
       minute: '2-digit'
     });
   };
+  
+  // Fetch guidelines on component mount
+  useEffect(() => {
+    fetchGuidelines();
+  }, [fetchGuidelines]);
 
   const handleEdit = (id: string) => {
     setEditingSection(id);
@@ -113,7 +129,9 @@ export const BrandGuidelines: FC<BrandGuidelinesProps> = ({ sections: initialSec
           .update({
             title: section.title,
             content: section.content,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            status: section.status || 'published',
+            metadata: section.metadata || {}
           })
           .eq('id', section.id);
           
@@ -125,7 +143,11 @@ export const BrandGuidelines: FC<BrandGuidelinesProps> = ({ sections: initialSec
           .insert([
             {
               title: section.title,
-              content: section.content
+              content: section.content,
+              status: section.status || 'published',
+              metadata: section.metadata || {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             }
           ])
           .select();

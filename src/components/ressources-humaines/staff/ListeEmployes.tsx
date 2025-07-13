@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
 import Image from 'next/image';
@@ -51,10 +51,30 @@ export interface Employee {
 }
 
 // Mapping between our Employee interface and Supabase contacts table
-const mapContactToEmployee = (contact: any): Employee => ({
+interface SupabaseContact {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  position?: string;
+  tags?: string[];
+  metadata?: {
+    photo?: string;
+    departement?: string;
+    hire_date?: string;
+    performance?: {
+      noteAnnuelle: number;
+      objectifsAtteints: string;
+      progression: string;
+    };
+  };
+}
+
+const mapContactToEmployee = (contact: SupabaseContact): Employee => ({
   id: contact.id,
-  nom: contact.last_name,
-  prenom: contact.first_name,
+  nom: contact.last_name || '',
+  prenom: contact.first_name || '',
   photo: contact.metadata?.photo || '/placeholder-avatar.jpg',
   departement: contact.metadata?.departement || '',
   poste: contact.position || '',
@@ -99,7 +119,9 @@ interface ListeEmployesProps {
 
 const ListeEmployes: React.FC<ListeEmployesProps> = ({}) => {
   const [employes, setEmployes] = useState<Employee[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // isLoading is used to track data loading state and display loading indicators
+  // Only keep the setter since we don't use the value directly
+  const [, setIsLoading] = useState(true);
   const supabase = createClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartement, setSelectedDepartement] = useState('all');
@@ -125,12 +147,8 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({}) => {
     });
   };
 
-  // Fetch employees from Supabase on component mount
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
-
-  const fetchEmployees = async () => {
+  // Define fetchEmployees with useCallback before using it in useEffect
+  const fetchEmployees = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -155,7 +173,12 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({}) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
+
+  // Fetch employees from Supabase on component mount
+  useEffect(() => {
+    fetchEmployees();
+  }, [fetchEmployees]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -332,7 +355,7 @@ const ListeEmployes: React.FC<ListeEmployesProps> = ({}) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="dateEmbauche">Date d'embauche</Label>
+                  <Label htmlFor="dateEmbauche">Date d&apos;embauche</Label>
                   <Input
                     id="dateEmbauche"
                     name="dateEmbauche"

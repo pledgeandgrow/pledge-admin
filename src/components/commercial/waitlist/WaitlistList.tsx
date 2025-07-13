@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Plus, Eye, Pencil, Mail, Phone } from 'lucide-react';
@@ -35,7 +35,7 @@ export function WaitlistList() {
   const { toast } = useToast();
   const supabase = createClient();
   
-  const fetchWaitlistEntries = async () => {
+  const fetchWaitlistEntries = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -60,12 +60,12 @@ export function WaitlistList() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase, toast]);
   
   // Fetch waitlist entries from Supabase on component mount
   useEffect(() => {
     fetchWaitlistEntries();
-  }, []);  // Intentionally leaving dependency array empty as fetchWaitlistEntries doesn't depend on props or state
+  }, [fetchWaitlistEntries]);
 
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase';
-import { Asset, AssetType, AssetStatus, AssetStatistics } from '@/types/assets';
+import { Asset, AssetType, AssetStatistics } from '@/types/assets';
 
 // Initialize Supabase client
 const supabase = createClient();

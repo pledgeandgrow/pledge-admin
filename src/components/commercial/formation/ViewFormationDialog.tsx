@@ -1,6 +1,6 @@
 'use client';
 
-import { Formation } from '@/types/formation';
+import { Data, DataStatus } from '@/types/data';
 import {
   Dialog,
   DialogContent,
@@ -14,14 +14,27 @@ import { Check, FileText } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 
+// Define FormationMetadata interface for type safety
+interface FormationMetadata extends Record<string, unknown> {
+  category: string;
+  level: string;
+  duration: string;
+  price: number;
+  instructor: string;
+  nextSession: string;
+  pdfUrl: string;
+  prerequisites: string[];
+  objectives: string[];
+}
+
 interface ViewFormationDialogProps {
-  formation: Formation;
+  formation: Data;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  getLevelColor: (level: Formation['level']) => string;
-  getCategoryColor: (category: Formation['category']) => string;
-  getStatusColor: (status: Formation['status']) => string;
-  getStatusText: (status: Formation['status']) => string;
+  getLevelColor: (level: string) => string;
+  getCategoryColor: (category: string) => string;
+  getStatusColor: (status: DataStatus) => string;
+  getStatusText: (status: DataStatus) => string;
 }
 
 export function ViewFormationDialog({
@@ -39,7 +52,7 @@ export function ViewFormationDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl">
             <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              {formation.title}
+              {formation.title || 'Détails de la formation'}
             </span>
           </DialogTitle>
         </DialogHeader>
@@ -47,17 +60,17 @@ export function ViewFormationDialog({
         <div className="space-y-6">
           <div className="space-y-2">
             <Label className="text-sm font-medium text-muted-foreground">Description</Label>
-            <p className="text-sm">{formation.description}</p>
+            <p className="text-sm">{formation.content || formation.summary || ''}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Prix</Label>
-              <p className="text-lg font-semibold">{formation.price.toLocaleString('fr-FR')} €</p>
+              <p className="text-lg font-semibold">{((formation.metadata as FormationMetadata)?.price || 0).toLocaleString('fr-FR')} €</p>
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Durée</Label>
-              <p className="text-lg font-semibold">{formation.duration}</p>
+              <p className="text-lg font-semibold">{(formation.metadata as FormationMetadata)?.duration || 'Non spécifié'}</p>
             </div>
           </div>
 
@@ -65,16 +78,16 @@ export function ViewFormationDialog({
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Niveau</Label>
               <div>
-                <Badge variant="outline" className={getLevelColor(formation.level)}>
-                  {formation.level}
+                <Badge variant="outline" className={getLevelColor((formation.metadata as FormationMetadata)?.level || 'Beginner')}>
+                  {(formation.metadata as FormationMetadata)?.level || 'Beginner'}
                 </Badge>
               </div>
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Catégorie</Label>
               <div>
-                <Badge variant="outline" className={getCategoryColor(formation.category)}>
-                  {formation.category}
+                <Badge variant="outline" className={getCategoryColor((formation.metadata as FormationMetadata)?.category || 'Development')}>
+                  {(formation.metadata as FormationMetadata)?.category || 'Development'}
                 </Badge>
               </div>
             </div>
@@ -83,31 +96,31 @@ export function ViewFormationDialog({
           <div className="space-y-2">
             <Label className="text-sm font-medium text-muted-foreground">Statut</Label>
             <div>
-              <Badge variant="outline" className={getStatusColor(formation.status)}>
-                {getStatusText(formation.status)}
+              <Badge variant="outline" className={getStatusColor(formation.status as DataStatus)}>
+                {getStatusText(formation.status as DataStatus)}
               </Badge>
             </div>
           </div>
 
           <div className="space-y-2">
             <Label className="text-sm font-medium text-muted-foreground">Formateur</Label>
-            <p className="text-sm font-semibold">{formation.instructor}</p>
+            <p className="text-sm font-semibold">{(formation.metadata as FormationMetadata)?.instructor || 'Non spécifié'}</p>
           </div>
 
-          {formation.nextSession && (
+          {(formation.metadata as FormationMetadata)?.nextSession && (
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Prochaine Session</Label>
               <p className="text-sm font-semibold">
-                {new Date(formation.nextSession).toLocaleDateString('fr-FR')}
+                {new Date((formation.metadata as FormationMetadata)?.nextSession).toLocaleDateString('fr-FR')}
               </p>
             </div>
           )}
 
-          {formation.prerequisites && formation.prerequisites.length > 0 && (
+          {(formation.metadata as FormationMetadata)?.prerequisites && (formation.metadata as FormationMetadata).prerequisites.length > 0 && (
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Prérequis</Label>
               <ul className="space-y-2">
-                {formation.prerequisites.map((prerequisite, index) => (
+                {(formation.metadata as FormationMetadata).prerequisites.map((prerequisite: string, index: number) => (
                   <li key={index} className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-green-500" />
                     <span className="text-sm">{prerequisite}</span>
@@ -117,11 +130,11 @@ export function ViewFormationDialog({
             </div>
           )}
 
-          {formation.objectives && formation.objectives.length > 0 && (
+          {(formation.metadata as FormationMetadata)?.objectives && (formation.metadata as FormationMetadata).objectives.length > 0 && (
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Objectifs</Label>
               <ul className="space-y-2">
-                {formation.objectives.map((objective, index) => (
+                {(formation.metadata as FormationMetadata).objectives.map((objective: string, index: number) => (
                   <li key={index} className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-green-500" />
                     <span className="text-sm">{objective}</span>
@@ -142,13 +155,16 @@ export function ViewFormationDialog({
           >
             Fermer
           </Button>
-          <Button
-            variant="default"
-            className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:opacity-90"
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Voir le PDF
-          </Button>
+          {(formation.metadata as FormationMetadata)?.pdfUrl && (
+            <Button
+              variant="default"
+              className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:opacity-90"
+              onClick={() => window.open((formation.metadata as FormationMetadata)?.pdfUrl, '_blank')}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Voir le PDF
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

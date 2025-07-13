@@ -22,7 +22,7 @@ export interface Product {
   stock_quantity?: number;
   
   // Common metadata
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   tags?: string[];
   
   // Audit fields

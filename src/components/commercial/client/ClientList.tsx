@@ -8,7 +8,6 @@ import { Plus, Search, Loader2 } from 'lucide-react';
 import { ClientTable } from './ClientTable';
 import { ClientForm } from './ClientForm';
 import { ClientModal } from './ClientModal';
-import { Client } from '@/types/commercial';
 import { Contact } from '@/types/contact';
 import useRealtimeContacts from '@/hooks/useRealtimeContacts';
 import { contactService } from '@/services/contactService';

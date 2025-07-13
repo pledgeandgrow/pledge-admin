@@ -1,5 +1,5 @@
 // Data types based on the database schema
-export type DataType = 'statistics' | 'information' | 'documentation' | 'news' | 'update' | 'content' | 'post';
+export type DataType = 'statistics' | 'information' | 'documentation' | 'news' | 'update' | 'content' | 'post' | 'formation';
 export type DataStatus = 'draft' | 'published' | 'archived';
 export type VisibilityLevel = 'public' | 'private' | 'restricted';
 
@@ -30,7 +30,7 @@ export interface Data {
   media_urls?: string[];
   
   // Type-specific fields
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   
   // Access control
   is_public?: boolean;

@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,21 +56,42 @@ export const BrandAssets: FC<BrandAssetsProps> = ({ assets: initialAssets }) => 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const supabase = createClient();
-
-  const filteredAssets = assets.filter(asset => {
-    const matchesSearch = asset.name.toLowerCase().includes(search.toLowerCase());
-    const matchesFilter = filter === 'all' || asset.type === filter;
-    return matchesSearch && matchesFilter;
-  });
-
-  useEffect(() => {
-    // Only fetch from Supabase if no initial assets were provided
-    if (initialAssets?.length === 0 || initialAssets === undefined) {
-      fetchBrandAssets();
+  
+  // Helper function to determine asset type based on file extension or metadata
+  const determineAssetType = (filePath: string, metadataType?: string): 'image' | 'video' | 'document' => {
+    if (metadataType) {
+      if (['image', 'video', 'document'].includes(metadataType)) {
+        return metadataType as 'image' | 'video' | 'document';
+      }
     }
-  }, []);
+    
+    // Fallback to extension detection
+    const extension = filePath.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '')) {
+      return 'image';
+    } else if (['mp4', 'webm', 'mov', 'avi'].includes(extension || '')) {
+      return 'video';
+    } else {
+      return 'document';
+    }
+  };
+  
+  // Helper function to format dates
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Aujourd\'hui';
+    if (diffDays === 1) return 'Hier';
+    if (diffDays < 7) return `Il y a ${diffDays}j`;
+    if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)}sem`;
+    if (diffDays < 365) return `Il y a ${Math.floor(diffDays / 30)}mois`;
+    return `Il y a ${Math.floor(diffDays / 365)}ans`;
+  };
 
-  const fetchBrandAssets = async () => {
+  const fetchBrandAssets = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -109,41 +130,20 @@ export const BrandAssets: FC<BrandAssetsProps> = ({ assets: initialAssets }) => 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
-  // Helper function to determine asset type based on file extension or metadata
-  const determineAssetType = (filePath: string, metadataType?: string): 'image' | 'video' | 'document' => {
-    if (metadataType) {
-      if (['image', 'video', 'document'].includes(metadataType)) {
-        return metadataType as 'image' | 'video' | 'document';
-      }
+  const filteredAssets = assets.filter(asset => {
+    const matchesSearch = asset.name.toLowerCase().includes(search.toLowerCase());
+    const matchesFilter = filter === 'all' || asset.type === filter;
+    return matchesSearch && matchesFilter;
+  });
+
+  useEffect(() => {
+    // Only fetch from Supabase if no initial assets were provided
+    if (initialAssets?.length === 0 || initialAssets === undefined) {
+      fetchBrandAssets();
     }
-    
-    // Fallback to extension detection
-    const extension = filePath.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '')) {
-      return 'image';
-    } else if (['mp4', 'webm', 'mov', 'avi'].includes(extension || '')) {
-      return 'video';
-    } else {
-      return 'document';
-    }
-  };
-  
-  // Helper function to format dates
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Aujourd\'hui';
-    if (diffDays === 1) return 'Hier';
-    if (diffDays < 7) return `Il y a ${diffDays}j`;
-    if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)}sem`;
-    if (diffDays < 365) return `Il y a ${Math.floor(diffDays / 30)}mois`;
-    return `Il y a ${Math.floor(diffDays / 365)}ans`;
-  };
+  }, [fetchBrandAssets, initialAssets]);
 
   const handleDelete = async (id: string) => {
     try {

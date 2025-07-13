@@ -247,10 +247,10 @@ export default function PrestationTable() {
                   <TableRow key={prestation.id}>
                     <TableCell className="font-medium">{prestation.name}</TableCell>
                     <TableCell>{prestation.price ? `${prestation.price.toLocaleString('fr-FR')} €` : 'Sur devis'}</TableCell>
-                    <TableCell>{prestation.metadata?.duration || 'Non spécifié'}</TableCell>
+                    <TableCell>{prestation.metadata?.duration as string || 'Non spécifié'}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={getCategoryColor(prestation.metadata?.category || 'Development')}>
-                        {prestation.metadata?.category || 'Development'}
+                      <Badge variant="outline" className={getCategoryColor(prestation.metadata?.category as string || 'Development')}>
+                        {prestation.metadata?.category as string || 'Development'}
                       </Badge>
                     </TableCell>
                     <TableCell>

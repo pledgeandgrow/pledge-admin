@@ -239,16 +239,16 @@ export default function PackageTable() {
               {packages.map((pkg) => (
                 <TableRow key={pkg.id}>
                   <TableCell className="font-medium">{pkg.name}</TableCell>
-                  <TableCell>{(pkg.price || 0).toLocaleString('fr-FR')} €</TableCell>
-                  <TableCell>{pkg.metadata?.duration || 'Non spécifié'}</TableCell>
+                  <TableCell>{pkg.price ? `${pkg.price.toLocaleString('fr-FR')} €` : 'Sur devis'}</TableCell>
+                  <TableCell>{pkg.metadata?.duration as string || 'Non spécifié'}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={getLevelColor(pkg.metadata?.level || 'Standard')}>
-                      {pkg.metadata?.level || 'Standard'}
+                    <Badge variant="outline" className={getLevelColor(pkg.metadata?.level as string || 'Standard')}>
+                      {pkg.metadata?.level as string || 'Standard'}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={getCategoryColor(pkg.metadata?.category || 'Development')}>
-                      {pkg.metadata?.category || 'Development'}
+                    <Badge variant="outline" className={getCategoryColor(pkg.metadata?.category as string || 'Development')}>
+                      {pkg.metadata?.category as string || 'Development'}
                     </Badge>
                   </TableCell>
                   <TableCell>

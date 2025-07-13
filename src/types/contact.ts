@@ -6,11 +6,8 @@ export interface BaseContact {
   phone?: string;
   type: ContactType;
   status: string;
-  notes?: string;
-  company?: string;
-  position?: string;
   tags?: string[];
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, any>; // Using any for flexibility with metadata fields
   created_at: string;
   updated_at: string;
 }
@@ -128,19 +125,42 @@ export interface LeadContact extends BaseContact {
   company?: string;
   position?: string;
   source?: string;
-  probability?: number;
   last_contacted_at?: string;
   next_follow_up?: string;
   estimated_value?: number;
+  metadata?: {
+    is_company: boolean; // Required to distinguish between person and company
+    notes?: string; // Notes about the lead
+    address?: string;
+    website?: string;
+    country?: string;
+    contact_person?: string; // Primary contact person for company leads
+    vat_number?: string;
+    registration_number?: string;
+    industry?: string;
+  } & Record<string, any>;
 }
 
 export interface ClientContact extends BaseContact {
   type: 'client';
-  company: string;
-  position?: string;
+  company?: string; // Company name for organization clients
+  position?: string; // Position/role of the client
   first_contact_date?: string;
   last_purchase_date?: string;
   total_spent?: number;
+  last_contacted_at?: string;
+  next_follow_up?: string;
+  metadata?: {
+    is_company: boolean; // Required to distinguish between person and company
+    notes?: string; // Notes about the client
+    address?: string;
+    website?: string;
+    country?: string;
+    contact_person?: string; // Primary contact person for company clients
+    vat_number?: string;
+    registration_number?: string;
+    industry?: string;
+  } & Record<string, any>;
 }
 
 export interface InvestorContact extends BaseContact {

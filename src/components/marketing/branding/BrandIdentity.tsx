@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
 import Image from 'next/image';
@@ -27,6 +27,18 @@ import {
   FileText,
   Eye
 } from 'lucide-react';
+
+// Supabase data type for brand_settings table
+interface BrandSettingsData {
+  id: string;
+  color_scheme: ColorScheme;
+  typography: Typography;
+  logo: Logo;
+  created_at: string;
+  updated_at: string;
+  organization_id?: string;
+  metadata?: Record<string, unknown>;
+}
 
 interface ColorScheme {
   primary: string;
@@ -62,17 +74,14 @@ export const BrandIdentity: FC<BrandIdentityProps> = ({
   const [colorScheme, setColorScheme] = useState<ColorScheme>(initialColorScheme);
   const [typography, setTypography] = useState<Typography>(initialTypography);
   const [logo, setLogo] = useState<Logo>(initialLogo);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // Only keep the setter since we don't use the value directly
+  const [, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [brandSettingsId, setBrandSettingsId] = useState<string | null>(null);
   const supabase = createClient();
   
-  useEffect(() => {
-    // Fetch brand settings from Supabase
-    fetchBrandSettings();
-  }, []);
-  
-  const fetchBrandSettings = async () => {
+  // Define fetchBrandSettings with useCallback before using it in useEffect
+  const fetchBrandSettings = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -109,7 +118,12 @@ export const BrandIdentity: FC<BrandIdentityProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
+  
+  useEffect(() => {
+    // Fetch brand settings from Supabase
+    fetchBrandSettings();
+  }, [fetchBrandSettings]);
 
   const handleColorChange = (key: keyof ColorScheme, value: string) => {
     setColorScheme(prev => ({
@@ -136,11 +150,16 @@ export const BrandIdentity: FC<BrandIdentityProps> = ({
     try {
       setIsSaving(true);
       
-      const brandData = {
+      // Prepare data in the format expected by Supabase
+      const brandData: Omit<BrandSettingsData, 'id' | 'created_at'> = {
         color_scheme: colorScheme,
         typography: typography,
         logo: logo,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        metadata: {
+          last_modified_by: 'admin',
+          version: brandSettingsId ? 'update' : 'initial'
+        }
       };
       
       let result;

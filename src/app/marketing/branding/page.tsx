@@ -9,10 +9,12 @@ import { BrandAssets } from '@/components/marketing/branding/BrandAssets';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { createClient } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+// import { toast } from '@/components/ui/use-toast';
 
 // Types for brand data
-interface BrandSettings {
+// Used for type checking in the BrandIdentity component
+// Commented out as it's defined in the BrandIdentity component
+/* interface BrandSettings {
   id: string;
   color_scheme: {
     primary: string;
@@ -37,12 +39,15 @@ interface BrandSettings {
   updated_at: string;
 }
 
-interface GuidelineSection {
+// Used for type checking in the BrandGuidelines component
+// Commented out as it's defined in the BrandGuidelines component
+/* interface GuidelineSection {
   id: string;
   title: string;
   content: string;
   lastUpdated: string;
 }
+*/
 
 // Default values in case there's no data in Supabase yet
 const defaultColorScheme = {
@@ -153,7 +158,7 @@ const Page: FC = () => {
     }
 
     fetchBrandAssets();
-  }, []);
+  }, [supabase]);
 
   // Helper function to determine asset type based on file extension or metadata
   function determineAssetType(filePath: string, metadataType?: string): 'image' | 'video' | 'document' {

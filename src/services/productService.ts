@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase';
-import { Product, ProductType, ProductStatus, ProductStatistics } from '@/types/products';
+import { Product, ProductType, ProductStatistics } from '@/types/products';
 
 // Initialize Supabase client
 const supabase = createClient();
@@ -225,6 +225,23 @@ export const productService = {
       return data;
     } catch (error) {
       console.error('Error fetching packages:', error);
+      return [];
+    }
+  },
+
+  // Get other offers (products of type 'software', 'tool', 'hardware', etc.)
+  getAutresOffres: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .in('type', ['software', 'tool', 'hardware', 'membership'])
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('Error fetching autres offres:', err);
       return [];
     }
   }

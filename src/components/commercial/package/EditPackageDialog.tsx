@@ -56,10 +56,10 @@ export function EditPackageDialog({
     description: pkg?.description || '',
     price: pkg?.price || 0,
     status: pkg?.status || 'active',
-    duration: initialMetadata.duration || '',
-    features: initialMetadata.features || [],
-    category: initialMetadata.category || 'Consulting',
-    level: initialMetadata.level || 'Basic'
+    duration: initialMetadata.duration as string || '',
+    features: initialMetadata.features as string[] || [],
+    category: initialMetadata.category as string || 'Consulting',
+    level: initialMetadata.level as string || 'Basic'
   });
 
   const [newFeature, setNewFeature] = useState('');
@@ -72,7 +72,7 @@ export function EditPackageDialog({
       name: formData.name,
       description: formData.description,
       price: formData.price,
-      status: formData.status as any,
+      status: formData.status as ProductStatus,
       metadata: {
         duration: formData.duration,
         category: formData.category,

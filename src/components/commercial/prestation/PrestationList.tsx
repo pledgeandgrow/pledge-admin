@@ -11,7 +11,7 @@ import { EditPrestationDialog } from './EditPrestationDialog';
 import { useToast } from '@/components/ui/use-toast';
 import { productService } from '@/services/productService';
 
-export default function PrestationList() {
+export function PrestationList() {
   const [prestations, setPrestations] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPrestation, setSelectedPrestation] = useState<Product | null>(null);
@@ -126,7 +126,7 @@ export default function PrestationList() {
         // Add new prestation
         // Ensure required fields are present for TypeScript
         const newProductData: Product = {
-          ...productData as any,
+          ...productData as Partial<Product>,
           name: productData.name || 'Nouvelle prestation',
           type: 'service',
           status: productData.status || 'draft',

@@ -17,7 +17,7 @@ export interface Asset {
   file_path?: string;
   
   // Common metadata
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   tags?: string[];
   
   // Audit fields

@@ -11,7 +11,7 @@ import { InternalProjectForm } from '@/components/informatique/projets-interne/I
 import { InternalProjectStatistics } from '@/components/informatique/projets-interne/InternalProjectStatistics';
 import { InternalProjectStatisticsType, InternalProjectType } from '@/components/informatique/projets-interne/types';
 import { useToast } from '@/components/ui/use-toast';
-import { projectService, BaseProject, ProjectStatus } from '@/services/projectService';
+import { projectService, BaseProject } from '@/services/projectService';
 
 const ProjetsInternesPage = () => {
   const [projects, setProjects] = useState<InternalProjectType[]>([]);
@@ -143,10 +143,11 @@ const ProjetsInternesPage = () => {
     }
   };
   
-  // Handle deleting a project
-  const handleDeleteProject = async (projectId: string) => {
+  // Function to delete a project - commented out until needed
+  /*
+  const handleDeleteProject = async (id: string) => {
     try {
-      await projectService.deleteProject(projectId);
+      await projectService.deleteProject(id);
       
       // Refresh projects list
       fetchProjects();
@@ -164,6 +165,7 @@ const ProjetsInternesPage = () => {
       });
     }
   };
+  */
   
   // Open dialog for editing a project
   const handleEditProject = (project: InternalProjectType) => {

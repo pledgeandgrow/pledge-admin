@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase';
-import { Data, DataType, DataStatus, DataStatistics } from '@/types/data';
+import { Data, DataType, DataStatistics } from '@/types/data';
 
 // Initialize Supabase client
 const supabase = createClient();

@@ -1,7 +1,7 @@
 // src/components/commercial/client/ClientTable.tsx
 'use client';
 
-import { Client } from '@/types/commercial';
+import { Contact } from '@/types/contact';
 import { Button } from '@/components/ui/button';
 import {
   Table,

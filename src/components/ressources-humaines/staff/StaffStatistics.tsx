@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { createClient } from '@/lib/supabase';
 import { 
   Card, 
   CardContent, 
@@ -37,50 +36,21 @@ import {
   BarChart as BarChartIcon,
   Loader2
 } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
 
-const StaffStatistics: React.FC = () => {
-  const [employes, setEmployes] = useState<Employee[]>([]);
-  const [departements, setDepartements] = useState<Departement[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
-  const supabase = createClient();
 
+interface StaffStatisticsProps {
+  employes: Employee[];
+  departements: Departement[];
+}
+
+const StaffStatistics: React.FC<StaffStatisticsProps> = ({ employes, departements }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  // No need to fetch data as it's now passed as props
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Fetch employees from Supabase
-        const { data: employeesData, error: employeesError } = await supabase
-          .from('employees')
-          .select('*');
-        
-        if (employeesError) throw employeesError;
-        
-        // Fetch departments from Supabase
-        const { data: departmentsData, error: departmentsError } = await supabase
-          .from('departments')
-          .select('*');
-        
-        if (departmentsError) throw departmentsError;
-        
-        setEmployes(employeesData || []);
-        setDepartements(departmentsData || []);
-      } catch (error) {
-        console.error('Error fetching staff data:', error);
-        toast({
-          title: 'Erreur',
-          description: 'Impossible de charger les données du personnel',
-          variant: 'destructive'
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [supabase, toast]);
+    // Initialize any data processing or calculations here if needed
+    setIsLoading(false);
+  }, []);
 
   // Calculate statistics
   const totalEmployees = employes.length;

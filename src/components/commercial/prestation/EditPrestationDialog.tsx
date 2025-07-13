@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -62,9 +62,9 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
       type: 'service',
       status: prestation?.status || 'active',
       metadata: {
-        duration: prestation?.metadata?.duration || '',
-        category: prestation?.metadata?.category || 'Site Web',
-        features: prestation?.metadata?.features || [],
+        duration: prestation?.metadata?.duration as string || '',
+        category: prestation?.metadata?.category as string || 'Site Web',
+        features: prestation?.metadata?.features as string[] || [],
       },
     },
   });
@@ -79,9 +79,9 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
         type: 'service',
         status: prestation.status,
         metadata: {
-          duration: prestation.metadata?.duration || '',
-          category: prestation.metadata?.category || '',
-          features: prestation.metadata?.features || [],
+          duration: prestation.metadata?.duration as string || '',
+          category: prestation.metadata?.category as string || '',
+          features: prestation.metadata?.features as string[] || [],
         },
       });
     }
@@ -90,7 +90,7 @@ export function EditPrestationDialog({ open, onOpenChange, prestation, onSave, o
   // priceMin watch removed as it's unused
 
   // Handle form submission
-  const onSubmit = (values: FormValues) => {
+  const onSubmit: SubmitHandler<FormValues> = (values) => {
     // Convert form values to Product type
     const prestationData: Partial<Product> = {
       ...values,

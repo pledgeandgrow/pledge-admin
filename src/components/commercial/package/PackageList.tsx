@@ -13,17 +13,17 @@ import { useToast } from '@/components/ui/use-toast';
 import { productService } from '@/services/productService';
 
 // Helper function to get status display text
-const getStatusText = (status: string): string => {
+const getStatusText = (status: ProductStatus): string => {
   const statusMap: Record<string, string> = {
     'active': 'Disponible',
     'draft': 'Brouillon',
     'discontinued': 'Limité',
     'archived': 'Archivé'
   };
-  return statusMap[status as ProductStatus] || 'Disponible';
+  return statusMap[status] || 'Disponible';
 };
 
-export default function PackageList() {
+export function PackageList() {
   const [packages, setPackages] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPackage, setSelectedPackage] = useState<Product | null>(null);
@@ -201,12 +201,12 @@ export default function PackageList() {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle>{pkg.name}</CardTitle>
-                  <Badge variant="outline" className={getLevelColor(pkg.metadata?.level || 'Standard')}>
-                    {pkg.metadata?.level || 'Standard'}
+                  <Badge variant="outline" className={getLevelColor(pkg.metadata?.level as string || 'Standard')}>
+                    {pkg.metadata?.level as string || 'Standard'}
                   </Badge>
                 </div>
-                <Badge variant="outline" className={getCategoryColor(pkg.metadata?.category || 'Development')}>
-                  {pkg.metadata?.category || 'Development'}
+                <Badge variant="outline" className={getCategoryColor(pkg.metadata?.category as string || 'Development')}>
+                  {pkg.metadata?.category as string || 'Development'}
                 </Badge>
                 <CardDescription className="mt-2 line-clamp-2">
                   {pkg.description}
@@ -216,33 +216,39 @@ export default function PackageList() {
                 <div className="text-sm space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Prix</span>
-                    <span className="font-medium">{pkg.price || 0} €</span>
+                    <span className="font-medium">{pkg.price ? `${pkg.price.toLocaleString('fr-FR')} €` : 'Sur devis'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Durée</span>
-                    <span className="font-medium">{pkg.metadata?.duration || 'Non spécifié'}</span>
+                    <span className="font-medium">{pkg.metadata?.duration as string || 'Non spécifié'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Statut</span>
-                    <Badge className={getStatusColor(pkg.status as ProductStatus)}>
-                      {getStatusText(pkg.status as ProductStatus)}
+                    <Badge className={getStatusColor(pkg.status)}>
+                      {getStatusText(pkg.status)}
                     </Badge>
                   </div>
-                  {pkg.metadata?.features && pkg.metadata.features.length > 0 && (
-                    <div className="pt-2">
-                      <span className="text-muted-foreground block mb-1">Fonctionnalités</span>
-                      <ul className="list-disc pl-4 space-y-1">
-                        {pkg.metadata.features.slice(0, 3).map((feature: string, index: number) => (
-                          <li key={index} className="text-xs">{feature}</li>
-                        ))}
-                        {pkg.metadata.features.length > 3 && (
-                          <li className="text-xs text-muted-foreground">
-                            +{pkg.metadata.features.length - 3} autres...
-                          </li>
-                        )}
-                      </ul>
-                    </div>
-                  )}
+                  {(() => {
+                    // Ensure features is always an array
+                    const features = pkg.metadata?.features;
+                    const featuresArray = Array.isArray(features) ? features : [];
+                    
+                    return featuresArray.length > 0 ? (
+                      <div className="pt-2">
+                        <span className="text-muted-foreground block mb-1">Fonctionnalités</span>
+                        <ul className="list-disc pl-4 space-y-1">
+                          {featuresArray.slice(0, 3).map((feature: string, index: number) => (
+                            <li key={index} className="text-xs">{feature}</li>
+                          ))}
+                          {featuresArray.length > 3 && (
+                            <li className="text-xs text-muted-foreground">
+                              +{featuresArray.length - 3} autres...
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between pt-2">

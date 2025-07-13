@@ -37,11 +37,11 @@ export function ViewPackageDialog({
 }: ViewPackageDialogProps) {
   // Extract metadata fields with safe defaults
   const metadata = pkg.metadata || {};
-  const level = metadata.level || 'Standard';
-  const category = metadata.category || 'Development';
+  const level = metadata.level as string || 'Standard';
+  const category = metadata.category as string || 'Development';
   // Ensure features is always an array
   const features = Array.isArray(metadata.features) ? metadata.features : [];
-  const duration = metadata.duration || 'Non spécifié';
+  const duration = metadata.duration as string || 'Non spécifié';
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

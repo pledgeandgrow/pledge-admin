@@ -64,15 +64,15 @@ export function ViewPrestationDialog({
             <div>
               <Label className="text-sm font-medium">Durée</Label>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {prestation.metadata?.duration || 'Non spécifié'}
+                {prestation.metadata?.duration as string || 'Non spécifié'}
               </p>
             </div>
 
             <div>
               <Label className="text-sm font-medium">Catégorie</Label>
               <div className="mt-1">
-                <Badge variant="outline" className={getCategoryColor(prestation.metadata?.category || 'Development')}>
-                  {prestation.metadata?.category || 'Development'}
+                <Badge variant="outline" className={getCategoryColor(prestation.metadata?.category as string || 'Development')}>
+                  {prestation.metadata?.category as string || 'Development'}
                 </Badge>
               </div>
             </div>

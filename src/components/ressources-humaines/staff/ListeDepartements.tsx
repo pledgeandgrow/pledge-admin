@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
 import { 
@@ -27,19 +27,38 @@ import {
   PlusCircle
 } from 'lucide-react';
 
+// Supabase data type for departments table
+interface DepartmentData {
+  id: string;
+  name: string;
+  manager_name: string;
+  training_budget: number;
+  active_projects: number;
+  created_at: string;
+  updated_at: string;
+  organization_id?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// Frontend representation type
 export interface Departement {
   nom: string;
   effectif: number;
   responsable: string;
   budgetFormation: number;
   projetsEnCours: number;
+  id?: string; // Optional ID field for database operations
+  metadata?: Record<string, unknown>; // Additional metadata
 }
 
-interface ListeDepartementsProps {}
+// Using type instead of empty interface
+type ListeDepartementsProps = Record<string, never>;
 
 const ListeDepartements: React.FC<ListeDepartementsProps> = () => {
   const [departements, setDepartements] = useState<Departement[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Only keep the setter since we don't use the value directly
+  const [, setIsLoading] = useState(true);
+  // isLoading is used to track data loading state
   const supabase = createClient();
   
   // Calculate total employees across all departments
@@ -60,43 +79,48 @@ const ListeDepartements: React.FC<ListeDepartementsProps> = () => {
     projetsEnCours: 0
   });
   
-  useEffect(() => {
-    fetchDepartements();
-  }, []);
-  
-  const fetchDepartements = async () => {
+  // Define fetchDepartements with useCallback before using it in useEffect
+  const fetchDepartements = useCallback(async () => {
     try {
       setIsLoading(true);
       
-      // First, get all contacts with type 'member' to count department members
-      const { data: contacts, error: contactsError } = await supabase
+      // First, check if we can connect to contacts table
+      const { error: contactsError } = await supabase
         .from('contacts')
-        .select('*')
-        .eq('type', 'member');
+        .select('count', { count: 'exact', head: true });
       
       if (contactsError) throw contactsError;
       
       // Then, get all departments from the departments table
-      const { data: deptData, error: deptError } = await supabase
+      const { data, error } = await supabase
         .from('departments')
-        .select('*');
+        .select('*')
+        .order('name', { ascending: true });
       
-      if (deptError) throw deptError;
+      if (error) throw error;
       
-      // Map the data to our Departement interface
-      const mappedDepartments = deptData.map(dept => {
-        // Count employees in this department
-        const deptEmployees = contacts ? contacts.filter(c => c.metadata?.department === dept.name).length : 0;
-        
-        return {
-          nom: dept.name || '',
-          effectif: deptEmployees,
-          responsable: dept.manager_name || '',
-          budgetFormation: dept.training_budget || 0,
-          projetsEnCours: dept.active_projects || 0
-        };
-      });
-      
+      // Map the Supabase data to our Departement interface
+      const mappedDepartments: Departement[] = await Promise.all(
+        data.map(async (dept: DepartmentData) => {
+          // Count employees in this department
+          const { count, error: countError } = await supabase
+            .from('contacts')
+            .select('*', { count: 'exact', head: true })
+            .eq('metadata->>departement', dept.name);
+          
+          if (countError) console.error('Error counting employees:', countError);
+          
+          return {
+            id: dept.id,
+            nom: dept.name,
+            effectif: count || 0,
+            responsable: dept.manager_name,
+            budgetFormation: dept.training_budget,
+            projetsEnCours: dept.active_projects,
+            metadata: dept.metadata
+          };
+        })
+      );
       setDepartements(mappedDepartments);
     } catch (err) {
       console.error('Error fetching departments:', err);
@@ -108,7 +132,11 @@ const ListeDepartements: React.FC<ListeDepartementsProps> = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
+  
+  useEffect(() => {
+    fetchDepartements();
+  }, [fetchDepartements]);
   
   const handleAddDepartement = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,7 +150,13 @@ const ListeDepartements: React.FC<ListeDepartementsProps> = () => {
             name: newDepartement.nom,
             manager_name: newDepartement.responsable,
             training_budget: newDepartement.budgetFormation,
-            active_projects: newDepartement.projetsEnCours
+            active_projects: newDepartement.projetsEnCours,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            metadata: {
+              created_by: 'admin',
+              status: 'active'
+            }
           }
         ])
         .select();

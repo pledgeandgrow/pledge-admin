@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Client } from '@/types/commercial';
+import { ClientContact } from '@/types/contact';
 import { useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -12,68 +12,160 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { contactService } from '@/services/contactService';
 
+// Form data interface to handle client form fields
+interface ClientFormData {
+  // Base contact fields
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  status: string;
+  type: 'client';
+  
+  // UI-only fields for form handling
+  fullName?: string; // For individual clients
+  
+  // Metadata fields
+  metadata: {
+    is_company: boolean;
+    address?: string;
+    website?: string;
+    country?: string;
+    company_name?: string;
+    contact_person?: string;
+    vat_number?: string;
+    registration_number?: string;
+    notes?: string;
+    industry?: string;
+  };
+}
+
 interface ClientFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  client?: Client | null;
+  client?: ClientContact | null;
   onSuccess?: () => void;
 }
 
 export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientFormProps) {
-  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<Client>({
-    defaultValues: client || {
-      is_company: false,
-      name: '',
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<ClientFormData>({
+    defaultValues: client ? {
+      // Base fields
+      first_name: client.first_name || '',
+      last_name: client.last_name || '',
+      email: client.email || '',
+      phone: client.phone || '',
+      status: client.status || 'Active',
+      type: 'client',
+      
+      // UI fields
+      fullName: client.metadata?.is_company ? '' : `${client.first_name} ${client.last_name}`.trim(),
+      
+      // Metadata fields
+      metadata: {
+        is_company: client.metadata?.is_company || false,
+        address: client.metadata?.address || '',
+        website: client.metadata?.website || '',
+        country: client.metadata?.country || '',
+        company_name: client.metadata?.company_name || '',
+        contact_person: client.metadata?.contact_person || '',
+        vat_number: client.metadata?.vat_number || '',
+        registration_number: client.metadata?.registration_number || '',
+        notes: client.metadata?.notes || '',
+        industry: client.metadata?.industry || ''
+      }
+    } : {
+      // Default values for new client
+      first_name: '',
+      last_name: '',
       email: '',
       phone: '',
-      country: '',
-      company_name: '',
-      contact_person: '',
-      vat_number: '',
-      registration_number: '',
-      website: '',
-      address: '',
       status: 'Active',
-    },
-  });
-
-  const isCompany = watch('is_company');
-
-  useEffect(() => {
-    if (client) {
-      reset(client);
-    } else {
-      reset({
+      type: 'client',
+      fullName: '',
+      metadata: {
         is_company: false,
-        name: '',
-        email: '',
-        phone: '',
+        address: '',
+        website: '',
         country: '',
         company_name: '',
         contact_person: '',
         vat_number: '',
         registration_number: '',
-        website: '',
-        address: '',
+        notes: '',
+        industry: ''
+      }
+    },
+  });
+
+  const isCompany = watch('metadata.is_company');
+
+  useEffect(() => {
+    if (client) {
+      reset({
+        first_name: client.first_name || '',
+        last_name: client.last_name || '',
+        email: client.email || '',
+        phone: client.phone || '',
+        status: client.status || 'Active',
+        type: 'client',
+        fullName: client.metadata?.is_company ? '' : `${client.first_name} ${client.last_name}`.trim(),
+        metadata: {
+          is_company: client.metadata?.is_company || false,
+          address: client.metadata?.address || '',
+          website: client.metadata?.website || '',
+          country: client.metadata?.country || '',
+          company_name: client.metadata?.company_name || '',
+          contact_person: client.metadata?.contact_person || '',
+          vat_number: client.metadata?.vat_number || '',
+          registration_number: client.metadata?.registration_number || '',
+          notes: client.metadata?.notes || '',
+          industry: client.metadata?.industry || ''
+        }
+      });
+    } else {
+      reset({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone: '',
         status: 'Active',
+        type: 'client',
+        fullName: '',
+        metadata: {
+          is_company: false,
+          address: '',
+          website: '',
+          country: '',
+          company_name: '',
+          contact_person: '',
+          vat_number: '',
+          registration_number: '',
+          notes: '',
+          industry: ''
+        }
       });
     }
   }, [client, open, reset]);
 
-  const onSubmit = async (formData: Client) => {
+  const onSubmit = async (formData: ClientFormData) => {
     try {
-      // Split name into first_name and last_name if not a company
       let firstName = '';
       let lastName = '';
       
-      if (!formData.is_company && formData.name) {
-        const nameParts = formData.name.trim().split(' ');
+      if (!formData.metadata.is_company && formData.fullName) {
+        // Split fullName into first_name and last_name for individuals
+        const nameParts = formData.fullName.trim().split(' ');
         firstName = nameParts[0] || '';
         lastName = nameParts.slice(1).join(' ') || '';
+      } else if (formData.metadata.is_company) {
+        // For companies, use contact person as first_name and company name as last_name
+        firstName = formData.metadata.contact_person || '';
+        lastName = formData.metadata.company_name || '';
       } else {
-        // For companies, use company name as last_name and contact person as first_name
-        firstName = formData.contact_person || '';
-        lastName = formData.company_name || formData.name || '';
+        // Use existing first_name and last_name if available
+        firstName = formData.first_name || '';
+        lastName = formData.last_name || '';
       }
 
       // Prepare the data to be saved in the format expected by contactService
@@ -84,18 +176,18 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
         phone: formData.phone || undefined,
         type: 'client' as const,
         status: formData.status || 'Active',
-        company: formData.is_company ? formData.company_name || '' : '',
         // Store all client-specific fields in metadata
         metadata: {
-          is_company: formData.is_company,
-          address: formData.address,
-          website: formData.website,
-          country: formData.country,
-          company_name: formData.company_name,
-          contact_person: formData.contact_person,
-          vat_number: formData.vat_number,
-          registration_number: formData.registration_number,
-          notes: formData.notes
+          is_company: formData.metadata.is_company,
+          address: formData.metadata.address,
+          website: formData.metadata.website,
+          country: formData.metadata.country,
+          company_name: formData.metadata.company_name,
+          contact_person: formData.metadata.contact_person,
+          vat_number: formData.metadata.vat_number,
+          registration_number: formData.metadata.registration_number,
+          notes: formData.metadata.notes,
+          industry: formData.metadata.industry
         }
       };
 
