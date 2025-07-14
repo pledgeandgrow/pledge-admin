@@ -404,7 +404,12 @@ export function ContactForm({
           };
         } else {
           // Ensure all job_description fields exist
-          const jobDesc = dataToSubmit.metadata.job_description;
+          // Use type assertion to ensure TypeScript knows the structure
+          const jobDesc = dataToSubmit.metadata.job_description as {
+            summary?: string;
+            roles?: unknown[];
+            missions?: unknown[];
+          };
           if (!jobDesc.summary) jobDesc.summary = '';
           if (!jobDesc.roles) jobDesc.roles = [];
           if (!jobDesc.missions) jobDesc.missions = [];

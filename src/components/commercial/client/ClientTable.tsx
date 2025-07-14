@@ -1,7 +1,5 @@
 // src/components/commercial/client/ClientTable.tsx
 'use client';
-
-import { Contact } from '@/types/contact';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -15,6 +13,27 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+
+// Define Client interface for the table component
+interface Client {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  status: string;
+  address?: string;
+  website?: string;
+  industry?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+  is_company: boolean;
+  company_name?: string;
+  contact_person?: string;
+  vat_number?: string;
+  registration_number?: string;
+  country?: string;
+}
 
 interface ClientTableProps {
   clients: Client[];

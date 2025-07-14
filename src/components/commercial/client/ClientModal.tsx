@@ -4,14 +4,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Contact } from '@/types/contact';
+import { ClientContact } from '@/types/contact';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Edit, Mail, Phone, Globe, MapPin, Building2, User, FileText, Hash, Calendar } from 'lucide-react';
+import { Edit, Mail, Phone, Globe, MapPin, Building2, User, FileText, Hash, Calendar, Briefcase } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 interface ClientModalProps {
-  client: Client | null;
+  client: ClientContact | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit: () => void;
@@ -72,19 +72,19 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
           <div className="flex justify-between items-start">
             <div>
               <DialogTitle className="text-2xl flex items-center gap-2">
-                {client.is_company ? (
+                {Boolean(client.metadata?.is_company) ? (
                   <Building2 className="h-6 w-6 text-primary" />
                 ) : (
                   <User className="h-6 w-6 text-primary" />
                 )}
-                {client.is_company ? client.company_name : client.name}
+                {client.metadata?.is_company ? String(client.metadata?.company_name || '') : `${client.first_name} ${client.last_name}`}
               </DialogTitle>
               <div className="mt-1 flex items-center gap-2">
                 <Badge variant={client.status === 'Active' ? 'default' : 'secondary'}>
                   {client.status || 'Actif'}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
-                  {client.is_company ? 'Entreprise' : 'Particulier'}
+                  {Boolean(client.metadata?.is_company) ? 'Entreprise' : 'Particulier'}
                 </span>
               </div>
             </div>
@@ -107,12 +107,12 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
             <CardContent className="p-6 space-y-4">
               <h3 className="font-medium flex items-center gap-2">
                 <User className="h-5 w-5 text-primary" />
-                Informations {client.is_company ? 'de l\'entreprise' : 'personnelles'}
+                Informations {Boolean(client.metadata?.is_company) ? 'de l\'entreprise' : 'personnelles'}
               </h3>
               
               <div className="space-y-4">
-                {client.is_company && (
-                  <InfoRow icon={User} label="Contact" value={client.contact_person} />
+                {Boolean(client.metadata?.is_company) && (
+                  <InfoRow icon={User} label="Contact" value={String(client.metadata?.contact_person || '')} />
                 )}
                 <InfoRow 
                   icon={Mail} 
@@ -126,12 +126,19 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
                   value={client.phone} 
                   isCopyable={!!client.phone}
                 />
-                {client.website && (
+                {client.metadata?.website && (
                   <InfoRow 
                     icon={Globe} 
                     label="Site web" 
-                    value={client.website} 
+                    value={String(client.metadata?.website || '')} 
                     isCopyable
+                  />
+                )}
+                {client.metadata?.industry && (
+                  <InfoRow 
+                    icon={Briefcase} 
+                    label="Industrie" 
+                    value={String(client.metadata?.industry || '')} 
                   />
                 )}
               </div>
@@ -148,18 +155,18 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
                 <InfoRow 
                   icon={MapPin} 
                   label="Adresse" 
-                  value={client.address} 
+                  value={String(client.metadata?.address || '')} 
                 />
                 <InfoRow 
                   icon={MapPin} 
                   label="Pays" 
-                  value={client.country} 
+                  value={String(client.metadata?.country || '')} 
                 />
               </div>
             </CardContent>
           </Card>
 
-          {client.is_company && (
+          {Boolean(client.metadata?.is_company) && (
             <Card>
               <CardContent className="p-6 space-y-4">
                 <h3 className="font-medium flex items-center gap-2">
@@ -170,14 +177,14 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
                   <InfoRow 
                     icon={Hash} 
                     label="Numéro de TVA" 
-                    value={client.vat_number} 
-                    isCopyable={!!client.vat_number}
+                    value={String(client.metadata?.vat_number || '')} 
+                    isCopyable={Boolean(client.metadata?.vat_number)}
                   />
                   <InfoRow 
                     icon={FileText} 
                     label="Numéro d'entreprise" 
-                    value={client.registration_number} 
-                    isCopyable={!!client.registration_number}
+                    value={String(client.metadata?.registration_number || '')} 
+                    isCopyable={Boolean(client.metadata?.registration_number)}
                   />
                 </div>
               </CardContent>
@@ -191,6 +198,13 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
                 Autres informations
               </h3>
               <div className="space-y-4">
+                {client.metadata?.notes && (
+                  <InfoRow 
+                    icon={FileText} 
+                    label="Notes" 
+                    value={String(client.metadata?.notes || '')} 
+                  />
+                )}
                 <InfoRow 
                   icon={Calendar} 
                   label="Date de création" 

@@ -113,35 +113,40 @@ export function ContactTable({ contacts, contactType, onView, onEdit, onDelete }
       case 'position':
         return (
           <Badge className="bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-foreground">
-            {contact.position || 'N/A'}
+            {/* Access position from metadata if it exists, otherwise check for position property on specific contact types */}
+            {(contact as any).position || contact.metadata?.position || 'N/A'}
           </Badge>
         );
       case 'department':
         return (
           <Badge variant="outline" className="border-gray-200 dark:border-gray-700">
-            {contact.metadata?.department || 'N/A'}
+            {typeof contact.metadata?.department === 'string' ? contact.metadata.department : 'N/A'}
           </Badge>
         );
       case 'company':
         return (
           <Badge variant="outline" className="border-gray-200 dark:border-gray-700">
-            {contact.company || 'N/A'}
+            {typeof contact.metadata?.company === 'string' ? contact.metadata.company : 'N/A'}
           </Badge>
         );
       case 'email':
         return contact.email || 'N/A';
       case 'skills':
-        if (contact.type === 'freelance' && contact.metadata?.skills?.length) {
+        if (contact.type === 'freelance' && 
+            contact.metadata?.skills && 
+            Array.isArray(contact.metadata.skills) && 
+            contact.metadata.skills.length > 0) {
+          const skills = contact.metadata.skills as string[];
           return (
             <div className="flex flex-wrap gap-1">
-              {contact.metadata.skills.slice(0, 3).map((skill: string, idx: number) => (
+              {skills.slice(0, 3).map((skill: string, idx: number) => (
                 <Badge key={idx} variant="secondary" className="text-xs">
                   {skill}
                 </Badge>
               ))}
-              {contact.metadata.skills.length > 3 && (
-                <Badge variant="secondary" className="text-xs">
-                  +{contact.metadata.skills.length - 3}
+              {skills.length > 3 && (
+                <Badge variant="outline" className="text-xs">
+                  +{skills.length - 3} more
                 </Badge>
               )}
             </div>
@@ -149,21 +154,29 @@ export function ContactTable({ contacts, contactType, onView, onEdit, onDelete }
         }
         return 'N/A';
       case 'partnership_type':
-        return contact.metadata?.partnership_type || 'N/A';
+        return typeof contact.metadata?.partnership_type === 'string' ? contact.metadata.partnership_type : 'N/A';
       case 'joined_at':
         // For member contacts, use metadata.join_date
         if (contact.type === 'member' && contact.metadata?.join_date) {
-          return new Date(contact.metadata.join_date).toLocaleDateString();
+          const joinDate = contact.metadata.join_date;
+          if (typeof joinDate === 'string' || typeof joinDate === 'number') {
+            return new Date(joinDate).toLocaleDateString();
+          }
         }
         // For board members and waitlist contacts, use joined_at
         else if ((contact.type === 'board-member' || contact.type === 'waitlist') && (contact as any).joined_at) {
-          return new Date((contact as any).joined_at).toLocaleDateString();
+          const joinedAt = (contact as any).joined_at;
+          if (typeof joinedAt === 'string' || typeof joinedAt === 'number') {
+            return new Date(joinedAt).toLocaleDateString();
+          }
         }
         return 'N/A';
       case 'connection':
         if (contact.type === 'network' && contact.metadata?.connection_strength) {
           const strength = contact.metadata.connection_strength;
-          return '⭐'.repeat(strength);
+          if (typeof strength === 'number') {
+            return '⭐'.repeat(strength);
+          }
         }
         return 'N/A';
       case 'investment_stage':

@@ -192,26 +192,26 @@ export function DepenseFilters({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem
-                className={sortBy === "date" ? "bg-accent" : ""}
-                onClick={() => setSortBy("date")}
+                className={sortBy === "metadata.date" ? "bg-accent" : ""}
+                onClick={() => setSortBy("metadata.date")}
               >
                 Date
               </DropdownMenuItem>
               <DropdownMenuItem
-                className={sortBy === "montant" ? "bg-accent" : ""}
-                onClick={() => setSortBy("montant")}
+                className={sortBy === "metadata.montant" ? "bg-accent" : ""}
+                onClick={() => setSortBy("metadata.montant")}
               >
                 Montant
               </DropdownMenuItem>
               <DropdownMenuItem
-                className={sortBy === "beneficiaire" ? "bg-accent" : ""}
-                onClick={() => setSortBy("beneficiaire")}
+                className={sortBy === "metadata.beneficiaire" ? "bg-accent" : ""}
+                onClick={() => setSortBy("metadata.beneficiaire")}
               >
                 Bénéficiaire
               </DropdownMenuItem>
               <DropdownMenuItem
-                className={sortBy === "categorie" ? "bg-accent" : ""}
-                onClick={() => setSortBy("categorie")}
+                className={sortBy === "metadata.categorie" ? "bg-accent" : ""}
+                onClick={() => setSortBy("metadata.categorie")}
               >
                 Catégorie
               </DropdownMenuItem>

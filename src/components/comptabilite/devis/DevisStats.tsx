@@ -21,6 +21,14 @@ interface DevisStats {
   accepted_amount: number;
 }
 
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+  description?: string;
+  className?: string;
+}
+
 interface DevisStatsProps {
   stats: DevisStats;
 }
@@ -32,13 +40,7 @@ export function DevisStats({ stats }: DevisStatsProps) {
     icon: Icon,
     description,
     className = "",
-  }: {
-    title: string;
-    value: string | number;
-    icon: React.ElementType;
-    description?: string;
-    className?: string;
-  }) => (
+  }: StatCardProps) => (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>

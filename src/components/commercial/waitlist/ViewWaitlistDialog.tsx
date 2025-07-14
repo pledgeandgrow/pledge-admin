@@ -74,7 +74,7 @@ export function ViewWaitlistDialog({
 
           <div className="space-y-2">
             <h3 className="text-lg font-semibold">Notes</h3>
-            <p className="text-sm whitespace-pre-wrap">{entry.notes}</p>
+            <p className="text-sm whitespace-pre-wrap">{String(entry.metadata?.notes || '')}</p>
           </div>
         </div>
       </DialogContent>

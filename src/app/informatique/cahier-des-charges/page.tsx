@@ -1,29 +1,26 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { PlusCircle, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { PlusCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle, DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { v4 as uuidv4 } from 'uuid';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-interface SpecificationType {
-  id: string;
-  title: string;
-  content: string;
-  status: 'draft' | 'in_review' | 'approved' | 'archived';
-  createdAt: string;
-  updatedAt: string;
-}
+// Import document types and hooks
+import { Document, CreateDocumentParams } from "@/types/documents";
+import { useDocuments } from "@/hooks/useDocuments";
+import { SpecificationDocument } from "@/components/informatique/cahier-des-charges/SpecificationDocument";
+import { SpecificationEditor } from "@/components/informatique/cahier-des-charges/SpecificationEditor";
+import { SpecificationList } from "@/components/informatique/cahier-des-charges/SpecificationList";
+import { SpecificationMetadata } from "@/components/informatique/cahier-des-charges/types";
 
+// Stats interface for tracking document counts by status
 interface SpecificationStatisticsType {
   total: number;
   draft: number;
@@ -32,22 +29,23 @@ interface SpecificationStatisticsType {
   archived: number;
 }
 
-// Formatage de date
-const fmtDate = (iso: string) =>
-  new Date(iso).toLocaleString("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+// Format date helper
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   });
+};
 
 // Get status label
-const getStatusLabel = (status: 'draft' | 'in_review' | 'approved' | 'archived'): string => {
-  switch (status) {
+const getStatusLabel = (status: string): string => {
+  switch (status.toLowerCase()) {
     case 'draft':
       return 'Brouillon';
-    case 'in_review':
+    case 'review':
       return 'En révision';
     case 'approved':
       return 'Approuvé';
@@ -59,10 +57,20 @@ const getStatusLabel = (status: 'draft' | 'in_review' | 'approved' | 'archived')
 };
 
 export default function CahierDesChargesPage() {
-  const [specs, setSpecs] = useState<SpecificationType[]>([]);
-  const [filteredSpecs, setFilteredSpecs] = useState<SpecificationType[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  // Use the documents hook for Supabase integration
+  const { 
+    documents, 
+    loading: documentsLoading, 
+    error: documentsError,
+    fetchDocuments,
+    fetchDocumentTypes,
+    createDocument,
+    updateDocument,
+    softDeleteDocument
+  } = useDocuments();
+  
+  // Local state
+  const [documentTypeId, setDocumentTypeId] = useState<string>(""); // Store the document type ID for specifications
   const [stats, setStats] = useState<SpecificationStatisticsType>({ 
     total: 0, 
     draft: 0, 
@@ -70,38 +78,25 @@ export default function CahierDesChargesPage() {
     approved: 0, 
     archived: 0 
   });
-  const [selectedSpec, setSelectedSpec] = useState<SpecificationType | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<string>("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newContent, setNewContent] = useState("");
+  const [newStatus, setNewStatus] = useState<"Draft" | "Review" | "Approved" | "Archived">("Draft");
   
   const { toast } = useToast();
 
-  // Memoized function to update statistics
-  const updateStats = useCallback((specifications: SpecificationType[] = specs) => {
-    const newStats = {
-      total: specifications.length,
-      draft: specifications.filter(s => s.status === 'draft').length,
-      review: specifications.filter(s => s.status === 'in_review').length,
-      approved: specifications.filter(s => s.status === 'approved').length,
-      archived: specifications.filter(s => s.status === 'archived').length,
-    };
-    setStats(newStats);
-    return newStats;
-  }, [specs]);
-
-  // Load initial data
+  // Load documents and document types on component mount
   useEffect(() => {
-    const loadInitialData = () => {
-      setIsLoading(true);
+    const loadData = async () => {
       try {
-        // Load from localStorage if available
-        const savedSpecs = localStorage.getItem('cahierSpecs');
-        if (savedSpecs) {
-          const parsedSpecs = JSON.parse(savedSpecs);
-          setSpecs(parsedSpecs);
-          updateStats(parsedSpecs);
-        }
+        // Fetch document types first to get the specification document type ID
+        await fetchDocumentTypes();
+        await fetchDocuments();
       } catch (error) {
         console.error('Error loading data:', error);
         toast({
@@ -109,70 +104,119 @@ export default function CahierDesChargesPage() {
           description: "Impossible de charger les données",
           variant: "destructive"
         });
-      } finally {
-        setIsLoading(false);
       }
     };
     
-    loadInitialData();
-  }, [toast, updateStats]);
-
-  // Handle search and filter changes
+    loadData();
+  }, [fetchDocuments, fetchDocumentTypes, toast]);
+  
+  // Update statistics when documents change
   useEffect(() => {
-    let result = [...specs];
+    // Filter only specification documents
+    const specificationDocs = documents.filter(doc => {
+      const metadata = doc.metadata as unknown as SpecificationMetadata | undefined;
+      return metadata?.status !== undefined; // Simple check to identify specification documents
+    });
     
-    // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(spec => 
-        spec.title.toLowerCase().includes(query) || 
-        spec.content.toLowerCase().includes(query)
-      );
+    const newStats = {
+      total: specificationDocs.length,
+      draft: specificationDocs.filter(doc => {
+        const metadata = doc.metadata as unknown as SpecificationMetadata | undefined;
+        return metadata?.status?.toLowerCase() === 'draft';
+      }).length,
+      review: specificationDocs.filter(doc => {
+        const metadata = doc.metadata as unknown as SpecificationMetadata | undefined;
+        return metadata?.status?.toLowerCase() === 'review';
+      }).length,
+      approved: specificationDocs.filter(doc => {
+        const metadata = doc.metadata as unknown as SpecificationMetadata | undefined;
+        return metadata?.status?.toLowerCase() === 'approved';
+      }).length,
+      archived: specificationDocs.filter(doc => {
+        const metadata = doc.metadata as unknown as SpecificationMetadata | undefined;
+        return metadata?.status?.toLowerCase() === 'archived';
+      }).length,
+    };
+    
+    setStats(newStats);
+  }, [documents]);
+  
+  // Handle view document
+  const handleViewDocument = (document: Document) => {
+    setSelectedDocument(document);
+    setIsViewDialogOpen(true);
+  };
+  
+  // Handle edit document
+  const handleEditDocument = (document: Document) => {
+    const metadata = document.metadata as unknown as SpecificationMetadata | undefined;
+    
+    setSelectedDocument(document);
+    setNewTitle(document.title);
+    setNewContent(metadata?.content || "");
+    setNewStatus(metadata?.status || "Draft");
+    setIsEditDialogOpen(true);
+  };
+  
+  // Handle create document
+  const handleCreateDocument = async () => {
+    if (!documentTypeId) {
+      toast({
+        title: "Erreur",
+        description: "Type de document non disponible",
+        variant: "destructive"
+      });
+      return;
     }
     
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      result = result.filter(spec => spec.status === statusFilter);
-    }
-    
-    setFilteredSpecs(result);
-    updateStats(result);
-  }, [specs, searchQuery, statusFilter, updateStats]);
-
-  // Handle creating a new specification
-  const handleCreate = useCallback((spec: Omit<SpecificationType, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      const newSpec: SpecificationType = {
-        ...spec,
-        id: uuidv4(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      const newDoc: CreateDocumentParams = {
+        title: newTitle,
+        document_type_id: documentTypeId,
+        metadata: {
+          content: newContent,
+          status: newStatus
+        }
       };
       
-      const updatedSpecs = [...specs, newSpec];
-      setSpecs(updatedSpecs);
-      localStorage.setItem('cahierSpecs', JSON.stringify(updatedSpecs));
-      updateStats(updatedSpecs);
+      await createDocument(newDoc);
       
-      setIsCreating(false);
       toast({
         title: "Succès",
-        description: "Cahier créé avec succès"
+        description: "Cahier des charges créé avec succès",
       });
+      
+      // Reset form and close dialog
+      setNewTitle("");
+      setNewContent("");
+      setNewStatus("Draft");
+      setIsCreateDialogOpen(false);
+      
+      // Refresh documents list
+      await fetchDocuments();
     } catch (error) {
       console.error('Error creating specification:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer le cahier",
+        description: "Impossible de créer le cahier des charges",
         variant: "destructive"
       });
     }
-  }, [specs, toast, updateStats]);
-
-  // Handle updating a specification
-  const handleUpdate = useCallback((id: string, updates: Partial<SpecificationType>) => {
+  };
+  
+  // Handle update document
+  const handleUpdateDocument = async () => {
+    if (!selectedDocument) return;
+    
     try {
-      const updatedSpecs = specs.map(spec => 
+      await updateDocument({
+        id: selectedDocument.id,
+        title: newTitle,
+        metadata: {
+          ...selectedDocument.metadata,
+          content: newContent,
+          status: newStatus
+        }
         spec.id === id 
           ? { ...spec, ...updates, updatedAt: new Date().toISOString() }
           : spec

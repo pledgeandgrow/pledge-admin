@@ -7,7 +7,7 @@ export interface BaseContact {
   type: ContactType;
   status: string;
   tags?: string[];
-  metadata?: Record<string, any>; // Using any for flexibility with metadata fields
+  metadata?: Record<string, string | number | boolean | null | Record<string, unknown> | Array<unknown>>; // Using more specific types for metadata fields
   created_at: string;
   updated_at: string;
 }
@@ -138,7 +138,7 @@ export interface LeadContact extends BaseContact {
     vat_number?: string;
     registration_number?: string;
     industry?: string;
-  } & Record<string, any>;
+  } & Record<string, string | number | boolean | null | Record<string, unknown> | Array<unknown>>;
 }
 
 export interface ClientContact extends BaseContact {
@@ -160,7 +160,7 @@ export interface ClientContact extends BaseContact {
     vat_number?: string;
     registration_number?: string;
     industry?: string;
-  } & Record<string, any>;
+  } & Record<string, string | number | boolean | null | Record<string, unknown> | Array<unknown>>;
 }
 
 export interface InvestorContact extends BaseContact {

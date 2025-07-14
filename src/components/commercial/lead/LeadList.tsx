@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Contact } from '@/types/contact';
+import { Contact, WaitlistContact } from '@/types/contact';
 import useRealtimeContacts from '@/hooks/useRealtimeContacts';
 import { LeadTable } from './LeadTable';
 import { AddLeadDialog } from './AddLeadDialog';
@@ -42,28 +42,59 @@ const contactToLead = (contact: Contact): Lead => {
   
   // Safely access metadata properties
   const metadata = contact.metadata || {};
-  const getMetadataValue = <T,>(key: string, defaultValue: T): T => {
+  
+  // Function to get string values from metadata
+  const getStringValue = (key: string, defaultValue: string = ''): string => {
     if (typeof metadata === 'object' && metadata !== null) {
-      return (metadata as Record<string, string | number | boolean | null | Record<string, unknown>>)[key] as T || defaultValue;
+      const value = (metadata as Record<string, unknown>)[key];
+      if (value === undefined || value === null) return defaultValue;
+      if (typeof value === 'object') return defaultValue;
+      return String(value);
     }
     return defaultValue;
+  };
+  
+  // Get service value safely
+  const getServiceValue = (): string => {
+    if (contact.type === 'waitlist' && (contact as WaitlistContact).service) {
+      return (contact as WaitlistContact).service;
+    }
+    return getStringValue('service');
+  };
+  
+  // Function to get number values from metadata
+  const getNumberValue = (key: string, defaultValue: number = 0): number => {
+    if (typeof metadata === 'object' && metadata !== null) {
+      const value = (metadata as Record<string, unknown>)[key];
+      return value !== undefined && value !== null ? Number(value) : defaultValue;
+    }
+    return defaultValue;
+  };
+  
+  // Function to get optional string values from metadata
+  const getOptionalStringValue = (key: string): string | undefined => {
+    if (typeof metadata === 'object' && metadata !== null) {
+      const value = (metadata as Record<string, unknown>)[key];
+      return value !== undefined && value !== null ? String(value) : undefined;
+    }
+    return undefined;
   };
   
   return {
     id: contact.id,
     name: `${contact.first_name} ${contact.last_name}`,
-    position: contact.position || '',
-    company: contact.company || '',
-    email: contact.email || '',
+    position: ('position' in contact) ? contact.position || '' : getStringValue('position'),
+    company: ('company' in contact) ? contact.company || '' : getStringValue('company'),
+    email: typeof contact.email === 'string' ? contact.email : '',
     phone: contact.phone || '',
-    commentaires: contact.notes || '',
+    commentaires: ('notes' in contact && typeof contact.notes === 'string') ? contact.notes : getStringValue('notes'),
     status: mapStatus(contact.status),
-    service: getMetadataValue<string>('service', ''),
-    source: getMetadataValue<string>('source', ''),
-    probability: getMetadataValue<number | undefined>('probability', undefined),
-    last_contacted_at: getMetadataValue<string | undefined>('last_contacted_at', undefined),
-    next_follow_up: getMetadataValue<string | undefined>('next_follow_up', undefined),
-    estimated_value: getMetadataValue<number | undefined>('estimated_value', undefined),
+    service: getServiceValue(),
+    source: getStringValue('source'),
+    probability: getNumberValue('probability'),
+    last_contacted_at: getOptionalStringValue('last_contacted_at'),
+    next_follow_up: getOptionalStringValue('next_follow_up'),
+    estimated_value: getNumberValue('estimated_value'),
     created_at: contact.created_at,
     updated_at: contact.updated_at
   };

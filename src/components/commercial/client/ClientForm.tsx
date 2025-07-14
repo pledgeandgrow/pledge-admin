@@ -63,16 +63,16 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
       
       // Metadata fields
       metadata: {
-        is_company: client.metadata?.is_company || false,
-        address: client.metadata?.address || '',
-        website: client.metadata?.website || '',
-        country: client.metadata?.country || '',
-        company_name: client.metadata?.company_name || '',
-        contact_person: client.metadata?.contact_person || '',
-        vat_number: client.metadata?.vat_number || '',
-        registration_number: client.metadata?.registration_number || '',
-        notes: client.metadata?.notes || '',
-        industry: client.metadata?.industry || ''
+        is_company: Boolean(client.metadata?.is_company) || false,
+        address: String(client.metadata?.address || ''),
+        website: String(client.metadata?.website || ''),
+        country: String(client.metadata?.country || ''),
+        company_name: String(client.metadata?.company_name || ''),
+        contact_person: String(client.metadata?.contact_person || ''),
+        vat_number: String(client.metadata?.vat_number || ''),
+        registration_number: String(client.metadata?.registration_number || ''),
+        notes: String(client.metadata?.notes || ''),
+        industry: String(client.metadata?.industry || '')
       }
     } : {
       // Default values for new client
@@ -111,16 +111,16 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
         type: 'client',
         fullName: client.metadata?.is_company ? '' : `${client.first_name} ${client.last_name}`.trim(),
         metadata: {
-          is_company: client.metadata?.is_company || false,
-          address: client.metadata?.address || '',
-          website: client.metadata?.website || '',
-          country: client.metadata?.country || '',
-          company_name: client.metadata?.company_name || '',
-          contact_person: client.metadata?.contact_person || '',
-          vat_number: client.metadata?.vat_number || '',
-          registration_number: client.metadata?.registration_number || '',
-          notes: client.metadata?.notes || '',
-          industry: client.metadata?.industry || ''
+          is_company: Boolean(client.metadata?.is_company) || false,
+          address: String(client.metadata?.address || ''),
+          website: String(client.metadata?.website || ''),
+          country: String(client.metadata?.country || ''),
+          company_name: String(client.metadata?.company_name || ''),
+          contact_person: String(client.metadata?.contact_person || ''),
+          vat_number: String(client.metadata?.vat_number || ''),
+          registration_number: String(client.metadata?.registration_number || ''),
+          notes: String(client.metadata?.notes || ''),
+          industry: String(client.metadata?.industry || '')
         }
       });
     } else {
@@ -172,22 +172,22 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
       const contactData = {
         first_name: firstName,
         last_name: lastName,
-        email: formData.email || undefined,
-        phone: formData.phone || undefined,
+        email: formData.email || '',
+        phone: formData.phone || '',
         type: 'client' as const,
         status: formData.status || 'Active',
         // Store all client-specific fields in metadata
         metadata: {
-          is_company: formData.metadata.is_company,
-          address: formData.metadata.address,
-          website: formData.metadata.website,
-          country: formData.metadata.country,
-          company_name: formData.metadata.company_name,
-          contact_person: formData.metadata.contact_person,
-          vat_number: formData.metadata.vat_number,
-          registration_number: formData.metadata.registration_number,
-          notes: formData.metadata.notes,
-          industry: formData.metadata.industry
+          is_company: Boolean(formData.metadata.is_company),
+          address: formData.metadata.address || '',
+          website: formData.metadata.website || '',
+          country: formData.metadata.country || '',
+          company_name: formData.metadata.company_name || '',
+          contact_person: formData.metadata.contact_person || '',
+          vat_number: formData.metadata.vat_number || '',
+          registration_number: formData.metadata.registration_number || '',
+          notes: formData.metadata.notes || '',
+          industry: formData.metadata.industry || ''
         }
       };
 
@@ -229,7 +229,7 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
             <Label>Entreprise</Label>
             <Switch
               checked={isCompany}
-              onCheckedChange={(checked) => setValue('is_company', checked)}
+              onCheckedChange={(checked) => setValue('metadata.is_company', checked)}
               className="bg-white data-[state=checked]:bg-primary"
             />
           </div>
@@ -238,21 +238,21 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
             <div>
               <Label>Nom de l&apos;entreprise *</Label>
               <Input 
-                {...register('company_name', { required: 'Le nom de l&apos;entreprise est requis' })}
+                {...register('metadata.company_name', { required: 'Le nom de l&apos;entreprise est requis' })}
                 placeholder="John&apos;s Company"
               />
-              {errors.company_name && (
-                <p className="text-sm text-red-500">{errors.company_name.message}</p>
+              {errors.metadata?.company_name && (
+                <p className="text-sm text-red-500">{errors.metadata.company_name.message}</p>
               )}
             </div>
           ) : (
             <div>
               <Label>Nom complet *</Label>
               <Input 
-                {...register('name', { required: 'Le nom est requis' })}
+                {...register('fullName', { required: 'Le nom est requis' })}
               />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
+              {errors.fullName && (
+                <p className="text-sm text-red-500">{errors.fullName.message}</p>
               )}
             </div>
           )}
@@ -262,18 +262,18 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
               <div>
                 <Label>Personne à contacter</Label>
                 <Input 
-                  {...register('contact_person')} 
-                  placeholder="john@example.com"
+                  {...register('metadata.contact_person')} 
+                  placeholder="John Doe"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>N° de TVA</Label>
-                  <Input {...register('vat_number')} />
+                  <Input {...register('metadata.vat_number')} />
                 </div>
                 <div>
                   <Label>N° d&apos;entreprise</Label>
-                  <Input {...register('registration_number')} />
+                  <Input {...register('metadata.registration_number')} />
                 </div>
               </div>
             </>
@@ -292,21 +292,29 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
 
           <div>
             <Label>Adresse</Label>
-            <Textarea {...register('address')} rows={2} />
+            <Textarea {...register('metadata.address')} rows={2} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Pays</Label>
-              <Input {...register('country')} />
+              <Input {...register('metadata.country')} />
             </div>
             <div>
               <Label>Site web</Label>
-              <Input type="url" {...register('website')} />
+              <Input type="url" {...register('metadata.website')} />
             </div>
           </div>
 
-          {/* Status field removed as requested */}
+          <div>
+            <Label>Notes</Label>
+            <Textarea {...register('metadata.notes')} rows={2} />
+          </div>
+
+          <div>
+            <Label>Industrie</Label>
+            <Input {...register('metadata.industry')} />
+          </div>
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button 

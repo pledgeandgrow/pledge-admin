@@ -49,7 +49,9 @@ export function EditWaitlistDialog({
       status: 'Pending',
       type: 'waitlist',
       joined_at: new Date().toISOString(),
-      notes: '',
+      metadata: {
+        notes: '' as string
+      },
     }
   );
 
@@ -157,8 +159,16 @@ export function EditWaitlistDialog({
             <div className="space-y-2">
               <Label>Notes</Label>
               <Textarea
-                value={formData.notes}
-                onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                value={String(formData.metadata?.notes || '')}
+                onChange={(e) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    metadata: {
+                      ...prev.metadata,
+                      notes: e.target.value
+                    }
+                  }));
+                }}
                 placeholder="Informations supplémentaires..."
                 className="h-32"
               />

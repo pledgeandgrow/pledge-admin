@@ -15,8 +15,8 @@ import { X } from "lucide-react";
 interface InvoiceFiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
-  statusFilter: string;
-  onStatusFilterChange: (value: string) => void;
+  invoiceStatusFilter: string;
+  onInvoiceStatusFilterChange: (value: string) => void;
   clientFilter: string;
   onClientFilterChange: (value: string) => void;
   projectFilter: string;
@@ -32,8 +32,8 @@ interface InvoiceFiltersProps {
 export function InvoiceFilters({
   search,
   onSearchChange,
-  statusFilter,
-  onStatusFilterChange,
+  invoiceStatusFilter,
+  onInvoiceStatusFilterChange,
   clientFilter,
   onClientFilterChange,
   projectFilter,
@@ -55,7 +55,7 @@ export function InvoiceFilters({
           className="flex-1"
         />
         <div className="flex gap-2 flex-wrap sm:flex-nowrap">
-          <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+          <Select value={invoiceStatusFilter} onValueChange={onInvoiceStatusFilterChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Statut" />
             </SelectTrigger>

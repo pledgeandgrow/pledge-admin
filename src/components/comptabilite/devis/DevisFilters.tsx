@@ -63,7 +63,7 @@ export function DevisFilters({
             <SelectItem value="draft">Brouillon</SelectItem>
             <SelectItem value="sent">Envoyé</SelectItem>
             <SelectItem value="accepted">Accepté</SelectItem>
-            <SelectItem value="refused">Refusé</SelectItem>
+            <SelectItem value="rejected">Refusé</SelectItem>
             <SelectItem value="expired">Expiré</SelectItem>
           </SelectContent>
         </Select>

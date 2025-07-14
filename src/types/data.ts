@@ -1,5 +1,5 @@
 // Data types based on the database schema
-export type DataType = 'statistics' | 'information' | 'documentation' | 'news' | 'update' | 'content' | 'post' | 'formation';
+export type DataType = 'statistics' | 'information' | 'documentation' | 'news' | 'update' | 'content' | 'post' | 'formation' | 'depense';
 export type DataStatus = 'draft' | 'published' | 'archived';
 export type VisibilityLevel = 'public' | 'private' | 'restricted';
 

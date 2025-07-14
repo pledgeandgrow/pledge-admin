@@ -3,16 +3,70 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BanknoteIcon,
   CheckCircle2,
-  // ClipboardList removed - unused
   Clock,
   CreditCard,
   XCircle,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
-import { DepenseStats as DepenseStatsType } from "@/types/depense";
+import { Data } from "@/types/data";
+
+export interface DepenseStatsType {
+  total_count: number;
+  total_amount: number;
+  approved_count: number;
+  approved_amount: number;
+  pending_count: number;
+  pending_amount: number;
+  refused_count: number;
+  reimbursed_count: number;
+  reimbursed_amount: number;
+}
 
 interface DepenseStatsProps {
   stats: DepenseStatsType;
+}
+
+// Helper function to calculate stats from Data array
+export function calculateDepenseStats(depenses: Data[]): DepenseStatsType {
+  const initialStats: DepenseStatsType = {
+    total_count: 0,
+    total_amount: 0,
+    approved_count: 0,
+    approved_amount: 0,
+    pending_count: 0,
+    pending_amount: 0,
+    refused_count: 0,
+    reimbursed_count: 0,
+    reimbursed_amount: 0
+  };
+  
+  return depenses.reduce((stats, depense) => {
+    const montant = depense.metadata?.montant as number || 0;
+    const statut = depense.metadata?.statut as string || 'en_attente';
+    
+    stats.total_count++;
+    stats.total_amount += montant;
+    
+    switch (statut) {
+      case 'approuve':
+        stats.approved_count++;
+        stats.approved_amount += montant;
+        break;
+      case 'en_attente':
+        stats.pending_count++;
+        stats.pending_amount += montant;
+        break;
+      case 'refuse':
+        stats.refused_count++;
+        break;
+      case 'rembourse':
+        stats.reimbursed_count++;
+        stats.reimbursed_amount += montant;
+        break;
+    }
+    
+    return stats;
+  }, initialStats);
 }
 
 export function DepenseStats({ stats }: DepenseStatsProps) {

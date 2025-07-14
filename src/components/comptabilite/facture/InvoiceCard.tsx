@@ -1,4 +1,5 @@
-import { Invoice } from "./types";
+import { Document } from '@/types/documents';
+import { InvoiceMetadata } from "./types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,11 +16,13 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";
 
 interface InvoiceCardProps {
-  invoice: Invoice;
+  document: Document;
   onClick?: () => void;
 }
 
-export function InvoiceCard({ invoice, onClick }: InvoiceCardProps) {
+export function InvoiceCard({ document, onClick }: InvoiceCardProps) {
+  // Extract invoice metadata from document
+  const metadata = document.metadata as unknown as InvoiceMetadata;
   const getStatusDetails = (status: string) => {
     switch (status) {
       case "paid":
@@ -73,10 +76,10 @@ export function InvoiceCard({ invoice, onClick }: InvoiceCardProps) {
     }
   };
 
-  const statusDetails = getStatusDetails(invoice.status);
+  const statusDetails = getStatusDetails(metadata.invoice_status || 'draft');
   const StatusIcon = statusDetails.icon;
   const daysUntilDue = Math.ceil(
-    (new Date(invoice.due_date).getTime() - new Date().getTime()) /
+    (new Date(metadata.due_date).getTime() - new Date().getTime()) /
       (1000 * 60 * 60 * 24)
   );
 
@@ -93,7 +96,7 @@ export function InvoiceCard({ invoice, onClick }: InvoiceCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Receipt className="h-5 w-5" />
-            <h3 className="font-semibold">{invoice.invoice_number}</h3>
+            <h3 className="font-semibold">{metadata.invoice_number}</h3>
           </div>
           <Badge
             variant="outline"
@@ -111,10 +114,10 @@ export function InvoiceCard({ invoice, onClick }: InvoiceCardProps) {
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary" className="flex items-center gap-1">
             <Building2 className="h-3 w-3" />
-            {invoice.client.name}
+            {metadata.client?.name || 'Client inconnu'}
           </Badge>
-          {invoice.project_name && (
-            <Badge variant="outline">{invoice.project_name}</Badge>
+          {metadata.project_name && (
+            <Badge variant="outline">{metadata.project_name}</Badge>
           )}
         </div>
       </CardHeader>
@@ -124,19 +127,19 @@ export function InvoiceCard({ invoice, onClick }: InvoiceCardProps) {
           <div>
             <p className="text-sm text-muted-foreground">Montant total</p>
             <p className="font-semibold">
-              {formatCurrency(invoice.total, invoice.currency)}
+              {formatCurrency(metadata.total || 0, metadata.currency || 'EUR')}
             </p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Date d&apos;échéance</p>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>{new Date(invoice.due_date).toLocaleDateString()}</span>
+              <span>{new Date(metadata.due_date).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
 
-        {invoice.status === "sent" && daysUntilDue <= 7 && daysUntilDue > 0 && (
+        {metadata.invoice_status === "sent" && daysUntilDue <= 7 && daysUntilDue > 0 && (
           <div className="pt-2">
             <Badge variant="outline" className="flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" />
@@ -145,9 +148,9 @@ export function InvoiceCard({ invoice, onClick }: InvoiceCardProps) {
           </div>
         )}
 
-        {invoice.items.length > 0 && (
+        {metadata.items?.length > 0 && (
           <div className="pt-2 text-sm text-muted-foreground">
-            {invoice.items.length} article{invoice.items.length > 1 ? "s" : ""}
+            {metadata.items.length} article{metadata.items.length > 1 ? "s" : ""}
           </div>
         )}
       </CardContent>

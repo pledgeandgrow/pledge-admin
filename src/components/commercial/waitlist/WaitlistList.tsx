@@ -21,7 +21,10 @@ const prepareContactData = (contact: Partial<WaitlistContact>) => {
     type: 'waitlist',
     status: contact.status || 'Pending',
     service: contact.service || '',
-    notes: contact.notes || '',
+    metadata: {
+      ...(contact.metadata || {}),
+      notes: (contact.metadata?.notes as string) || ''
+    },
     joined_at: contact.joined_at || new Date().toISOString()
   };
 };
@@ -251,7 +254,7 @@ export function WaitlistList() {
                 </div>
                 <div className="space-y-2">
                   <span className="text-sm text-muted-foreground">Notes</span>
-                  <p className="text-sm line-clamp-2">{entry.notes}</p>
+                  <p className="text-sm line-clamp-2">{String(entry.metadata?.notes || '')}</p>
                 </div>
               </div>
             </CardContent>

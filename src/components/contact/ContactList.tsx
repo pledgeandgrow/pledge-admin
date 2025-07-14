@@ -55,8 +55,21 @@ export function ContactList({ contactType, title, description }: ContactListProp
     const firstName = contact.first_name?.toLowerCase() || '';
     const lastName = contact.last_name?.toLowerCase() || '';
     const email = contact.email?.toLowerCase() || '';
-    const company = contact.company?.toLowerCase() || '';
-    const position = contact.position?.toLowerCase() || '';
+    
+    // Safely access company - it might be a direct property or in metadata
+    let company = '';
+    if ('company' in contact && typeof contact.company === 'string') {
+      company = contact.company.toLowerCase();
+    } else if (contact.metadata && typeof contact.metadata === 'object' && 
+               'company' in contact.metadata && typeof contact.metadata.company === 'string') {
+      company = contact.metadata.company.toLowerCase();
+    }
+    
+    // Safely access position - it might be a direct property or not exist
+    let position = '';
+    if ('position' in contact && typeof contact.position === 'string') {
+      position = contact.position.toLowerCase();
+    }
     // Handle department field which might be in metadata for member contacts
     const department = typeof contact.metadata === 'object' && contact.metadata !== null
       ? (contact.metadata as Record<string, unknown>).department?.toString().toLowerCase() || ''

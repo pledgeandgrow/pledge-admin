@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Depense } from "@/types/depense";
+import { Data } from "@/types/data";
+import useData from "@/hooks/useData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -27,12 +28,16 @@ import { toast } from "@/components/ui/use-toast";
 import PdfUploader from "@/components/functions/PdfUploader";
 
 interface DepenseFormProps {
-  onSubmit: (data: Depense) => Promise<void>;
+  onSubmit?: (data: Data) => void;
   onCancel: () => void;
-  initialData?: Depense;
+  depense?: Data;
+  initialData?: Data;
   projets?: { id: string; nom: string }[];
   missions?: { id: string; nom: string }[];
+  onDelete?: () => void;
 }
+
+type ExpenseStatus = 'en_attente' | 'approuve' | 'refuse' | 'rembourse';
 
 const CATEGORIES = [
   "Transport",
@@ -59,41 +64,54 @@ const MODES_PAIEMENT = [
   "Autre",
 ];
 
-const defaultDepense: Depense = {
-  date: new Date().toISOString(),
-  description: "",
-  montant: 0,
-  categorie: "",
-  mode_paiement: "",
-  beneficiaire: "",
-  statut: "en_attente",
-  notes: "",
+const defaultDepense: Data = {
+  title: "",
+  data_type: "content",
+  status: "draft",
+  metadata: {
+    date: new Date().toISOString(),
+    description: "",
+    montant: 0,
+    categorie: "",
+    mode_paiement: "",
+    beneficiaire: "",
+    statut: "en_attente",
+    notes: "",
+  }
 };
 
 export function DepenseForm({
   onSubmit,
   onCancel,
+  depense,
   initialData,
   projets = [],
   missions = [],
-}: DepenseFormProps) {
-  const [formData, setFormData] = useState<Depense>(initialData || defaultDepense);
+}: DepenseFormProps): React.ReactElement {
+  const { } = useData(); // We'll use local loading state instead
+  const [formData, setFormData] = useState<Data>(depense || initialData || defaultDepense);
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    initialData?.date ? new Date(initialData.date) : new Date()
+    formData.metadata?.date ? new Date(formData.metadata.date as string) : new Date()
   );
 
   // Update form data when date changes
   useEffect(() => {
     if (selectedDate) {
-      setFormData((prev) => ({ ...prev, date: selectedDate.toISOString() }));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: {
+          ...prev.metadata,
+          date: selectedDate.toISOString()
+        }
+      }));
     }
   }, [selectedDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.description) {
+    if (!formData.metadata?.description) {
       toast({
         title: "Erreur",
         description: "Veuillez saisir une description",
@@ -102,7 +120,7 @@ export function DepenseForm({
       return;
     }
     
-    if (formData.montant <= 0) {
+    if ((formData.metadata?.montant as number) <= 0) {
       toast({
         title: "Erreur",
         description: "Le montant doit être supérieur à 0",
@@ -111,7 +129,7 @@ export function DepenseForm({
       return;
     }
     
-    if (!formData.categorie) {
+    if (!formData.metadata?.categorie) {
       toast({
         title: "Erreur",
         description: "Veuillez sélectionner une catégorie",
@@ -120,7 +138,7 @@ export function DepenseForm({
       return;
     }
     
-    if (!formData.mode_paiement) {
+    if (!formData.metadata?.mode_paiement) {
       toast({
         title: "Erreur",
         description: "Veuillez sélectionner un mode de paiement",
@@ -129,7 +147,7 @@ export function DepenseForm({
       return;
     }
     
-    if (!formData.beneficiaire) {
+    if (!formData.metadata?.beneficiaire) {
       toast({
         title: "Erreur",
         description: "Veuillez saisir un bénéficiaire",
@@ -140,14 +158,17 @@ export function DepenseForm({
     
     try {
       setLoading(true);
-      await onSubmit(formData);
+      
+      if (onSubmit) {
+        onSubmit(formData);
+      }
+      
       setLoading(false);
     } catch (error) {
-      setLoading(false);
-      console.error("Error submitting expense:", error);
+      console.error("Error in form submission:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de l'enregistrement de la dépense",
+        description: "Une erreur est survenue lors de la soumission du formulaire.",
         variant: "destructive",
       });
     }
@@ -161,8 +182,11 @@ export function DepenseForm({
     if (projetId === "none") {
       setFormData((prev) => ({
         ...prev,
-        projet_id: undefined,
-        projet_nom: undefined,
+        metadata: {
+          ...prev.metadata,
+          projet_id: undefined,
+          projet_nom: undefined,
+        }
       }));
       return;
     }
@@ -171,8 +195,11 @@ export function DepenseForm({
     if (selectedProjet) {
       setFormData((prev) => ({
         ...prev,
-        projet_id: selectedProjet.id,
-        projet_nom: selectedProjet.nom,
+        metadata: {
+          ...prev.metadata,
+          projet_id: projetId,
+          projet_nom: selectedProjet.nom,
+        }
       }));
     }
   };
@@ -181,8 +208,11 @@ export function DepenseForm({
     if (missionId === "none") {
       setFormData((prev) => ({
         ...prev,
-        mission_id: undefined,
-        mission_nom: undefined,
+        metadata: {
+          ...prev.metadata,
+          mission_id: undefined,
+          mission_nom: undefined,
+        }
       }));
       return;
     }
@@ -191,8 +221,11 @@ export function DepenseForm({
     if (selectedMission) {
       setFormData((prev) => ({
         ...prev,
-        mission_id: selectedMission.id,
-        mission_nom: selectedMission.nom,
+        metadata: {
+          ...prev.metadata,
+          mission_id: missionId,
+          mission_nom: selectedMission.nom,
+        }
       }));
     }
   };
@@ -235,9 +268,15 @@ export function DepenseForm({
           <Label htmlFor="description">Description</Label>
           <Input
             id="description"
-            value={formData.description}
+            value={formData.metadata?.description as string || ""}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, description: e.target.value }))
+              setFormData((prev) => ({
+                ...prev,
+                metadata: {
+                  ...prev.metadata,
+                  description: e.target.value
+                }
+              }))
             }
             placeholder="Description de la dépense"
             required
@@ -251,9 +290,15 @@ export function DepenseForm({
             type="number"
             min="0.01"
             step="0.01"
-            value={formData.montant || ""}
+            value={(formData.metadata?.montant as number) || ""}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, montant: parseFloat(e.target.value) || 0 }))
+              setFormData((prev) => ({
+                ...prev,
+                metadata: {
+                  ...prev.metadata,
+                  montant: parseFloat(e.target.value) || 0
+                }
+              }))
             }
             placeholder="0.00"
             required
@@ -263,9 +308,15 @@ export function DepenseForm({
         <div>
           <Label htmlFor="categorie">Catégorie</Label>
           <Select
-            value={formData.categorie}
+            value={formData.metadata?.categorie as string || ""}
             onValueChange={(value) =>
-              setFormData((prev) => ({ ...prev, categorie: value }))
+              setFormData((prev) => ({
+                ...prev,
+                metadata: {
+                  ...prev.metadata,
+                  categorie: value
+                }
+              }))
             }
           >
             <SelectTrigger id="categorie">
@@ -284,9 +335,15 @@ export function DepenseForm({
         <div>
           <Label htmlFor="mode_paiement">Mode de paiement</Label>
           <Select
-            value={formData.mode_paiement}
+            value={formData.metadata?.mode_paiement as string || ""}
             onValueChange={(value) =>
-              setFormData((prev) => ({ ...prev, mode_paiement: value }))
+              setFormData((prev) => ({
+                ...prev,
+                metadata: {
+                  ...prev.metadata,
+                  mode_paiement: value
+                }
+              }))
             }
           >
             <SelectTrigger id="mode_paiement">
@@ -306,9 +363,15 @@ export function DepenseForm({
           <Label htmlFor="beneficiaire">Bénéficiaire</Label>
           <Input
             id="beneficiaire"
-            value={formData.beneficiaire}
+            value={formData.metadata?.beneficiaire as string || ""}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, beneficiaire: e.target.value }))
+              setFormData((prev) => ({
+                ...prev,
+                metadata: {
+                  ...prev.metadata,
+                  beneficiaire: e.target.value
+                }
+              }))
             }
             placeholder="Nom du bénéficiaire"
             required
@@ -319,7 +382,7 @@ export function DepenseForm({
           <div>
             <Label htmlFor="projet">Projet associé</Label>
             <Select
-              value={formData.projet_id || "none"}
+              value={(formData.metadata?.projet_id as string) || "none"}
               onValueChange={handleProjetChange}
             >
               <SelectTrigger id="projet">
@@ -339,7 +402,7 @@ export function DepenseForm({
           <div>
             <Label htmlFor="mission">Mission associée</Label>
             <Select
-              value={formData.mission_id || "none"}
+              value={(formData.metadata?.mission_id as string) || "none"}
               onValueChange={handleMissionChange}
             >
               <SelectTrigger id="mission">
@@ -361,11 +424,14 @@ export function DepenseForm({
           <div>
             <Label htmlFor="statut">Statut</Label>
             <Select
-              value={formData.statut}
+              value={formData.metadata?.statut as string || "en_attente"}
               onValueChange={(value) =>
                 setFormData((prev) => ({
                   ...prev,
-                  statut: value as Depense["statut"],
+                  metadata: {
+                    ...prev.metadata,
+                    statut: value as ExpenseStatus
+                  }
                 }))
               }
             >
@@ -385,16 +451,55 @@ export function DepenseForm({
         <div>
           <Label>Justificatif</Label>
           {initialData?.id ? (
-            <PdfUploader
-              documentId={initialData.id}
-              documentType="expense"
-              label="Justificatif de dépense"
-              existingPdfUrl={formData.justificatif_url || undefined}
-              existingPdfName={formData.justificatif_url ? 'Justificatif' : undefined}
-              onUploadSuccess={(url) => {
-                setFormData((prev) => ({ ...prev, justificatif_url: url }))
-              }}
-            />
+            <div>
+              {formData.metadata?.justificatif_url ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm">Justificatif actuel:</p>
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                    <a
+                      href={formData.metadata.justificatif_url as string}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline text-sm"
+                    >
+                      Voir le justificatif
+                    </a>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        metadata: {
+                          ...prev.metadata,
+                          justificatif_url: ""
+                        }
+                      }))
+                    }
+                  >
+                    Supprimer
+                  </Button>
+                </div>
+              ) : (
+                <PdfUploader
+                  documentId={initialData.id}
+                  documentType="expense"
+                  label="Justificatif de dépense"
+                  onUploadSuccess={(url: string) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      metadata: {
+                        ...prev.metadata,
+                        justificatif_url: url
+                      }
+                    }))
+                  }
+                />
+              )}
+            </div>
           ) : (
             <div className="text-sm text-muted-foreground">
               Vous pourrez ajouter un justificatif PDF après avoir créé la dépense
@@ -406,11 +511,18 @@ export function DepenseForm({
           <Label htmlFor="notes">Notes</Label>
           <Textarea
             id="notes"
-            value={formData.notes || ""}
+            value={formData.metadata?.notes as string || ""}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, notes: e.target.value }))
+              setFormData((prev) => ({
+                ...prev,
+                metadata: {
+                  ...prev.metadata,
+                  notes: e.target.value
+                }
+              }))
             }
-            placeholder="Notes supplémentaires (optionnel)"
+            placeholder="Notes supplémentaires"
+            className="min-h-[100px]"
           />
         </div>
       </div>

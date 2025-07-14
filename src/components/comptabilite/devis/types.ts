@@ -1,6 +1,7 @@
 // Types for quote documents
 
 export interface QuoteItem {
+  id: string;
   description: string;
   quantity: number;
   unit_price: number;
@@ -15,6 +16,10 @@ export interface CompanyDetails {
   country: string;
   vat_number?: string;
   registration_number?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  bank_account?: string;
   logo_url?: string;
 }
 
@@ -23,6 +28,19 @@ export interface QuoteMetadata {
   date: string;
   due_date: string;
   quote_status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired';
+  client: {
+    id: string;
+    name: string;
+    address: string;
+    postal_code: string;
+    city: string;
+    country: string;
+    email: string;
+    phone: string;
+    vat_number?: string;
+  };
+  project_id?: string;
+  project_name?: string;
   items: QuoteItem[];
   subtotal: number;
   tax_rate: number;
@@ -30,7 +48,7 @@ export interface QuoteMetadata {
   total: number;
   notes: string;
   payment_terms: string;
-  validity_period: number; // in days
+  payment_method: string;
   currency: string;
   language: 'fr' | 'en';
   company_details: CompanyDetails;

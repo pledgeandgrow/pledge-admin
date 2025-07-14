@@ -73,6 +73,18 @@ export interface InvoiceMetadata {
   currency: string;
   language: "fr" | "en";
   company_details: CompanyDetails;
+  client: {
+    id: string;
+    name: string;
+    email: string;
+    address: string;
+    postal_code: string;
+    city: string;
+    country: string;
+    vat_number?: string;
+  };
+  project_id?: string;
+  project_name?: string;
 }
 
 export interface CompanyDetails {

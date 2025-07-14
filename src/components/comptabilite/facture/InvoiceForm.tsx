@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
-import { Invoice } from "./types";
+import { Invoice, InvoiceMetadata, InvoiceItem, CompanyDetails } from "./types";
+import { Document } from "@/types/documents";
+import useDocuments from "@/hooks/useDocuments";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,27 +17,16 @@ import { formatCurrency } from "@/lib/utils/format";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
+import { v4 as uuidv4 } from 'uuid';
 // loadLogoForPDF import removed as it's unused
 
 interface InvoiceFormProps {
-  onSubmit: (data: Partial<Invoice>) => void;
+  onSubmit: (data: Partial<InvoiceMetadata>) => void;
   onCancel: () => void;
   clients: Invoice["client"][];
   projects: { id: string; name: string }[];
-  initialData?: Invoice;
-  companyDetails: {
-    name: string;
-    address: string;
-    postal_code: string;
-    city: string;
-    country: string;
-    vat_number?: string;
-    registration_number?: string;
-    phone?: string;
-    email?: string;
-    website?: string;
-    bank_account?: string;
-  };
+  initialDocument?: Document;
+  companyDetails: CompanyDetails;
 }
 
 export function InvoiceForm({
@@ -43,15 +34,20 @@ export function InvoiceForm({
   onCancel,
   clients,
   projects,
-  initialData,
+  initialDocument,
   companyDetails,
 }: InvoiceFormProps) {
-  const [formData, setFormData] = useState<Partial<Invoice>>(
-    initialData || {
+  const { createDocument, updateDocument, loading } = useDocuments();
+  
+  // Extract metadata from initialDocument if available
+  const initialMetadata = initialDocument?.metadata as InvoiceMetadata | undefined;
+  
+  const [formData, setFormData] = useState<InvoiceMetadata>(
+    initialMetadata || {
       invoice_number: "",
       date: new Date().toISOString(),
       due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      status: "draft",
+      invoice_status: "draft",
       client: {
         id: "",
         name: "",
@@ -77,7 +73,7 @@ export function InvoiceForm({
   );
 
   // Define a type that matches InvoiceItem without the id field
-  type NewInvoiceItem = Omit<Invoice['items'][0], 'id'>;
+  type NewInvoiceItem = Omit<InvoiceItem, 'id'>;
   
   const [newItem, setNewItem] = useState<NewInvoiceItem>({
     description: "",
@@ -93,7 +89,7 @@ export function InvoiceForm({
     const taxAmount = (subtotal * (formData.tax_rate || 0)) / 100;
     const total = subtotal + taxAmount;
 
-    setFormData((prev) => ({
+    setFormData((prev: InvoiceMetadata) => ({
       ...prev,
       subtotal,
       tax_amount: taxAmount,
@@ -102,18 +98,28 @@ export function InvoiceForm({
   }, [formData.items, formData.tax_rate]);
 
   const handleAddItem = useCallback(() => {
-    if (!newItem.description || newItem.quantity <= 0 || newItem.unit_price <= 0) return;
+    if (!newItem.description || newItem.quantity <= 0 || newItem.unit_price <= 0) {
+      toast({
+        title: "Champs requis",
+        description: "Veuillez remplir tous les champs obligatoires pour l'article",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const itemTotal = newItem.quantity * newItem.unit_price;
-    // Generate a temporary ID for the new item
-    const item = { 
+    // Generate a UUID for the new item
+    const item: InvoiceItem = { 
       ...newItem, 
       total: itemTotal,
-      id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}` 
+      id: uuidv4()
     };
-    setFormData((prev) => ({
+    
+    setFormData((prev: InvoiceMetadata) => ({
       ...prev,
       items: [...(prev.items || []), item],
     }));
+    
     setNewItem({ 
       description: "", 
       quantity: 1, 
@@ -124,9 +130,9 @@ export function InvoiceForm({
   }, [newItem, formData.tax_rate, setFormData]);
 
   const handleRemoveItem = useCallback((index: number) => {
-    setFormData((prev) => ({
+    setFormData((prev: InvoiceMetadata) => ({
       ...prev,
-      items: prev.items?.filter((_item, i) => i !== index),
+      items: prev.items?.filter((_, i) => i !== index) || [],
     }));
   }, [setFormData]);
 
@@ -142,13 +148,13 @@ export function InvoiceForm({
         postal_code: "",
         city: "",
         country: "",
-        vat_number: undefined,
-      },
+        vat_number: ""
+      }
     }));
   }, [clients, setFormData]);
 
   const handleProjectChange = useCallback((projectName: string) => {
-    const selectedProject = projects.find((p) => p.name === projectName);
+    const selectedProject = projects.find(p => p.name === projectName);
     setFormData((prev) => ({
       ...prev,
       project_id: selectedProject?.id,
@@ -156,10 +162,99 @@ export function InvoiceForm({
     }));
   }, [projects, setFormData]);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const validateForm = useCallback((): boolean => {
+    // Required fields validation
+    if (!formData.invoice_number) {
+      toast({
+        title: "Champ requis",
+        description: "Le numéro de facture est obligatoire",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    if (!formData.client?.name) {
+      toast({
+        title: "Champ requis",
+        description: "Veuillez sélectionner un client",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    if (formData.items.length === 0) {
+      toast({
+        title: "Articles requis",
+        description: "Veuillez ajouter au moins un article à la facture",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    return true;
+  }, [formData.invoice_number, formData.client?.name, formData.items.length]); // toast is stable and doesn't need to be in the dependency array
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-  }, [formData, onSubmit]);
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    try {
+      // Convert formData to a Supabase-compatible metadata record
+      // Use type assertion to ensure compatibility with Supabase metadata format
+      const metadataRecord = {
+        invoice_number: formData.invoice_number,
+        date: formData.date,
+        due_date: formData.due_date,
+        invoice_status: formData.invoice_status,
+        client: formData.client,
+        items: JSON.stringify(formData.items),
+        subtotal: formData.subtotal,
+        tax_rate: formData.tax_rate,
+        tax_amount: formData.tax_amount,
+        total: formData.total,
+        notes: formData.notes || '',
+        payment_terms: formData.payment_terms || '',
+        payment_method: formData.payment_method || '',
+        paid_at: formData.paid_at || '',
+        currency: formData.currency,
+        language: formData.language,
+        company_details: JSON.stringify(formData.company_details),
+        project_id: formData.project_id || '',
+        project_name: formData.project_name || ''
+      } as Record<string, string | number | boolean | string[] | Record<string, unknown> | null>;
+      
+      if (initialDocument) {
+        await updateDocument({
+          id: initialDocument.id,
+          metadata: metadataRecord,
+          title: initialDocument.title || `Facture ${formData.invoice_number}`,
+          document_type_id: initialDocument.document_type_id,
+          status: initialDocument.status || 'Active'
+        });
+        toast({ title: "Facture mise à jour", description: "La facture a été mise à jour avec succès" });
+      } else {
+        await createDocument({
+          title: `Facture ${formData.invoice_number}`,
+          document_type_id: "invoice",
+          metadata: metadataRecord,
+          status: "Active"
+        });
+        toast({ title: "Facture créée", description: "La facture a été créée avec succès" });
+      }
+      
+      onSubmit(formData);
+    } catch (error) {
+      console.error("Error saving document:", error);
+      toast({ 
+        title: "Erreur", 
+        description: "Une erreur est survenue lors de l'enregistrement de la facture", 
+        variant: "destructive" 
+      });
+    }
+  }, [formData, onSubmit, initialDocument, createDocument, updateDocument, validateForm]);
 
   const exportToPDF = useCallback(async () => {
     try {
@@ -260,7 +355,7 @@ export function InvoiceForm({
             <Input
               id="invoice_number"
               value={formData.invoice_number}
-              onChange={(e) => setFormData((prev) => ({ ...prev, invoice_number: e.target.value }))}
+              onChange={(e) => setFormData((prev: InvoiceMetadata) => ({ ...prev, invoice_number: e.target.value }))}
               required
             />
           </div>
@@ -270,7 +365,7 @@ export function InvoiceForm({
               type="date"
               id="date"
               value={formData.date ? new Date(formData.date).toISOString().split("T")[0] : ""}
-              onChange={(e) => setFormData((prev) => ({ ...prev, date: new Date(e.target.value).toISOString() }))}
+              onChange={(e) => setFormData((prev: InvoiceMetadata) => ({ ...prev, date: new Date(e.target.value).toISOString() }))}
             />
           </div>
           <div>
@@ -279,14 +374,14 @@ export function InvoiceForm({
               type="date"
               id="due_date"
               value={formData.due_date ? new Date(formData.due_date).toISOString().split("T")[0] : ""}
-              onChange={(e) => setFormData((prev) => ({ ...prev, due_date: new Date(e.target.value).toISOString() }))}
+              onChange={(e) => setFormData((prev: InvoiceMetadata) => ({ ...prev, due_date: new Date(e.target.value).toISOString() }))}
             />
           </div>
           <div>
-            <Label htmlFor="status">Statut</Label>
+            <Label htmlFor="invoice_status">Statut</Label>
             <Select
-              value={formData.status}
-              onValueChange={(value: "draft" | "sent" | "paid" | "cancelled" | "overdue") => setFormData((prev) => ({ ...prev, status: value }))}
+              value={formData.invoice_status}
+              onValueChange={(value: "draft" | "sent" | "paid" | "cancelled" | "overdue") => setFormData((prev: InvoiceMetadata) => ({ ...prev, invoice_status: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un statut" />
@@ -300,16 +395,14 @@ export function InvoiceForm({
               </SelectContent>
             </Select>
           </div>
-        </div>
-        <div className="space-y-4">
           <div>
-            <Label htmlFor="emetteur">Émetteur</Label>
+            <Label htmlFor="client">Client</Label>
             <Select
               value={formData.client?.name}
               onValueChange={handleClientChange}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un émetteur" />
+                <SelectValue placeholder="Sélectionner un client" />
               </SelectTrigger>
               <SelectContent>
                 {clients.filter(c => c.name && c.name.trim() !== "").map((client) => (
@@ -319,13 +412,13 @@ export function InvoiceForm({
             </Select>
           </div>
           <div>
-            <Label htmlFor="project">Client</Label>
+            <Label htmlFor="project">Projet</Label>
             <Select
               value={formData.project_name}
               onValueChange={handleProjectChange}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un client" />
+                <SelectValue placeholder="Sélectionner un projet" />
               </SelectTrigger>
               <SelectContent>
                 {projects.filter(p => p.name && p.name.trim() !== "").map((project) => (
@@ -339,7 +432,7 @@ export function InvoiceForm({
             <Input
               id="payment_terms"
               value={formData.payment_terms}
-              onChange={(e) => setFormData((prev) => ({ ...prev, payment_terms: e.target.value }))}
+              onChange={(e) => setFormData((prev: InvoiceMetadata) => ({ ...prev, payment_terms: e.target.value }))}
             />
           </div>
           <div>
@@ -347,7 +440,7 @@ export function InvoiceForm({
             <Input
               id="payment_method"
               value={formData.payment_method}
-              onChange={(e) => setFormData((prev) => ({ ...prev, payment_method: e.target.value }))}
+              onChange={(e) => setFormData((prev: InvoiceMetadata) => ({ ...prev, payment_method: e.target.value }))}
             />
           </div>
         </div>
@@ -427,7 +520,7 @@ export function InvoiceForm({
                 min="0"
                 max="100"
                 value={formData.tax_rate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, tax_rate: parseFloat(e.target.value) || 0 }))}
+                onChange={(e) => setFormData((prev: InvoiceMetadata) => ({ ...prev, tax_rate: parseFloat(e.target.value) || 0 }))}
                 className="w-20"
               />
               <span>%</span>
@@ -444,7 +537,7 @@ export function InvoiceForm({
           <Textarea
             id="notes"
             value={formData.notes}
-            onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+            onChange={(e) => setFormData((prev: InvoiceMetadata) => ({ ...prev, notes: e.target.value }))}
           />
         </div>
         <div className="flex justify-between pt-6">
@@ -452,7 +545,10 @@ export function InvoiceForm({
             <Button type="button" variant="outline" onClick={onCancel}>Annuler</Button>
             <Button type="button" variant="outline" onClick={exportToPDF}>Exporter en PDF</Button>
           </div>
-          <Button type="submit">{initialData ? "Mettre à jour" : "Créer"}</Button>
+          <Button type="submit" disabled={loading}>
+            {loading && <span className="mr-2 h-4 w-4 animate-spin">⏳</span>}
+            {initialDocument ? "Mettre à jour" : "Créer"}
+          </Button>
         </div>
       </div>
     </form>

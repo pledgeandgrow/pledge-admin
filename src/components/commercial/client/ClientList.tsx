@@ -8,10 +8,31 @@ import { Plus, Search, Loader2 } from 'lucide-react';
 import { ClientTable } from './ClientTable';
 import { ClientForm } from './ClientForm';
 import { ClientModal } from './ClientModal';
-import { Contact } from '@/types/contact';
+import { Contact, ClientContact } from '@/types/contact';
 import useRealtimeContacts from '@/hooks/useRealtimeContacts';
 import { contactService } from '@/services/contactService';
 import { toast } from '@/components/ui/use-toast';
+
+// Define Client interface for UI representation
+interface Client {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  status: string;
+  address?: string;
+  website?: string;
+  industry?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+  is_company: boolean;
+  company_name?: string;
+  contact_person?: string;
+  vat_number?: string;
+  registration_number?: string;
+  country?: string;
+}
 
 const getStatusColor = (status?: string) => {
   switch (status?.toLowerCase()) {
@@ -31,7 +52,7 @@ export function ClientList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClient] = useState<ClientContact | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
@@ -44,20 +65,25 @@ export function ClientList() {
       // Extract metadata fields from contact
       const metadata = contact.metadata as Record<string, string | number | boolean | null | Record<string, unknown>> || {};
       
+      // Create a client object from the contact data
       return {
         id: contact.id,
         name: contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : contact.first_name || contact.last_name || '',
-        company: contact.company || '',
         email: contact.email || '',
         phone: contact.phone || '',
         status: contact.status || 'active',
-        address: metadata.address || '',
-        website: metadata.website || '',
-        industry: metadata.industry || '',
-        notes: metadata.notes || '',
+        address: metadata.address as string || '',
+        website: metadata.website as string || '',
+        industry: metadata.industry as string || '',
+        notes: metadata.notes as string || '',
         created_at: contact.created_at,
         updated_at: contact.updated_at,
-        is_company: metadata.is_company || false
+        is_company: metadata.is_company as boolean || false,
+        company_name: metadata.company_name as string || '',
+        contact_person: metadata.contact_person as string || '',
+        vat_number: metadata.vat_number as string || '',
+        registration_number: metadata.registration_number as string || '',
+        country: metadata.country as string || ''
       } as Client;
     });
   }, [contactsData]);
@@ -67,15 +93,44 @@ export function ClientList() {
     setSearchTerm(e.target.value);
   };
 
+  // Convert UI Client object to ClientContact format for the form
+  const convertToClientContact = (client: Client): ClientContact => {
+    return {
+      id: client.id,
+      first_name: client.name.split(' ')[0] || '',
+      last_name: client.name.split(' ').slice(1).join(' ') || '',
+      email: client.email || '',
+      phone: client.phone || '',
+      status: client.status || 'Active',
+      type: 'client',
+      created_at: client.created_at || new Date().toISOString(),
+      updated_at: client.updated_at || new Date().toISOString(),
+      metadata: {
+        is_company: client.is_company,
+        company_name: client.company_name || '',
+        contact_person: client.contact_person || '',
+        vat_number: client.vat_number || '',
+        registration_number: client.registration_number || '',
+        address: client.address || '',
+        website: client.website || '',
+        country: client.country || '',
+        industry: client.industry || '',
+        notes: client.notes || ''
+      }
+    };
+  };
+
   // Handle edit client
   const handleEdit = (client: Client) => {
-    setSelectedClient(client);
+    const clientContact = convertToClientContact(client);
+    setSelectedClient(clientContact);
     setIsFormOpen(true);
   };
 
   // Handle view client
   const handleView = (client: Client) => {
-    setSelectedClient(client);
+    const clientContact = convertToClientContact(client);
+    setSelectedClient(clientContact);
     setIsModalOpen(true);
   };
 
@@ -125,7 +180,9 @@ export function ClientList() {
       client.email?.toLowerCase().includes(search) ||
       client.phone?.includes(search) ||
       client.company_name?.toLowerCase().includes(search) ||
-      client.vat_number?.includes(search)
+      client.vat_number?.includes(search) ||
+      client.address?.toLowerCase().includes(search) ||
+      client.country?.toLowerCase().includes(search)
     ));
   }, [clients, searchTerm]);
 

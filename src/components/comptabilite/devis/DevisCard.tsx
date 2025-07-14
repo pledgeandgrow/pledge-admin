@@ -1,4 +1,5 @@
-import { Devis } from "@/types/devis";
+import { Document } from "@/types/documents";
+import type { QuoteMetadata } from "../devis/types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,11 +16,18 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";
 
 interface DevisCardProps {
-  devis: Devis;
+  document: Document;
   onClick?: () => void;
 }
 
-export function DevisCard({ devis, onClick }: DevisCardProps) {
+export function DevisCard({ document, onClick }: DevisCardProps) {
+  // Extract quote metadata from document - first convert to unknown to avoid type errors
+  const metadata = document.metadata as unknown as Partial<QuoteMetadata>;
+  
+  // Ensure metadata exists and has required fields
+  if (!metadata || !metadata.quote_number || !metadata.client) {
+    return null;
+  }
   const getStatusDetails = (status: string) => {
     switch (status) {
       case "accepted":
@@ -30,7 +38,7 @@ export function DevisCard({ devis, onClick }: DevisCardProps) {
           bgColor: "bg-green-500/5",
           borderColor: "border-green-500/20",
         };
-      case "refused":
+      case "rejected":
         return {
           label: "Refusé",
           icon: XCircle,
@@ -73,12 +81,10 @@ export function DevisCard({ devis, onClick }: DevisCardProps) {
     }
   };
 
-  const statusDetails = getStatusDetails(devis.status || "draft");
+  const statusDetails = getStatusDetails(metadata.quote_status || "draft");
   const StatusIcon = statusDetails.icon;
-  const daysUntilDue = Math.ceil(
-    (new Date(devis.due_date).getTime() - new Date().getTime()) /
-      (1000 * 60 * 60 * 24)
-  );
+  const dueDate = metadata.due_date ? new Date(metadata.due_date) : new Date();
+  const daysUntilDue = Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
   return (
     <Card
@@ -93,7 +99,7 @@ export function DevisCard({ devis, onClick }: DevisCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Receipt className="h-5 w-5" />
-            <h3 className="font-semibold">{devis.devis_number}</h3>
+            <h3 className="font-semibold">{metadata.quote_number}</h3>
           </div>
           <Badge
             variant="outline"
@@ -111,10 +117,10 @@ export function DevisCard({ devis, onClick }: DevisCardProps) {
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary" className="flex items-center gap-1">
             <Building2 className="h-3 w-3" />
-            {devis.client.name}
+            {metadata.client?.name || 'Client'}
           </Badge>
-          {devis.project_name && (
-            <Badge variant="outline">{devis.project_name}</Badge>
+          {metadata.project_name && (
+            <Badge variant="outline">{metadata.project_name}</Badge>
           )}
         </div>
       </CardHeader>
@@ -124,19 +130,19 @@ export function DevisCard({ devis, onClick }: DevisCardProps) {
           <div>
             <p className="text-sm text-muted-foreground">Montant total</p>
             <p className="font-semibold">
-              {formatCurrency(devis.total)}
+              {formatCurrency(metadata.total || 0)}
             </p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Date d&apos;échéance</p>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>{new Date(devis.due_date).toLocaleDateString()}</span>
+              <span>{dueDate.toLocaleDateString()}</span>
             </div>
           </div>
         </div>
 
-        {(!devis.status || devis.status === "sent") && daysUntilDue <= 7 && daysUntilDue > 0 && (
+        {(!metadata.quote_status || metadata.quote_status === "sent") && daysUntilDue <= 7 && daysUntilDue > 0 && (
           <div className="pt-2">
             <Badge variant="outline" className="flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" />
@@ -145,9 +151,9 @@ export function DevisCard({ devis, onClick }: DevisCardProps) {
           </div>
         )}
 
-        {devis.items.length > 0 && (
+        {metadata.items && metadata.items.length > 0 && (
           <div className="pt-2 text-sm text-muted-foreground">
-            {devis.items.length} article{devis.items.length > 1 ? "s" : ""}
+            {metadata.items.length} article{metadata.items.length > 1 ? "s" : ""}
           </div>
         )}
       </CardContent>

@@ -1,4 +1,5 @@
-import { Depense } from "@/types/depense";
+import { Data } from "@/types/data";
+import { ExpenseMetadata } from "./DepenseDetails";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";
 
 interface DepenseCardProps {
-  depense: Depense;
+  depense: Data & { metadata?: ExpenseMetadata };
   onClick?: () => void;
 }
 
@@ -66,7 +67,7 @@ export function DepenseCard({ depense, onClick }: DepenseCardProps) {
     }
   };
 
-  const statusDetails = getStatusDetails(depense.statut);
+  const statusDetails = getStatusDetails(depense.metadata?.statut || 'en_attente');
   const StatusIcon = statusDetails.icon;
 
   return (
@@ -82,7 +83,7 @@ export function DepenseCard({ depense, onClick }: DepenseCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            <h3 className="font-semibold truncate">{depense.description}</h3>
+            <h3 className="font-semibold truncate">{depense.metadata?.description || depense.title}</h3>
           </div>
           <Badge
             variant="outline"
@@ -100,22 +101,22 @@ export function DepenseCard({ depense, onClick }: DepenseCardProps) {
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary" className="flex items-center gap-1">
             <Tag className="h-3 w-3" />
-            {depense.categorie}
+            {depense.metadata?.categorie || "Non catégorisé"}
           </Badge>
           <Badge variant="outline" className="flex items-center gap-1">
             <User className="h-3 w-3" />
-            {depense.beneficiaire}
+            {depense.metadata?.beneficiaire || "Non spécifié"}
           </Badge>
-          {depense.projet_nom && (
+          {depense.metadata?.projet_nom && (
             <Badge variant="outline" className="flex items-center gap-1">
               <Building className="h-3 w-3" />
-              {depense.projet_nom}
+              {depense.metadata.projet_nom}
             </Badge>
           )}
-          {depense.mission_nom && (
+          {depense.metadata?.mission_nom && (
             <Badge variant="outline" className="flex items-center gap-1">
               <Briefcase className="h-3 w-3" />
-              {depense.mission_nom}
+              {depense.metadata.mission_nom}
             </Badge>
           )}
         </div>
@@ -126,20 +127,22 @@ export function DepenseCard({ depense, onClick }: DepenseCardProps) {
           <div>
             <p className="text-sm text-muted-foreground">Montant</p>
             <p className="font-semibold">
-              {formatCurrency(depense.montant)}
+              {typeof depense.metadata?.montant === 'number' 
+                ? formatCurrency(depense.metadata.montant) 
+                : formatCurrency(parseFloat(depense.metadata?.montant || '0'))}
             </p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Date</p>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>{new Date(depense.date).toLocaleDateString()}</span>
+              <span>{depense.metadata?.date ? new Date(depense.metadata.date).toLocaleDateString() : "Non spécifié"}</span>
             </div>
           </div>
         </div>
 
         <div className="text-sm text-muted-foreground">
-          <p>Mode de paiement: {depense.mode_paiement}</p>
+          <p>Mode de paiement: {depense.metadata?.methode_paiement || "Non spécifié"}</p>
         </div>
       </CardContent>
     </Card>

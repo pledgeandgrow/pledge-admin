@@ -46,9 +46,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import { Document } from '@/types/documents';
+import { SpecificationMetadata } from './types';
+
 interface SpecificationEditorProps {
   content: string;
   onChange: (content: string) => void;
+  document?: Document;
 }
 
 export function SpecificationEditor({ content, onChange }: SpecificationEditorProps) {
