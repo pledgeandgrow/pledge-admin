@@ -18,9 +18,10 @@ import { formatCurrency } from "@/lib/utils/format";
 interface InvoiceCardProps {
   document: Document;
   onClick?: () => void;
+  className?: string;
 }
 
-export function InvoiceCard({ document, onClick }: InvoiceCardProps) {
+export function InvoiceCard({ document, onClick, className }: InvoiceCardProps) {
   // Extract invoice metadata from document
   const metadata = document.metadata as unknown as InvoiceMetadata;
   const getStatusDetails = (status: string) => {
@@ -88,7 +89,8 @@ export function InvoiceCard({ document, onClick }: InvoiceCardProps) {
       className={cn(
         "transition-all hover:shadow-md cursor-pointer",
         statusDetails.bgColor,
-        statusDetails.borderColor
+        statusDetails.borderColor,
+        className
       )}
       onClick={onClick}
     >

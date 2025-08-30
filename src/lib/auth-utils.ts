@@ -111,7 +111,9 @@ export const signInWithEmail = async ({ email, password }: SignInCredentials): P
       data: null, 
       error: error instanceof Error 
         ? error 
-        : new Error(error?.message || ERROR_MESSAGES.DEFAULT) 
+        : new Error(typeof error === 'object' && error !== null && 'message' in error 
+            ? String((error as Record<string, unknown>).message) 
+            : ERROR_MESSAGES.DEFAULT) 
     };
   }
 };
@@ -169,7 +171,9 @@ export const signUpWithEmail = async ({
       data: null, 
       error: error instanceof Error 
         ? error 
-        : new Error(error?.message || ERROR_MESSAGES.DEFAULT) 
+        : new Error(typeof error === 'object' && error !== null && 'message' in error 
+            ? String((error as Record<string, unknown>).message) 
+            : ERROR_MESSAGES.DEFAULT) 
     };
   }
 };
@@ -244,13 +248,13 @@ export const getCurrentUser = async (): Promise<{
   error: Error | null;
 }> => {
   try {
-    const { data: { user, session }, error } = await supabase.auth.getSession();
+    const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {
       throw error;
     }
 
-    return { user, session, error: null };
+    return { user: session?.user || null, session, error: null };
   } catch (error) {
     console.error('Get current user error:', error);
     return { 

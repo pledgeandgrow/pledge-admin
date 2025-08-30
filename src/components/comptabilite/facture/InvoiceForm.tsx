@@ -202,15 +202,48 @@ export function InvoiceForm({
     }
     
     try {
+      // Ensure items are properly serialized
+      const serializedItems = formData.items.map(item => ({
+        ...item,
+        id: item.id || uuidv4() // Ensure each item has an ID
+      }));
+      
+      // Ensure client data is properly structured
+      const clientData = formData.client ? {
+        id: formData.client.id || '',
+        name: formData.client.name || '',
+        email: formData.client.email || '',
+        address: formData.client.address || '',
+        postal_code: formData.client.postal_code || '',
+        city: formData.client.city || '',
+        country: formData.client.country || '',
+        vat_number: formData.client.vat_number || ''
+      } : null;
+      
+      // Ensure company details are properly structured
+      const companyData = {
+        name: formData.company_details?.name || '',
+        address: formData.company_details?.address || '',
+        postal_code: formData.company_details?.postal_code || '',
+        city: formData.company_details?.city || '',
+        country: formData.company_details?.country || '',
+        vat_number: formData.company_details?.vat_number || '',
+        registration_number: formData.company_details?.registration_number || '',
+        phone: formData.company_details?.phone || '',
+        email: formData.company_details?.email || '',
+        website: formData.company_details?.website || '',
+        bank_account: formData.company_details?.bank_account || ''
+      };
+      
       // Convert formData to a Supabase-compatible metadata record
-      // Use type assertion to ensure compatibility with Supabase metadata format
+      // Serialize complex objects to strings for Supabase compatibility
       const metadataRecord = {
         invoice_number: formData.invoice_number,
         date: formData.date,
         due_date: formData.due_date,
         invoice_status: formData.invoice_status,
-        client: formData.client,
-        items: JSON.stringify(formData.items),
+        client: clientData,
+        items: JSON.stringify(serializedItems),
         subtotal: formData.subtotal,
         tax_rate: formData.tax_rate,
         tax_amount: formData.tax_amount,
@@ -221,10 +254,12 @@ export function InvoiceForm({
         paid_at: formData.paid_at || '',
         currency: formData.currency,
         language: formData.language,
-        company_details: JSON.stringify(formData.company_details),
+        company_details: JSON.stringify(companyData),
         project_id: formData.project_id || '',
         project_name: formData.project_name || ''
       } as Record<string, string | number | boolean | string[] | Record<string, unknown> | null>;
+      
+      console.log('Creating document with metadata:', metadataRecord);
       
       if (initialDocument) {
         await updateDocument({

@@ -1,6 +1,6 @@
 import { TechnologyStatistics as TechnologyStatisticsType } from './types';
 import { Card, CardContent } from '@/components/ui/card';
-import { Code2, Box, Library, Tool, Database, Cloud } from 'lucide-react';
+import { Code2, Box, Library, Wrench, Database, Cloud } from 'lucide-react';
 
 interface TechnologyStatisticsProps {
   statistics: TechnologyStatisticsType;
@@ -29,7 +29,7 @@ export function TechnologyStatistics({ statistics }: TechnologyStatisticsProps) 
     {
       name: 'Outils',
       value: statistics.tools,
-      icon: Tool,
+      icon: Wrench,
       color: 'text-orange-500',
     },
     {

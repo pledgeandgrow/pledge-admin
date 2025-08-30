@@ -1,11 +1,10 @@
 'use client';
 
-import { FC } from 'react';
-import { MegaMenu } from '@/components/layout/MegaMenu';
-import { AffiliationPrograms } from '@/components/marketing/affiliation/AffiliationPrograms';
 import { AffiliatesList } from '@/components/marketing/affiliation/AffiliatesList';
+import { AffiliationPrograms } from '@/components/marketing/affiliation/AffiliationPrograms';
 import { AffiliationSettings } from '@/components/marketing/affiliation/AffiliationSettings';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AffiliateView } from '@/components/marketing/affiliation/AffiliateView';
+import { ProgramView } from '@/components/marketing/affiliation/ProgramView';
 
 // Sample data
 const programs = [
@@ -110,35 +109,18 @@ const settings = {
   cookieDuration: 30
 };
 
-const Page: FC = () => {
+export default function AffiliationPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <MegaMenu />
       <div className="ml-64 p-8">
         <div className="max-w-7xl mx-auto">
-          <Tabs defaultValue="programs" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 bg-white dark:bg-gray-800 rounded-lg p-1">
-              <TabsTrigger value="programs">Programmes</TabsTrigger>
-              <TabsTrigger value="affiliates">Affiliés</TabsTrigger>
-              <TabsTrigger value="settings">Paramètres</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="programs">
-              <AffiliationPrograms programs={programs} brands={brands} />
-            </TabsContent>
-
-            <TabsContent value="affiliates">
-              <AffiliatesList affiliates={affiliates} />
-            </TabsContent>
-
-            <TabsContent value="settings">
-              <AffiliationSettings settings={settings} />
-            </TabsContent>
-          </Tabs>
+          <AffiliatesList affiliates={affiliates} />
+          <AffiliationPrograms programs={programs} brands={brands} />
+          <AffiliationSettings settings={settings} />
+          <AffiliateView affiliateId="aff-001" />
+          <ProgramView programId="prog-001" />
         </div>
       </div>
     </div>
   );
-};
-
-export default Page;
+}

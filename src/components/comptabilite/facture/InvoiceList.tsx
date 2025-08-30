@@ -19,6 +19,9 @@ import {
   Loader2,
   ArrowLeft
 } from 'lucide-react';
+import { contactService } from '@/services/contactService';
+import { projectService } from '@/services/projectService';
+import { ClientContact } from '@/types/contact';
 import {
   Select,
   SelectContent,
@@ -35,6 +38,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -80,52 +84,58 @@ export function InvoiceList({
     fetchDocuments();
   }, [fetchDocuments]);
   
-  // Extract unique clients and projects from documents
+  // Fetch clients and projects directly from their data sources
   useEffect(() => {
-    const uniqueClients: Record<string, {
-      id: string;
-      name: string;
-      email: string;
-      address: string;
-      postal_code: string;
-      city: string;
-      country: string;
-      vat_number?: string;
-    }> = {};
-    
-    const uniqueProjects: Record<string, { id: string; name: string }> = {};
-    
-    documents.forEach(doc => {
-      // Skip documents that aren't invoices
-      if (doc.document_type_id !== 'invoice') return;
-      
-      // Cast to unknown first, then to Partial<InvoiceMetadata> to safely access properties
-      const metadata = doc.metadata as unknown as Partial<InvoiceMetadata>;
-      
-      if (metadata?.client?.id && metadata?.client?.name) {
-        uniqueClients[metadata.client.id] = {
-          id: metadata.client.id,
-          name: metadata.client.name,
-          email: metadata.client.email || '',
-          address: metadata.client.address || '',
-          postal_code: metadata.client.postal_code || '',
-          city: metadata.client.city || '',
-          country: metadata.client.country || '',
-          vat_number: metadata.client.vat_number,
-        };
+    // Fetch clients (contacts of type 'client')
+    const fetchClients = async () => {
+      try {
+        const clientContacts = await contactService.getContactsByType('client');
+        // Filter to ensure we only process ClientContact type
+        const onlyClientContacts = clientContacts.filter(contact => contact.type === 'client') as ClientContact[];
+        
+        const formattedClients = onlyClientContacts.map(client => ({
+          id: client.id,
+          name: client.metadata?.is_company ? client.company || '' : `${client.first_name} ${client.last_name}`,
+          email: client.email || '',
+          address: client.metadata?.address as string || '',
+          postal_code: client.metadata?.postal_code as string || '',
+          city: client.metadata?.city as string || '',
+          country: client.metadata?.country as string || '',
+          vat_number: client.metadata?.vat_number as string || undefined,
+        }));
+        setClients(formattedClients);
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les clients",
+          variant: "destructive"
+        });
       }
-      
-      if (metadata?.project_id && metadata?.project_name) {
-        uniqueProjects[metadata.project_id] = {
-          id: metadata.project_id,
-          name: metadata.project_name,
-        };
+    };
+
+    // Fetch projects
+    const fetchProjects = async () => {
+      try {
+        const projectData = await projectService.getAllProjects();
+        const formattedProjects = projectData.map(project => ({
+          id: project.id || '',
+          name: project.name
+        }));
+        setProjects(formattedProjects);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les projets",
+          variant: "destructive"
+        });
       }
-    });
-    
-    setClients(Object.values(uniqueClients));
-    setProjects(Object.values(uniqueProjects));
-  }, [documents]);
+    };
+
+    fetchClients();
+    fetchProjects();
+  }, [toast]); // Only depends on toast, will run once on component mount
 
   // Filter and sort documents
   const filteredAndSortedDocuments = useCallback(() => {
@@ -312,13 +322,13 @@ export function InvoiceList({
           <InvoiceStats stats={invoiceStats} />
           
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Rechercher une facture..."
-                    className="pl-8"
+                    className="pl-8 max-w-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -339,7 +349,7 @@ export function InvoiceList({
                   </SelectContent>
                 </Select>
               </div>
-
+              
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -377,7 +387,10 @@ export function InvoiceList({
                   )}
                 </Button>
 
-                <Button onClick={handleCreateInvoice}>
+                <Button 
+                  onClick={handleCreateInvoice}
+                  className="bg-primary hover:bg-primary/90 text-white"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Nouvelle facture
                 </Button>
@@ -385,8 +398,8 @@ export function InvoiceList({
             </div>
 
             {loading ? (
-              <div className="flex justify-center items-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <div className="flex justify-center items-center p-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : error ? (
               <div className="bg-destructive/10 text-destructive p-4 rounded-md">
@@ -397,12 +410,13 @@ export function InvoiceList({
                 Aucune facture trouvée.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredAndSortedDocuments().map((document) => (
                   <InvoiceCard
                     key={document.id}
                     document={document}
                     onClick={() => setSelectedInvoice(document)}
+                    className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
                   />
                 ))}
               </div>
@@ -413,7 +427,7 @@ export function InvoiceList({
       
       {/* Create/Edit Invoice Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {selectedInvoice ? "Modifier la facture" : "Créer une facture"}
@@ -480,19 +494,21 @@ export function InvoiceList({
       
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Confirmer la suppression</DialogTitle>
           </DialogHeader>
-          <p>Êtes-vous sûr de vouloir supprimer cette facture ? Cette action est irréversible.</p>
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="py-3">
+            <p className="text-muted-foreground">Êtes-vous sûr de vouloir supprimer cette facture ? Cette action est irréversible.</p>
+          </div>
+          <DialogFooter className="flex justify-end gap-2 mt-2">
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
               Annuler
             </Button>
             <Button variant="destructive" onClick={handleDeleteInvoice}>
               Supprimer
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

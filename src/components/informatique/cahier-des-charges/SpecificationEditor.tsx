@@ -53,6 +53,8 @@ interface SpecificationEditorProps {
   content: string;
   onChange: (content: string) => void;
   document?: Document;
+  onMetadataChange?: (metadata: Partial<SpecificationMetadata>) => void;
+  metadata?: SpecificationMetadata;
 }
 
 export function SpecificationEditor({ content, onChange }: SpecificationEditorProps) {

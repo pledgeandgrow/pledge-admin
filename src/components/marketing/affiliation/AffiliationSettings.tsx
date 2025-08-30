@@ -1,22 +1,24 @@
 'use client';
 
-import { FC } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-// Badge removed - unused import
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Settings,
-  // DollarSign removed - unused import
   BarChart,
   Bell,
   Shield,
-  // Clock removed - unused import
-  Percent
+  Percent,
+  Save,
+  Loader2
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase';
+// Router will be used in future implementations
 
 interface AffiliationSettingsProps {
   settings?: {
@@ -27,14 +29,149 @@ interface AffiliationSettingsProps {
   };
 }
 
-export const AffiliationSettings: FC<AffiliationSettingsProps> = ({
-  settings = {
-    defaultCommission: '20%',
-    minimumPayout: '100€',
-    payoutSchedule: 'Mensuel',
-    cookieDuration: 30
-  }
-}) => {
+// Define a type for affiliation settings with metadata structure for Supabase
+interface AffiliationSettingsData {
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+  name: string;
+  status: string;
+  metadata: {
+    defaultCommission: string;
+    minimumPayout: string;
+    payoutSchedule: string;
+    cookieDuration: number;
+    commissions?: {
+      standard: string;
+      premium: string;
+      vip: string;
+    };
+    notifications?: {
+      newAffiliates: boolean;
+      conversions: boolean;
+      payments: boolean;
+    };
+    security?: {
+      ipRestriction: boolean;
+      fraudDetection: boolean;
+      manualApproval: boolean;
+    };
+  };
+}
+
+export const AffiliationSettings: React.FC<AffiliationSettingsProps> = ({ settings: initialSettings = {
+  defaultCommission: '20%',
+  minimumPayout: '100€',
+  payoutSchedule: 'Mensuel',
+  cookieDuration: 30
+} }) => {
+  const [settings, setSettings] = useState(initialSettings);
+  const [loading, setLoading] = useState(false);
+  const [settingsId, setSettingsId] = useState<string | null>(null);
+  const { toast } = useToast();
+  // Router will be used in future implementations for navigation
+  const supabase = createClient();
+  
+  // Load settings from Supabase
+  useEffect(() => {
+    const fetchSettings = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('affiliation_settings')
+          .select('*')
+          .eq('name', 'default')
+          .single();
+          
+        if (error) {
+          console.error('Error fetching affiliation settings:', error);
+          return;
+        }
+        
+        if (data) {
+          setSettingsId(data.id);
+          setSettings(data.metadata || initialSettings);
+        }
+      } catch (error) {
+        console.error('Error fetching affiliation settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchSettings();
+  }, [supabase, initialSettings]);
+  
+  // Handle form input changes
+  const handleInputChange = (field: string, value: string | number | boolean) => {
+    setSettings(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
+  // Save settings to Supabase
+  const handleSaveSettings = async () => {
+    setLoading(true);
+    try {
+      const settingsData: AffiliationSettingsData = {
+        name: 'default',
+        status: 'active',
+        metadata: {
+          ...settings,
+          commissions: {
+            standard: '20%',
+            premium: '25%',
+            vip: '30%'
+          },
+          notifications: {
+            newAffiliates: true,
+            conversions: true,
+            payments: true
+          },
+          security: {
+            ipRestriction: false,
+            fraudDetection: true,
+            manualApproval: true
+          }
+        }
+      };
+      
+      let result;
+      
+      if (settingsId) {
+        // Update existing settings
+        result = await supabase
+          .from('affiliation_settings')
+          .update(settingsData)
+          .eq('id', settingsId);
+      } else {
+        // Create new settings
+        result = await supabase
+          .from('affiliation_settings')
+          .insert(settingsData);
+      }
+      
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+      
+      toast({
+        title: 'Paramètres sauvegardés',
+        description: 'Les paramètres d\'affiliation ont été mis à jour avec succès.'
+      });
+      
+    } catch (error) {
+      console.error('Error saving affiliation settings:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la sauvegarde des paramètres.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -48,8 +185,20 @@ export const AffiliationSettings: FC<AffiliationSettingsProps> = ({
         </div>
         <Button
           className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+          onClick={handleSaveSettings}
+          disabled={loading}
         >
-          Sauvegarder les modifications
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sauvegarde...
+            </>
+          ) : (
+            <>
+              <Save className="mr-2 h-4 w-4" />
+              Sauvegarder les modifications
+            </>
+          )}
         </Button>
       </div>
 
@@ -77,7 +226,8 @@ export const AffiliationSettings: FC<AffiliationSettingsProps> = ({
                   <Input 
                     type="text" 
                     placeholder="20%" 
-                    defaultValue={settings.defaultCommission}
+                    value={settings.defaultCommission}
+                    onChange={(e) => handleInputChange('defaultCommission', e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -85,7 +235,8 @@ export const AffiliationSettings: FC<AffiliationSettingsProps> = ({
                   <Input 
                     type="text" 
                     placeholder="100€" 
-                    defaultValue={settings.minimumPayout}
+                    value={settings.minimumPayout}
+                    onChange={(e) => handleInputChange('minimumPayout', e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -93,7 +244,8 @@ export const AffiliationSettings: FC<AffiliationSettingsProps> = ({
                   <Input 
                     type="text" 
                     placeholder="Mensuel" 
-                    defaultValue={settings.payoutSchedule}
+                    value={settings.payoutSchedule}
+                    onChange={(e) => handleInputChange('payoutSchedule', e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -101,7 +253,8 @@ export const AffiliationSettings: FC<AffiliationSettingsProps> = ({
                   <Input 
                     type="number" 
                     placeholder="30" 
-                    defaultValue={settings.cookieDuration}
+                    value={settings.cookieDuration}
+                    onChange={(e) => handleInputChange('cookieDuration', Number(e.target.value))}
                   />
                 </div>
               </CardContent>

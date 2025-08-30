@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import React, { FC } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ interface Platform {
   spent: number;
   results: number;
   cpc: number;
-  icon: JSX.Element;
+  icon: React.ReactElement;
 }
 
 const platforms: Platform[] = [

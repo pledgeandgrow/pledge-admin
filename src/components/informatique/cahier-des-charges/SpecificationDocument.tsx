@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileDown, Pencil, Calendar, User, Briefcase } from "lucide-react";
+import { FileDown, Pencil, Calendar, User, Briefcase, Clock } from "lucide-react";
 import { Document } from "@/types/documents";
 import { SpecificationType, documentToSpecification, SpecificationMetadata } from "./types";
 
@@ -20,7 +20,7 @@ export function SpecificationDocument({ document, specification: legacySpec, onE
   const specification = document ? documentToSpecification(document) : legacySpec;
   
   if (!specification) {
-    return <div>No specification data available</div>;
+    return <div className="text-center p-4">Aucune donnée de spécification disponible</div>;
   }
   
   // Access metadata for additional fields if available
@@ -38,6 +38,12 @@ export function SpecificationDocument({ document, specification: legacySpec, onE
         `<p><strong>Projet:</strong> ${metadata.project_name}</p>` : '';
       const clientInfo = metadata?.client_name ? 
         `<p><strong>Client:</strong> ${metadata.client_name}</p>` : '';
+      const estimatedHours = metadata?.estimated_hours ? 
+        `<p><strong>Heures estimées:</strong> ${metadata.estimated_hours}h</p>` : '';
+      const estimatedCost = metadata?.estimated_cost ? 
+        `<p><strong>Coût estimé:</strong> ${metadata.estimated_cost}€</p>` : '';
+      const targetDate = metadata?.target_completion_date ? 
+        `<p><strong>Date cible:</strong> ${new Date(metadata.target_completion_date).toLocaleDateString()}</p>` : '';
       
       pdfContent.innerHTML = `
         <div style="margin-bottom: 2rem;">
@@ -47,6 +53,9 @@ export function SpecificationDocument({ document, specification: legacySpec, onE
             <p><strong>Statut:</strong> ${specification.status.toUpperCase()}</p>
             ${projectInfo}
             ${clientInfo}
+            ${estimatedHours}
+            ${estimatedCost}
+            ${targetDate}
           </div>
         </div>
 
@@ -73,11 +82,20 @@ export function SpecificationDocument({ document, specification: legacySpec, onE
   const getBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
       case 'draft': return 'secondary' as const;
-      case 'review': return 'default' as const; // Changed from 'warning' to 'default' to match Badge variants
-      case 'approved': return 'default' as const; // Changed from 'success' to 'default'
+      case 'review': return 'default' as const;
+      case 'approved': return 'default' as const; // Using default instead of success to match Badge variants
       case 'archived': return 'outline' as const;
       default: return 'secondary' as const;
     }
+  };
+
+  // Format date helper
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   return (
@@ -90,7 +108,7 @@ export function SpecificationDocument({ document, specification: legacySpec, onE
               {specification.status.toUpperCase()}
             </Badge>
             <span className="text-sm text-muted-foreground">
-              Mis à jour le {new Date(specification.updatedAt).toLocaleDateString()}
+              Mis à jour le {formatDate(specification.updatedAt)}
             </span>
           </div>
           
@@ -112,7 +130,13 @@ export function SpecificationDocument({ document, specification: legacySpec, onE
               {metadata.target_completion_date && (
                 <div className="flex items-center gap-1 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Échéance: {new Date(metadata.target_completion_date).toLocaleDateString()}</span>
+                  <span>Échéance: {formatDate(metadata.target_completion_date)}</span>
+                </div>
+              )}
+              {metadata.estimated_hours && (
+                <div className="flex items-center gap-1 text-sm">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span>{metadata.estimated_hours}h estimées</span>
                 </div>
               )}
             </div>

@@ -151,8 +151,7 @@ export function MegaMenu() {
       subItems: [
         { href: '/informatique/fiche-technique', icon: '📋', label: 'Fiche Technique' },
         { href: '/informatique/cahier-des-charges', icon: '📑', label: 'Cahier des charges' },
-        { href: '/informatique/projets-clients', icon: '👥', label: 'Projets clients' },
-        { href: '/informatique/projets-interne', icon: '🏢', label: 'Projets Interne' },
+        { href: '/informatique/projets', icon: '📊', label: 'Projets' },
         { href: '/informatique/mise-a-jour', icon: '🔄', label: 'Mise à jour' },
         { href: '/informatique/test-et-validation', icon: '✅', label: 'Test et validation' },
         { href: '/informatique/serveurs', icon: '🖥️', label: 'Serveurs' },
@@ -166,21 +165,7 @@ export function MegaMenu() {
         { href: '/informatique/outils-metiers', icon: '🛠️', label: 'Outils Métiers' },
       ]
     },
-    {
-      id: 'developpement-durable',
-      label: 'Impact Durable',
-      icon: '🌱',
-      subItems: [
-        { href: '/developpement-durable/strategie', icon: '🌍', label: 'Engagements' },
-        { href: '/developpement-durable/energies', icon: '💡', label: 'Énergies' },
-        { href: '/developpement-durable/recyclage', icon: '♻️', label: 'Recyclage' },
-        { href: '/developpement-durable/eco-conception', icon: '🚀', label: 'Éco-conception' },
-        { href: '/developpement-durable/empreinte', icon: '👣', label: 'Empreinte' },
-        { href: '/developpement-durable/mobilite', icon: '🚲', label: 'Mobilité Durable' },
-        { href: '/developpement-durable/impact-social', icon: '🤝', label: 'Impact Social' },
-        { href: '/developpement-durable/mesure-impact', icon: '📏', label: 'Mesure d\'Impact' },
-      ],
-    },
+
     {
       id: 'marketing',
       label: 'Marketing',
@@ -270,18 +255,7 @@ export function MegaMenu() {
         { href: '/ressources-humaines/culture', icon: '🌟', label: 'Culture' },
       ],
     },
-    {
-      id: 'strategie',
-      label: 'Stratégie',
-      icon: '🧠',
-      subItems: [
-        { href: '/strategie/vision-objectifs', icon: '🚀', label: 'Vision & Objectifs' },
-        { href: '/strategie/strategie-financiere', icon: '💰', label: 'Stratégie Financière' },
-        { href: '/strategie/transformation-digitale', icon: '🔄', label: 'Transformation Digitale' },
-        { href: '/strategie/alignement', icon: '🎯', label: 'Alignement Interdépartemental' },
-        { href: '/strategie/innovation', icon: '📦', label: 'Innovation & Product Research' },
-      ],
-    },
+
     {
       id: 'workspace',
       label: 'Workspace',
@@ -291,8 +265,6 @@ export function MegaMenu() {
         { href: '/workspace/tasks', icon: '✅', label: 'Tasks' },
         { href: '/workspace/calendar', icon: '📅', label: 'Calendar' },
         { href: '/workspace/documents', icon: '📄', label: 'Documents' },
-        { href: '/workspace/meetings', icon: '👥', label: 'Meetings' },
-        { href: '/workspace/reports', icon: '📈', label: 'Reports' },
       ],
     },
     {

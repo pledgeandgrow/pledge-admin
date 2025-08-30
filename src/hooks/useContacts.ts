@@ -118,7 +118,7 @@ export const useContacts = (options: UseContactsOptions = {}): UseContactsReturn
     try {
       const updatedContact = await contactService.updateContact(id, contact);
       setContacts(prev => 
-        prev.map(c => c.id === id ? { ...c, ...updatedContact } : c)
+        prev.map(c => c.id === id ? { ...c, ...updatedContact } as Contact : c)
       );
       return updatedContact;
     } catch (err) {

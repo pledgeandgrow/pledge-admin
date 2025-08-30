@@ -183,19 +183,19 @@ export function DevisDetails({
 
   return (
     <Card className="w-full">
-      <CardHeader className="border-b">
+      <CardHeader className="border-b pb-4">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-2xl">{metadata.quote_number}</CardTitle>
-            <CardDescription className="mt-1">
+            <CardTitle className="text-2xl font-bold">{metadata.quote_number}</CardTitle>
+            <CardDescription className="mt-1 text-muted-foreground">
               {document.description || "Devis"}
             </CardDescription>
           </div>
           <Badge
             variant="outline"
-            className={`flex items-center gap-1 font-medium ${statusDetails.color} ${statusDetails.borderColor}`}
+            className={`flex items-center gap-1 font-medium ${statusDetails.color} ${statusDetails.borderColor} px-2 py-1`}
           >
-            <StatusIcon className="h-3 w-3" />
+            <StatusIcon className="h-3.5 w-3.5" />
             {statusDetails.label}
           </Badge>
         </div>
@@ -203,131 +203,161 @@ export function DevisDetails({
 
       <CardContent className="pt-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-semibold mb-2">Informations du client</h3>
-            <div className="space-y-1 text-sm">
-              <p className="font-medium">{metadata.client?.name}</p>
-              <p>{metadata.client?.address}</p>
-              <p>
+          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-medium">Informations du client</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1 text-sm pt-0">
+              <p className="font-medium">{typeof metadata.client === 'string' ? metadata.client : metadata.client?.name}</p>
+              <p className="text-muted-foreground">{metadata.client?.address}</p>
+              <p className="text-muted-foreground">
                 {metadata.client?.postal_code} {metadata.client?.city}
               </p>
-              <p>{metadata.client?.country}</p>
+              <p className="text-muted-foreground">{metadata.client?.country}</p>
               {metadata.client?.vat_number && (
-                <p>TVA: {metadata.client?.vat_number}</p>
+                <p className="text-muted-foreground">TVA: {metadata.client?.vat_number}</p>
               )}
-              <p className="mt-2">{metadata.client?.email}</p>
-            </div>
-          </div>
+              <p className="mt-2 text-muted-foreground">{metadata.client?.email}</p>
+            </CardContent>
+          </Card>
 
-          <div>
-            <h3 className="font-semibold mb-2">Détails du devis</h3>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>Date d&apos;émission:</div>
-              <div>{new Date(metadata.date).toLocaleDateString()}</div>
-              
-              <div>Date d&apos;échéance:</div>
-              <div>{new Date(metadata.due_date).toLocaleDateString()}</div>
-              
-              <div>Conditions de paiement:</div>
-              <div>{metadata.payment_terms}</div>
-              
-              <div>Devise:</div>
-              <div>{metadata.currency}</div>
-              
-              {metadata.project_name && (
-                <>
-                  <div>Projet:</div>
-                  <div>{metadata.project_name}</div>
-                </>
-              )}
-            </div>
-          </div>
+          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-medium">Détails du devis</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="text-muted-foreground font-medium">Date d&apos;émission:</div>
+                <div>{new Date(metadata.date).toLocaleDateString()}</div>
+                
+                <div className="text-muted-foreground font-medium">Date d&apos;échéance:</div>
+                <div>{new Date(metadata.due_date).toLocaleDateString()}</div>
+                
+                <div className="text-muted-foreground font-medium">Conditions de paiement:</div>
+                <div>{metadata.payment_terms}</div>
+                
+                <div className="text-muted-foreground font-medium">Devise:</div>
+                <div>{metadata.currency}</div>
+                
+                {metadata.project_name && (
+                  <>
+                    <div className="text-muted-foreground font-medium">Projet:</div>
+                    <div>{metadata.project_name}</div>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div>
-          <h3 className="font-semibold mb-2">Articles</h3>
-          <div className="border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50%]">Description</TableHead>
-                  <TableHead className="text-right">Quantité</TableHead>
-                  <TableHead className="text-right">Prix unitaire</TableHead>
-                  <TableHead className="text-right">Montant</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {metadata.items.map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium">{item.description}</TableCell>
-                    <TableCell className="text-right">{item.quantity}</TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(item.unit_price)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(item.amount)}
-                    </TableCell>
+        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">Articles</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="rounded-md border overflow-hidden">
+              <Table>
+                <TableHeader className="bg-gray-50 dark:bg-gray-800">
+                  <TableRow>
+                    <TableHead className="w-[50%] font-medium">Description</TableHead>
+                    <TableHead className="text-right font-medium">Quantité</TableHead>
+                    <TableHead className="text-right font-medium">Prix unitaire</TableHead>
+                    <TableHead className="text-right font-medium">Montant</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+                </TableHeader>
+                <TableBody>
+                  {metadata.items.map((item, index) => (
+                    <TableRow key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      <TableCell className="font-medium">{item.description}</TableCell>
+                      <TableCell className="text-right">{item.quantity}</TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(item.unit_price)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(item.amount)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="flex justify-end">
-          <div className="w-full md:w-1/3 space-y-2">
-            <div className="flex justify-between">
-              <span>Sous-total:</span>
-              <span>{formatCurrency(metadata.subtotal)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>TVA ({metadata.tax_rate}%):</span>
-              <span>{formatCurrency(metadata.tax_amount)}</span>
-            </div>
-            <div className="flex justify-between font-bold">
-              <span>Total:</span>
-              <span>{formatCurrency(metadata.total)}</span>
-            </div>
-          </div>
+          <Card className="w-full md:w-1/3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+            <CardContent className="space-y-2 pt-4">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground font-medium">Sous-total:</span>
+                <span>{formatCurrency(metadata.subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground font-medium">TVA ({metadata.tax_rate}%):</span>
+                <span>{formatCurrency(metadata.tax_amount)}</span>
+              </div>
+              <div className="flex justify-between font-bold text-base border-t pt-2 mt-2 border-gray-200 dark:border-gray-700">
+                <span>Total:</span>
+                <span className="text-primary">{formatCurrency(metadata.total)}</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {metadata.notes && (
-          <div>
-            <h3 className="font-semibold mb-2">Notes</h3>
-            <span className="text-sm text-muted-foreground">N&#39;apparaît pas sur le devis</span>
-          </div>
+          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-medium">Notes</CardTitle>
+              <CardDescription className="text-xs">N&#39;apparaît pas sur le devis</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{metadata.notes}</p>
+            </CardContent>
+          </Card>
         )}
 
-        <div>
-          <h3 className="font-semibold mb-2">Informations de l&apos;entreprise</h3>
-          <div className="text-sm space-y-1">
+        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">Informations de l&apos;entreprise</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm pt-0">
             <p className="font-medium">{metadata.company_details.name}</p>
-            <p>{metadata.company_details.address}</p>
-            <p>
+            <p className="text-muted-foreground">{metadata.company_details.address}</p>
+            <p className="text-muted-foreground">
               {metadata.company_details.postal_code} {metadata.company_details.city}
             </p>
-            <p>{metadata.company_details.country}</p>
+            <p className="text-muted-foreground">{metadata.company_details.country}</p>
             {metadata.company_details.vat_number && (
-              <p>TVA: {metadata.company_details.vat_number}</p>
+              <p className="text-muted-foreground">TVA: {metadata.company_details.vat_number}</p>
             )}
             {metadata.company_details.registration_number && (
-              <p>SIRET: {metadata.company_details.registration_number}</p>
+              <p className="text-muted-foreground">SIRET: {metadata.company_details.registration_number}</p>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </CardContent>
 
       <CardFooter className="flex flex-wrap gap-2 justify-between border-t pt-6">
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={handlePrint}>
+          <Button 
+            variant="outline" 
+            onClick={handlePrint}
+            className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
             <Printer className="mr-2 h-4 w-4" />
             Imprimer
           </Button>
-          <Button variant="outline" onClick={handleCopyLink}>
+          <Button 
+            variant="outline" 
+            onClick={handleCopyLink}
+            className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
             <Copy className="mr-2 h-4 w-4" />
             Copier le lien
           </Button>
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
             <Download className="mr-2 h-4 w-4" />
             Télécharger PDF
           </Button>
@@ -339,6 +369,7 @@ export function DevisDetails({
               variant="outline" 
               onClick={() => handleStatusChange("sent")}
               disabled={loading}
+              className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
             >
               <Send className="mr-2 h-4 w-4" />
               Envoyer
@@ -349,45 +380,48 @@ export function DevisDetails({
             <>
               <Button 
                 variant="outline" 
-                className="text-green-600" 
                 onClick={() => handleStatusChange("accepted")}
                 disabled={loading}
+                className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30"
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
-                Accepter
+                Marquer comme accepté
               </Button>
               <Button 
                 variant="outline" 
-                className="text-red-600"
                 onClick={() => handleStatusChange("rejected")}
                 disabled={loading}
+                className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30"
               >
                 <XCircle className="mr-2 h-4 w-4" />
-                Refuser
+                Marquer comme refusé
               </Button>
             </>
           )}
-          
-          {onEdit && (
-            <Button variant="outline" onClick={onEdit}>
-              <Edit className="mr-2 h-4 w-4" />
-              Modifier
-            </Button>
-          )}
-          
-          {onDelete && (
-            <Button variant="destructive" onClick={onDelete}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
-            </Button>
-          )}
-          
-          {onClose && (
-            <Button onClick={onClose}>
-              Fermer
-            </Button>
-          )}
+
+          <Button 
+            variant="outline" 
+            onClick={onEdit}
+            className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            Modifier
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={onDelete}
+            className="hover:bg-red-700 dark:hover:bg-red-900"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Supprimer
+          </Button>
         </div>
+        
+        {onClose && (
+          <Button onClick={onClose}>
+            Fermer
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

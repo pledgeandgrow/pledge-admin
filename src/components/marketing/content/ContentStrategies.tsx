@@ -51,12 +51,18 @@ export function ContentStrategies({ mode }: ContentStrategiesProps) {
     }
   ]);
 
-  const [newStrategy, setNewStrategy] = useState({
+  const [newStrategy, setNewStrategy] = useState<{
+    title: string;
+    description: string;
+    objective: string;
+    date: string;
+    status: 'planned' | 'active' | 'completed';
+  }>({
     title: '',
     description: '',
     objective: '',
     date: '',
-    status: 'planned' as const
+    status: 'planned'
   });
 
   const [editingId, setEditingId] = useState<number | null>(null);

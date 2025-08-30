@@ -1,29 +1,29 @@
-import { CookieSerializeOptions } from 'cookie';
+import { SerializeOptions } from 'cookie';
 import { Request, Response, NextFunction } from 'express';
 import { parse, serialize } from 'cookie';
-import { env } from '@/config/env';
+import { isProd } from '@/config/env';
 
 // Cookie configuration
 const COOKIE_CONFIG: {
-  [key: string]: CookieSerializeOptions;
+  [key: string]: SerializeOptions;
 } = {
   session: {
     httpOnly: true,
-    secure: env.isProd, // Only send over HTTPS in production
+    secure: isProd, // Only send over HTTPS in production
     sameSite: 'lax', // CSRF protection
     path: '/',
     maxAge: 60 * 60 * 24 * 7, // 1 week
   },
   auth: {
     httpOnly: true,
-    secure: env.isProd,
+    secure: isProd,
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days
   },
   csrf: {
     httpOnly: false, // Needs to be accessible from JavaScript
-    secure: env.isProd,
+    secure: isProd,
     sameSite: 'strict',
     path: '/',
   },
@@ -32,7 +32,7 @@ const COOKIE_CONFIG: {
 /**
  * Parses cookies from a request
  */
-export const parseCookies = (req: Request): Record<string, string> => {
+export const parseCookies = (req: Request): Record<string, string | undefined> => {
   // For API Routes we don't need to parse the cookies
   if (req.cookies) return req.cookies;
 
@@ -59,15 +59,15 @@ export const setCookie = (
   res: Response,
   name: string,
   value: string,
-  options: CookieSerializeOptions = {}
+  options: SerializeOptions = {}
 ): void => {
-  const cookieOptions: CookieSerializeOptions = {
+  const cookieOptions: SerializeOptions = {
     ...COOKIE_CONFIG.auth, // Default to auth config
     ...options, // Allow overriding defaults
   };
 
   // Handle secure cookies in production
-  if (cookieOptions.secure && !env.isProd) {
+  if (cookieOptions.secure && !isProd) {
     cookieOptions.secure = false; // Disable secure in development
   }
 
@@ -82,10 +82,10 @@ export const setCookie = (
 export const removeCookie = (
   res: Response,
   name: string,
-  options: CookieSerializeOptions = {}
+  options: SerializeOptions = {}
 ): void => {
   // Set maxAge to a past date to expire the cookie
-  const cookieOptions: CookieSerializeOptions = {
+  const cookieOptions: SerializeOptions = {
     ...options,
     maxAge: -1,
     expires: new Date(0),

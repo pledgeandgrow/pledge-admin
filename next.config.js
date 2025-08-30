@@ -2,30 +2,31 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['localhost', 'placeholder-url.supabase.co'],
     remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'placeholder-url.supabase.co',
+      },
       {
         protocol: 'https',
         hostname: '**',
       },
     ],
   },
-  // Ensure we ignore any references to non-existent route groups
-  webpack: (config, { isServer }) => {
-    return config;
-  },
-  // Enable Turbopack (now stable, no longer experimental)
-  turbopack: {
-    rules: {
-      // Configure Turbopack rules here
-    },
-  },
-  // Required for Supabase SSR
+  // Using Turbopack instead of webpack for better performance
+  // Configure experimental features
   experimental: {
+    // Required for Supabase SSR
     serverActions: {
       bodySizeLimit: '2mb',
     },
   },
+  // Turbopack configuration (now stable, moved out of experimental)
+  turbopack: {},
   // Handle CORS for API routes
   async headers() {
     return [

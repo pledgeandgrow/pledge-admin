@@ -395,12 +395,13 @@ export function DevisList({
                   'Aucun devis disponible.'}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 {filteredSortedDocs.map((document: Document) => (
                   <DevisCard
                     key={document.id}
                     document={document}
                     onClick={() => handleSelectDevis(document)}
+                    className="h-full"
                   />
                 ))}
               </div>

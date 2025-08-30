@@ -9,7 +9,7 @@ interface MetricCardProps {
   value: string;
   change: string;
   trend: 'up' | 'down' | 'neutral';
-  icon: JSX.Element;
+  icon: React.ReactElement;
 }
 
 const MetricCard: FC<MetricCardProps> = ({ title, value, change, trend, icon }) => {

@@ -205,135 +205,144 @@ export function InvoiceDetails({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h3 className="font-semibold mb-2">Émetteur</h3>
-            <div className="text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold mb-3 text-primary">Émetteur</h3>
+            <div className="text-sm space-y-1">
               <p className="font-medium">{metadata.company_details?.name}</p>
               <p>{metadata.company_details?.address}</p>
               <p>{metadata.company_details?.postal_code} {metadata.company_details?.city}</p>
               <p>{metadata.company_details?.country}</p>
               {metadata.company_details?.vat_number && (
-                <p className="mt-1">TVA: {metadata.company_details?.vat_number}</p>
+                <p className="mt-1 text-muted-foreground">TVA: {metadata.company_details?.vat_number}</p>
               )}
             </div>
           </div>
-          <div>
-            <h3 className="font-semibold mb-2">Client</h3>
-            <div className="text-sm">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold mb-3 text-primary">Client</h3>
+            <div className="text-sm space-y-1">
               <p className="font-medium">{metadata.client?.name}</p>
               <p>{metadata.client?.address}</p>
               <p>{metadata.client?.postal_code} {metadata.client?.city}</p>
               <p>{metadata.client?.country}</p>
               {metadata.client?.vat_number && (
-                <p className="mt-1">TVA: {metadata.client?.vat_number}</p>
+                <p className="mt-1 text-muted-foreground">TVA: {metadata.client?.vat_number}</p>
               )}
             </div>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span>Date d&apos;émission:</span>
-            <span>{formatDate(metadata.date)}</span>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 space-y-3">
+          <h3 className="font-semibold text-primary mb-2">Détails de la facture</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Date d&apos;émission:</span>
+              <span className="font-medium">{formatDate(metadata.date)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Date d&apos;échéance:</span>
+              <span className="font-medium">{formatDate(metadata.due_date)}</span>
+            </div>
+            {metadata.project_name && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Projet:</span>
+                <span className="font-medium">{metadata.project_name}</span>
+              </div>
+            )}
+            {metadata.payment_terms && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Conditions de paiement:</span>
+                <span className="font-medium">{metadata.payment_terms}</span>
+              </div>
+            )}
+            {metadata.payment_method && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Mode de paiement:</span>
+                <span className="font-medium">{metadata.payment_method}</span>
+              </div>
+            )}
           </div>
-          <div className="flex justify-between">
-            <span>Date d&apos;échéance:</span>
-            <span>{formatDate(metadata.due_date)}</span>
-          </div>
-          {metadata.project_name && (
-            <div className="flex justify-between">
-              <span>Projet:</span>
-              <span>{metadata.project_name}</span>
-            </div>
-          )}
-          {metadata.payment_terms && (
-            <div className="flex justify-between">
-              <span>Conditions de paiement:</span>
-              <span>{metadata.payment_terms}</span>
-            </div>
-          )}
-          {metadata.payment_method && (
-            <div className="flex justify-between">
-              <span>Mode de paiement:</span>
-              <span>{metadata.payment_method}</span>
-            </div>
-          )}
         </div>
 
-        <div className="border rounded-lg overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Quantité</TableHead>
-                <TableHead className="text-right">Prix unitaire</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {metadata.items?.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell>{item.description}</TableCell>
-                  <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.unit_price)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <h3 className="font-semibold text-primary p-4 border-b border-gray-200 dark:border-gray-700">Articles</h3>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50 dark:bg-gray-800">
+                  <TableHead className="font-medium">Description</TableHead>
+                  <TableHead className="text-right font-medium">Quantité</TableHead>
+                  <TableHead className="text-right font-medium">Prix unitaire</TableHead>
+                  <TableHead className="text-right font-medium">Total</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {metadata.items?.map((item, index) => (
+                  <TableRow key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <TableCell className="font-medium">{item.description}</TableCell>
+                    <TableCell className="text-right">{item.quantity}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item.unit_price)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span>Sous-total:</span>
-            <span>{formatCurrency(metadata.subtotal || 0)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>TVA ({metadata.tax_rate}%):</span>
-            <span>{formatCurrency(metadata.tax_amount || 0)}</span>
-          </div>
-          <div className="flex justify-between font-bold">
-            <span>Total:</span>
-            <span>{formatCurrency(metadata.total || 0)}</span>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 space-y-3">
+          <h3 className="font-semibold text-primary mb-2">Récapitulatif</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Sous-total:</span>
+              <span className="font-medium">{formatCurrency(metadata.subtotal || 0)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">TVA ({metadata.tax_rate}%):</span>
+              <span className="font-medium">{formatCurrency(metadata.tax_amount || 0)}</span>
+            </div>
+            <div className="flex justify-between font-bold text-lg">
+              <span>Total:</span>
+              <span className="text-primary">{formatCurrency(metadata.total || 0)}</span>
+            </div>
           </div>
         </div>
 
         {metadata.notes && (
-          <div>
-            <h3 className="font-semibold mb-2">Notes</h3>
-            <p className="text-sm whitespace-pre-wrap">{metadata.notes}</p>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold text-primary mb-2">Notes</h3>
+            <p className="text-sm whitespace-pre-wrap text-muted-foreground">{metadata.notes}</p>
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col space-y-4 print:hidden">
-        <div className="flex flex-wrap gap-2 w-full">
+      <CardFooter className="flex flex-col space-y-6 print:hidden bg-gray-50 dark:bg-gray-800/50 border-t">
+        <div className="flex flex-wrap gap-3 w-full">
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex items-center"
+            className="flex items-center bg-white dark:bg-gray-800 shadow-sm"
             onClick={handlePrint}
           >
-            <Printer className="mr-1 h-4 w-4" />
+            <Printer className="mr-2 h-4 w-4" />
             Imprimer
           </Button>
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex items-center"
+            className="flex items-center bg-white dark:bg-gray-800 shadow-sm"
             onClick={handleCopyLink}
           >
-            <Copy className="mr-1 h-4 w-4" />
+            <Copy className="mr-2 h-4 w-4" />
             Copier le lien
           </Button>
           {onEdit && (
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex items-center"
+              className="flex items-center bg-white dark:bg-gray-800 shadow-sm"
               onClick={onEdit}
             >
-              <Edit className="mr-1 h-4 w-4" />
+              <Edit className="mr-2 h-4 w-4" />
               Modifier
             </Button>
           )}
@@ -341,25 +350,26 @@ export function InvoiceDetails({
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex items-center text-red-500 hover:text-red-600"
+              className="flex items-center text-red-500 hover:text-white hover:bg-red-500 bg-white dark:bg-gray-800 shadow-sm"
               onClick={onDelete}
             >
-              <Trash2 className="mr-1 h-4 w-4" />
+              <Trash2 className="mr-2 h-4 w-4" />
               Supprimer
             </Button>
           )}
         </div>
         
-        <div className="w-full border-t pt-4">
-          <h3 className="font-semibold mb-2">Changer le statut</h3>
-          <div className="flex flex-wrap gap-2">
+        <div className="w-full bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 className="font-semibold text-primary mb-3">Changer le statut</h3>
+          <div className="flex flex-wrap gap-3">
             <Button 
               variant={metadata.invoice_status === "draft" ? "default" : "outline"} 
               size="sm" 
               disabled={loading || metadata.invoice_status === "draft"}
               onClick={() => handleStatusChange("draft")}
+              className={metadata.invoice_status === "draft" ? "bg-gray-600 hover:bg-gray-700 text-white" : "bg-white dark:bg-gray-800 shadow-sm"}
             >
-              <FileText className="mr-1 h-4 w-4" />
+              <FileText className="mr-2 h-4 w-4" />
               Brouillon
             </Button>
             <Button 
@@ -367,8 +377,9 @@ export function InvoiceDetails({
               size="sm" 
               disabled={loading || metadata.invoice_status === "sent"}
               onClick={() => handleStatusChange("sent")}
+              className={metadata.invoice_status === "sent" ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-white dark:bg-gray-800 shadow-sm"}
             >
-              <Send className="mr-1 h-4 w-4" />
+              <Send className="mr-2 h-4 w-4" />
               Envoyée
             </Button>
             <Button 
@@ -376,9 +387,9 @@ export function InvoiceDetails({
               size="sm" 
               disabled={loading || metadata.invoice_status === "paid"}
               onClick={() => handleStatusChange("paid")}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className={metadata.invoice_status === "paid" ? "bg-green-600 hover:bg-green-700 text-white" : "bg-white dark:bg-gray-800 hover:bg-green-100 text-green-600 shadow-sm"}
             >
-              <CreditCard className="mr-1 h-4 w-4" />
+              <CreditCard className="mr-2 h-4 w-4" />
               Payée
             </Button>
             <Button 
@@ -386,9 +397,9 @@ export function InvoiceDetails({
               size="sm" 
               disabled={loading || metadata.invoice_status === "overdue"}
               onClick={() => handleStatusChange("overdue")}
-              className="bg-orange-600 hover:bg-orange-700 text-white"
+              className={metadata.invoice_status === "overdue" ? "bg-orange-600 hover:bg-orange-700 text-white" : "bg-white dark:bg-gray-800 hover:bg-orange-100 text-orange-600 shadow-sm"}
             >
-              <AlertTriangle className="mr-1 h-4 w-4" />
+              <AlertTriangle className="mr-2 h-4 w-4" />
               En retard
             </Button>
             <Button 
@@ -396,9 +407,9 @@ export function InvoiceDetails({
               size="sm" 
               disabled={loading || metadata.invoice_status === "cancelled"}
               onClick={() => handleStatusChange("cancelled")}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className={metadata.invoice_status === "cancelled" ? "bg-red-600 hover:bg-red-700 text-white" : "bg-white dark:bg-gray-800 hover:bg-red-100 text-red-600 shadow-sm"}
             >
-              <XCircle className="mr-1 h-4 w-4" />
+              <XCircle className="mr-2 h-4 w-4" />
               Annulée
             </Button>
           </div>

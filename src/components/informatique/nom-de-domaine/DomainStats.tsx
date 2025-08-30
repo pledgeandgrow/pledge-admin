@@ -1,4 +1,4 @@
-import { DomainStats } from "./types";
+import type { DomainStats as DomainStatsType } from "./types";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Globe2,
@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 interface DomainStatsProps {
-  stats: DomainStats;
+  stats: DomainStatsType;
 }
 
 export function DomainStats({ stats }: DomainStatsProps) {

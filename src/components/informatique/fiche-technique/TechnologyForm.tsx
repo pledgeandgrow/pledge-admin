@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Technology, TechnologyType } from './types';
+import { Technology, TechnologyType, Framework, Language, Library, Tool, Database, Platform } from './types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,7 +35,7 @@ export function TechnologyForm({
     features: (technology?.type === 'framework' ? technology.features : []) || [],
     use_cases: (technology?.type === 'framework' ? technology.use_cases : []) || [],
     paradigms: (technology?.type === 'language' ? technology.paradigms : []) || [],
-    compilation_type: (technology?.type === 'language' ? technology.compilation_type : 'compiled') || 'compiled',
+    compilation_type: (technology?.type === 'language' ? technology.compilation_type : 'compiled') as 'compiled' | 'interpreted' | 'hybrid',
     typical_uses: (technology?.type === 'language' ? technology.typical_uses : []) || [],
     dependencies: (technology?.type === 'library' ? technology.dependencies : []) || [],
     installation: (technology?.type === 'library' ? technology.installation : '') || '',
@@ -61,38 +61,50 @@ export function TechnologyForm({
       documentation: formData.documentation,
     };
 
-    // Add type-specific fields
+    // Add type-specific fields with proper type assertions
     switch (formData.type) {
-      case 'framework':
-        submitData.ecosystem = formData.ecosystem;
-        submitData.features = formData.features;
-        submitData.use_cases = formData.use_cases;
+      case 'framework': {
+        const frameworkData = submitData as Partial<Framework>;
+        frameworkData.ecosystem = formData.ecosystem;
+        frameworkData.features = formData.features;
+        frameworkData.use_cases = formData.use_cases;
         break;
-      case 'language':
-        submitData.paradigms = formData.paradigms;
-        submitData.compilation_type = formData.compilation_type as 'compiled' | 'interpreted' | 'hybrid';
-        submitData.typical_uses = formData.typical_uses;
+      }
+      case 'language': {
+        const languageData = submitData as Partial<Language>;
+        languageData.paradigms = formData.paradigms;
+        languageData.compilation_type = formData.compilation_type as 'compiled' | 'interpreted' | 'hybrid';
+        languageData.typical_uses = formData.typical_uses;
         break;
-      case 'library':
-        submitData.dependencies = formData.dependencies;
-        submitData.installation = formData.installation;
-        submitData.common_uses = formData.common_uses;
+      }
+      case 'library': {
+        const libraryData = submitData as Partial<Library>;
+        libraryData.dependencies = formData.dependencies;
+        libraryData.installation = formData.installation;
+        libraryData.common_uses = formData.common_uses;
         break;
-      case 'tool':
-        submitData.category = formData.category;
-        submitData.integration_points = formData.integration_points;
-        submitData.platforms = formData.platforms;
+      }
+      case 'tool': {
+        const toolData = submitData as Partial<Tool>;
+        toolData.category = formData.category;
+        toolData.integration_points = formData.integration_points;
+        toolData.platforms = formData.platforms;
         break;
-      case 'database':
-        submitData.database_type = formData.database_type as 'sql' | 'nosql' | 'graph' | 'other';
-        submitData.features = formData.features;
-        submitData.scaling_options = formData.scaling_options;
+      }
+      case 'database': {
+        const databaseData = submitData as Partial<Database>;
+        databaseData.database_type = formData.database_type as 'sql' | 'nosql' | 'graph' | 'other';
+        databaseData.features = formData.features;
+        databaseData.scaling_options = formData.scaling_options;
         break;
-      case 'platform':
-        submitData.hosting_type = formData.hosting_type as 'cloud' | 'self-hosted' | 'hybrid';
-        submitData.services = formData.services;
-        submitData.deployment_options = formData.deployment_options;
+      }
+      case 'platform': {
+        const platformData = submitData as Partial<Platform>;
+        platformData.hosting_type = formData.hosting_type as 'cloud' | 'self-hosted' | 'hybrid';
+        platformData.services = formData.services;
+        platformData.deployment_options = formData.deployment_options;
         break;
+      }
     }
 
     onSubmit(submitData);
@@ -221,7 +233,7 @@ export function TechnologyForm({
               <Label htmlFor="compilation_type">Type de compilation</Label>
               <Select
                 value={formData.compilation_type}
-                onValueChange={(value) => setFormData({ ...formData, compilation_type: value })}
+                onValueChange={(value: 'compiled' | 'interpreted' | 'hybrid') => setFormData({ ...formData, compilation_type: value })}
               >
                 <SelectTrigger>
                   <SelectValue />

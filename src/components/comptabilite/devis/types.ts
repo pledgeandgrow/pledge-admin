@@ -23,22 +23,30 @@ export interface CompanyDetails {
   logo_url?: string;
 }
 
+// Extended client type with company_details
+export interface ExtendedClient {
+  id: string;
+  name: string;
+  address: string;
+  postal_code: string;
+  city: string;
+  country: string;
+  email: string;
+  phone: string;
+  vat_number?: string;
+  company_details?: {
+    is_company: boolean;
+    vat_number?: string;
+    registration_number?: string;
+  };
+}
+
 export interface QuoteMetadata {
   quote_number: string;
   date: string;
   due_date: string;
   quote_status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired';
-  client: {
-    id: string;
-    name: string;
-    address: string;
-    postal_code: string;
-    city: string;
-    country: string;
-    email: string;
-    phone: string;
-    vat_number?: string;
-  };
+  client: ExtendedClient;
   project_id?: string;
   project_name?: string;
   items: QuoteItem[];

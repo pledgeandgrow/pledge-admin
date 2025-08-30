@@ -18,9 +18,10 @@ import { formatCurrency } from "@/lib/utils/format";
 interface DevisCardProps {
   document: Document;
   onClick?: () => void;
+  className?: string;
 }
 
-export function DevisCard({ document, onClick }: DevisCardProps) {
+export function DevisCard({ document, onClick, className }: DevisCardProps) {
   // Extract quote metadata from document - first convert to unknown to avoid type errors
   const metadata = document.metadata as unknown as Partial<QuoteMetadata>;
   
@@ -91,7 +92,8 @@ export function DevisCard({ document, onClick }: DevisCardProps) {
       className={cn(
         "transition-all hover:shadow-md cursor-pointer",
         statusDetails.bgColor,
-        statusDetails.borderColor
+        statusDetails.borderColor,
+        className
       )}
       onClick={onClick}
     >
@@ -115,12 +117,12 @@ export function DevisCard({ document, onClick }: DevisCardProps) {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary" className="flex items-center gap-1">
+          <Badge variant="secondary" className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
             <Building2 className="h-3 w-3" />
-            {metadata.client?.name || 'Client'}
+            {typeof metadata.client === 'string' ? metadata.client : metadata.client?.name || 'Client'}
           </Badge>
           {metadata.project_name && (
-            <Badge variant="outline">{metadata.project_name}</Badge>
+            <Badge variant="outline" className="border-gray-200 dark:border-gray-700">{metadata.project_name}</Badge>
           )}
         </div>
       </CardHeader>
@@ -128,23 +130,23 @@ export function DevisCard({ document, onClick }: DevisCardProps) {
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-muted-foreground">Montant total</p>
-            <p className="font-semibold">
+            <p className="text-sm text-muted-foreground font-medium">Montant total</p>
+            <p className="font-semibold text-primary">
               {formatCurrency(metadata.total || 0)}
             </p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Date d&apos;échéance</p>
+            <p className="text-sm text-muted-foreground font-medium">Date d&apos;échéance</p>
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>{dueDate.toLocaleDateString()}</span>
+              <Calendar className="h-4 w-4 text-primary" />
+              <span className="font-medium">{dueDate.toLocaleDateString()}</span>
             </div>
           </div>
         </div>
 
         {(!metadata.quote_status || metadata.quote_status === "sent") && daysUntilDue <= 7 && daysUntilDue > 0 && (
           <div className="pt-2">
-            <Badge variant="outline" className="flex items-center gap-1">
+            <Badge variant="outline" className="flex items-center gap-1 border-orange-200 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-800/30 text-orange-600 dark:text-orange-400">
               <AlertTriangle className="h-3 w-3" />
               Expire dans {daysUntilDue} jour{daysUntilDue > 1 ? "s" : ""}
             </Badge>
@@ -152,7 +154,7 @@ export function DevisCard({ document, onClick }: DevisCardProps) {
         )}
 
         {metadata.items && metadata.items.length > 0 && (
-          <div className="pt-2 text-sm text-muted-foreground">
+          <div className="pt-2 text-sm font-medium text-muted-foreground border-t border-gray-100 dark:border-gray-800 mt-2">
             {metadata.items.length} article{metadata.items.length > 1 ? "s" : ""}
           </div>
         )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,130 +14,153 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Search, MoreVertical, Mail, Phone, Instagram, Twitter, Facebook, Linkedin, Check, X } from 'lucide-react';
+import { Search, MoreVertical, Mail, Phone, Check, Loader2 } from 'lucide-react';
+import { useRealtimeContacts } from '@/hooks/useRealtimeContacts';
+import { Contact, NetworkContact } from '@/types/contact';
+import { useToast } from '@/components/ui/use-toast';
 
-const ambassadeurs = [
-  {
-    id: 1,
-    name: 'Sophie Martin',
-    email: 'sophie.martin@example.com',
-    phone: '+33 6 12 34 56 78',
-    avatar: '/avatars/sophie.jpg',
-    status: 'Actif',
-    category: 'Influenceur',
-    socialMedia: {
-      instagram: '@sophiemartin',
-      twitter: '@sophiem',
-      followers: 15600
-    },
-    performance: {
-      conversions: 42,
-      engagement: '4.8%',
-      reach: 8500
-    }
-  },
-  {
-    id: 2,
-    name: 'Thomas Dubois',
-    email: 'thomas.dubois@example.com',
-    phone: '+33 6 23 45 67 89',
-    avatar: '/avatars/thomas.jpg',
-    status: 'Actif',
-    category: 'Client Fidèle',
-    socialMedia: {
-      linkedin: 'thomas-dubois',
-      facebook: 'thomasdubois',
-      followers: 3200
-    },
-    performance: {
-      conversions: 18,
-      engagement: '3.2%',
-      reach: 2800
-    }
-  },
-  {
-    id: 3,
-    name: 'Emma Bernard',
-    email: 'emma.bernard@example.com',
-    phone: '+33 6 34 56 78 90',
-    avatar: '/avatars/emma.jpg',
-    status: 'En Pause',
-    category: 'Expert Métier',
-    socialMedia: {
-      linkedin: 'emma-bernard',
-      twitter: '@emmab',
-      instagram: '@emmabernard',
-      followers: 9800
-    },
-    performance: {
-      conversions: 36,
-      engagement: '5.1%',
-      reach: 7200
-    }
-  },
-  {
-    id: 4,
-    name: 'Lucas Moreau',
-    email: 'lucas.moreau@example.com',
-    phone: '+33 6 45 67 89 01',
-    avatar: '/avatars/lucas.jpg',
-    status: 'Actif',
-    category: 'Partenaire',
-    socialMedia: {
-      linkedin: 'lucas-moreau',
-      facebook: 'lucasmoreau',
-      followers: 5400
-    },
-    performance: {
-      conversions: 28,
-      engagement: '3.9%',
-      reach: 4600
-    }
-  },
-  {
-    id: 5,
-    name: 'Camille Petit',
-    email: 'camille.petit@example.com',
-    phone: '+33 6 56 78 90 12',
-    avatar: '/avatars/camille.jpg',
-    status: 'Inactif',
-    category: 'Influenceur',
-    socialMedia: {
-      instagram: '@camillepetit',
-      twitter: '@camillep',
-      followers: 22000
-    },
-    performance: {
-      conversions: 0,
-      engagement: '0%',
-      reach: 0
-    }
-  }
-];
+// Extended NetworkContact interface with additional metadata for ambassadeurs
+interface AmbassadeurContact extends NetworkContact {
+  metadata: {
+    connection_strength?: number;
+    category?: string;
+    avatar?: string;
+    socialMedia?: {
+      instagram?: string;
+      twitter?: string;
+      facebook?: string;
+      linkedin?: string;
+      followers?: number;
+    };
+    performance?: {
+      conversions?: number;
+      engagement?: string;
+      reach?: number;
+    };
+  };
+}
 
-export function AmbassadeurList() {
+export function AmbassadeurList({ initialAmbassadeurs = [] }: { initialAmbassadeurs?: AmbassadeurContact[] }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
   
+  // Use the realtime contacts hook to get network contacts that are ambassadeurs
+  const {
+    contacts,
+    loading,
+    error,
+    createContact,
+  } = useRealtimeContacts({
+    type: 'network',
+    initialFilters: { tags: ['ambassadeur'] as string[] },
+    autoFetch: true
+  });
+
+  // Transform contacts to ambassadeurs format
+  const [ambassadeurs, setAmbassadeurs] = useState<AmbassadeurContact[]>(initialAmbassadeurs);
+
+  // Update ambassadeurs when contacts change
+  useEffect(() => {
+    if (contacts && contacts.length > 0) {
+      const newAmbassadeurs = contacts.map((contact: Contact) => {
+        return contact as AmbassadeurContact;
+      });
+      setAmbassadeurs(newAmbassadeurs);
+    }
+  }, [contacts]);
+
+  // Filter ambassadeurs based on search term
   const filteredAmbassadeurs = ambassadeurs.filter(
-    ambassador => ambassador.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  ambassador.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  ambassador.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (ambassador: AmbassadeurContact) => {
+      const fullName = `${ambassador.first_name} ${ambassador.last_name}`.toLowerCase();
+      const email = ambassador.email?.toLowerCase() || '';
+      const category = ambassador.metadata?.category?.toLowerCase() || '';
+      const searchLower = searchTerm.toLowerCase();
+      
+      return fullName.includes(searchLower) || 
+             email.includes(searchLower) || 
+             category.includes(searchLower);
+    }
   );
+
+  // Handle creating a new ambassadeur
+  const handleCreateAmbassadeur = async () => {
+    try {
+      // This would typically open a modal or form
+      // For now, we'll just create a sample ambassadeur
+      await createContact({
+        first_name: 'Nouveau',
+        last_name: 'Ambassadeur',
+        email: 'nouveau.ambassadeur@example.com',
+        phone: '+33 6 00 00 00 00',
+        type: 'network',
+        status: 'active',
+        tags: ['ambassadeur'],
+        position: 'Influenceur',
+        company: 'Example Company',
+        metadata: {
+          connection_strength: 4,
+          category: 'Influenceur',
+          avatar: '/avatars/default.jpg',
+          socialMedia: {
+            instagram: '@nouveauambassadeur',
+            twitter: '@nouveauambas',
+            followers: 5000
+          },
+          performance: {
+            conversions: 0,
+            engagement: '0%',
+            reach: 0
+          }
+        }
+      } as AmbassadeurContact);
+      
+      toast({
+        title: 'Succès',
+        description: 'Nouvel ambassadeur créé',
+      });
+    } catch (error) {
+      console.error('Error creating contact:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Échec de la création du nouvel ambassadeur',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (error) {
+    toast({
+      title: 'Erreur',
+      description: 'Échec du chargement des ambassadeurs',
+      variant: 'destructive',
+    });
+  }
 
   return (
     <Card className="border dark:border-gray-700">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl text-gray-900 dark:text-white">Liste des Ambassadeurs</CardTitle>
-          <div className="relative w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <Input
-              type="search"
-              placeholder="Rechercher..."
-              className="pl-8 bg-white dark:bg-gray-800"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="flex items-center gap-4">
+            <div className="relative w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <Input
+                type="search"
+                placeholder="Rechercher..."
+                className="pl-8 bg-white dark:bg-gray-800"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+              onClick={handleCreateAmbassadeur}
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />} 
+              Nouvel Ambassadeur
+            </Button>
           </div>
         </div>
         <CardDescription className="text-gray-500 dark:text-gray-400">
@@ -148,98 +171,54 @@ export function AmbassadeurList() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b dark:border-gray-700">
-                <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Ambassadeur</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Contact</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Réseaux Sociaux</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Performance</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Statut</th>
-                <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Actions</th>
+              <tr className="border-b border-gray-200 dark:border-gray-700">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Ambassadeur</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Catégorie</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Réseaux</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Performance</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Statut</th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredAmbassadeurs.map((ambassador) => (
-                <tr key={ambassador.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                    <span className="mt-2 block text-sm text-muted-foreground">Chargement des ambassadeurs...</span>
+                  </td>
+                </tr>
+              ) : filteredAmbassadeurs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                    Aucun ambassadeur trouvé
+                  </td>
+                </tr>
+              ) : (
+                filteredAmbassadeurs.map((ambassadeur) => (
+                <tr key={ambassadeur.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-3">
                       <Avatar>
-                        <AvatarImage src={ambassador.avatar} alt={ambassador.name} />
-                        <AvatarFallback>{ambassador.name.substring(0, 2)}</AvatarFallback>
+                        <AvatarImage src={ambassadeur.metadata?.avatar || `/avatars/${ambassadeur.first_name.toLowerCase()}.jpg`} alt={`${ambassadeur.first_name} ${ambassadeur.last_name}`} />
+                        <AvatarFallback>{ambassadeur.first_name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{ambassador.name}</p>
-                        <Badge variant="outline" className="mt-1 bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
-                          {ambassador.category}
-                        </Badge>
+                        <div className="font-medium text-gray-900 dark:text-white">{`${ambassadeur.first_name} ${ambassadeur.last_name}`}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center space-x-2">
+                          <Mail className="h-3 w-3" />
+                          <span>{ambassadeur.email || 'N/A'}</span>
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center space-x-2">
+                          <Phone className="h-3 w-3" />
+                          <span>{ambassadeur.phone || 'N/A'}</span>
+                        </div>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3 px-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300">
-                        <Mail className="h-3.5 w-3.5" />
-                        <span>{ambassador.email}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300">
-                        <Phone className="h-3.5 w-3.5" />
-                        <span>{ambassador.phone}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2">
-                      {ambassador.socialMedia.instagram && (
-                        <div className="p-1.5 bg-gradient-to-br from-purple-600 to-orange-500 rounded-full text-white">
-                          <Instagram className="h-3.5 w-3.5" />
-                        </div>
-                      )}
-                      {ambassador.socialMedia.twitter && (
-                        <div className="p-1.5 bg-blue-500 rounded-full text-white">
-                          <Twitter className="h-3.5 w-3.5" />
-                        </div>
-                      )}
-                      {ambassador.socialMedia.facebook && (
-                        <div className="p-1.5 bg-blue-700 rounded-full text-white">
-                          <Facebook className="h-3.5 w-3.5" />
-                        </div>
-                      )}
-                      {ambassador.socialMedia.linkedin && (
-                        <div className="p-1.5 bg-blue-800 rounded-full text-white">
-                          <Linkedin className="h-3.5 w-3.5" />
-                        </div>
-                      )}
-                      <span className="text-sm text-gray-600 dark:text-gray-300">
-                        {ambassador.socialMedia.followers.toLocaleString()} abonnés
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Conversions</span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">{ambassador.performance.conversions}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Engagement</span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">{ambassador.performance.engagement}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Portée</span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">{ambassador.performance.reach.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Badge className={
-                      ambassador.status === 'Actif' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                        : ambassador.status === 'En Pause'
-                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                    }>
-                      {ambassador.status === 'Actif' && <Check className="h-3.5 w-3.5 mr-1" />}
-                      {ambassador.status === 'Inactif' && <X className="h-3.5 w-3.5 mr-1" />}
-                      {ambassador.status}
+                  <td className="px-4 py-3">
+                    <Badge className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
+                      {ambassadeur.metadata?.category || 'Influenceur'}
                     </Badge>
                   </td>
                   <td className="py-3 px-4 text-right">
@@ -261,7 +240,8 @@ export function AmbassadeurList() {
                     </DropdownMenu>
                   </td>
                 </tr>
-              ))}
+              )))
+              }
             </tbody>
           </table>
         </div>

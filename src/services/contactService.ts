@@ -18,6 +18,7 @@ export interface ContactFilters {
   offset?: number;
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
+  tags?: string[];
 }
 
 export const getContacts = async (filters: ContactFilters = {}) => {
@@ -133,7 +134,7 @@ export const createContact = async (contact: Omit<BaseContact, 'id' | 'created_a
       if ((contactData as ContactWithJoinedAt).joined_at) {
         // If join_date is not set in metadata but joined_at exists, copy it
         if (!contactData.metadata.join_date) {
-          contactData.metadata.join_date = (contactData as ContactWithJoinedAt).joined_at;
+          contactData.metadata.join_date = (contactData as ContactWithJoinedAt).joined_at || null;
         }
         // Remove the joined_at property as it's not in the MemberContact interface
         delete (contactData as ContactWithJoinedAt).joined_at;

@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase';
 const supabase = createClient();
 
 // Project types
-export type ProjectType = 'Client' | 'Internal' | 'Partner' | 'Lead';
+export type ProjectType = 'Client' | 'Internal' | 'External' | 'Partner' | 'Lead';
 export type ProjectStatus = 'Active' | 'Completed' | 'On Hold' | 'Cancelled';
 export type ProjectPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
 
@@ -94,13 +94,40 @@ export const projectService = {
   // Create a new project
   createProject: async (project: BaseProject) => {
     try {
+      console.log('projectService.createProject called with:', project);
+      
+      // Ensure proper data structure for Supabase
+      const projectToInsert = {
+        ...project,
+        // Make sure these fields are properly formatted
+        name: project.name.trim(),
+        project_type: project.project_type,
+        status: project.status,
+        description: project.description || null,
+        start_date: project.start_date || null,
+        end_date: project.end_date || null,
+        primary_contact_id: project.primary_contact_id || null,
+        budget: typeof project.budget === 'number' ? project.budget : null,
+        progress: typeof project.progress === 'number' ? project.progress : 0,
+        priority: project.priority || 'Medium',
+        tags: Array.isArray(project.tags) ? project.tags : [],
+        metadata: project.metadata || {}
+      };
+      
+      console.log('Formatted project for Supabase:', projectToInsert);
+      
       const { data, error } = await supabase
         .from('projects')
-        .insert(project)
+        .insert(projectToInsert)
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error creating project:', error);
+        throw error;
+      }
+      
+      console.log('Project created successfully:', data);
       return { success: true, data };
     } catch (err) {
       console.error('Error creating project:', err);

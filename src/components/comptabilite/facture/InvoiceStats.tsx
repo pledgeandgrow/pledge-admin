@@ -99,18 +99,18 @@ export function InvoiceStats({ stats }: InvoiceStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
       {statItems.map((item) => (
-        <Card key={item.label}>
+        <Card key={item.label} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <div
                 className={`${item.bgColor} ${item.color} p-2 rounded-lg`}
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className="h-5 w-5" />
               </div>
               <div className="space-y-0.5">
-                <p className="text-sm text-muted-foreground">{item.label}</p>
+                <p className="text-sm text-muted-foreground font-medium">{item.label}</p>
                 <p className="text-2xl font-bold">{item.value}</p>
               </div>
             </div>
