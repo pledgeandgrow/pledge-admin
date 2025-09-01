@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePicker } from '@/components/ui/date-picker';
 import { useEvents } from '@/hooks/useEvents';
 import { toast } from '@/components/ui/use-toast';
+import { Plus } from 'lucide-react';
 
 
 export default function CalendarPage() {
@@ -225,23 +226,33 @@ export default function CalendarPage() {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Calendar</h1>
-        <Button onClick={handleCreateEvent}>Create Event</Button>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Calendar</h2>
+          <p className="text-muted-foreground">Manage your events and schedule</p>
+        </div>
+        <Button 
+          onClick={handleCreateEvent} 
+          className="bg-primary hover:bg-primary/90 text-white"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Create Event
+        </Button>
       </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Filter Events</CardTitle>
-          <CardDescription>Customize your calendar view</CardDescription>
+      <Card className="border border-gray-200 dark:border-gray-800 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold">Filter Events</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">Customize your calendar view</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4 items-end">
-            <div className="w-full md:w-auto">
+            <div className="w-full md:w-auto space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Event Type</label>
               <Select onValueChange={(value) => handleFilterChange('event_type', value ? [value] : undefined)}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Event Type" />
+                <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700">
+                  <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
@@ -254,10 +265,11 @@ export default function CalendarPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-full md:w-auto">
+            <div className="w-full md:w-auto space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
               <Select onValueChange={(value) => handleFilterChange('status', value ? value : undefined)}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Status" />
+                <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700">
+                  <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
@@ -267,60 +279,80 @@ export default function CalendarPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-full md:w-auto">
+            <div className="w-full md:w-auto space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From Date</label>
               <DatePicker
                 date={filter.from}
                 onSelect={(date) => handleFilterChange('from', date)}
-                placeholder="From Date"
               />
             </div>
-            <div className="w-full md:w-auto">
+            <div className="w-full md:w-auto space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To Date</label>
               <DatePicker
                 date={filter.to}
                 onSelect={(date) => handleFilterChange('to', date)}
-                placeholder="To Date"
               />
             </div>
-            <div className="w-full md:w-auto ml-auto">
+            <div className="flex gap-2 mt-2">
               <Button 
                 variant="outline" 
                 onClick={clearFilters} 
                 disabled={isLoading || isSaving}
+                className="border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                Clear Filters
+              </Button>
+              <Button 
+                onClick={() => fetchEvents(filter)}
+                disabled={isLoading || isSaving}
+                className="bg-primary hover:bg-primary/90 text-white"
               >
                 {isLoading ? (
                   <>
                     <span className="mr-2 h-4 w-4 animate-spin">⏳</span>
                     Loading...
                   </>
-                ) : "Clear Filters"}
+                ) : "Apply Filters"}
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Tabs value={view} onValueChange={(value) => setView(value as 'calendar' | 'list')}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
-          <TabsTrigger value="list">List View</TabsTrigger>
+      <Tabs value={view} onValueChange={(value) => setView(value as 'calendar' | 'list')} className="w-full">
+        <TabsList className="mb-4 bg-muted/50 dark:bg-muted/20 p-1 rounded-md">
+          <TabsTrigger value="calendar" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md">Calendar View</TabsTrigger>
+          <TabsTrigger value="list" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md">List View</TabsTrigger>
         </TabsList>
         <TabsContent value="calendar">
-            <CalendarView
-              events={events}
-              onEventClick={handleEventClick}
-              onDateSelect={handleDateSelect}
-              onEventDrop={handleEventDrop}
-              onEventResize={handleEventResize}
-              isLoading={isLoading}
-            />
+          <Card className="border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+            <CardContent className="p-0">
+              <div className="p-4">
+                <CalendarView
+                  events={events}
+                  onEventClick={handleEventClick}
+                  onDateSelect={handleDateSelect}
+                  onEventDrop={handleEventDrop}
+                  onEventResize={handleEventResize}
+                  isLoading={isLoading}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
         <TabsContent value="list">
-            <EventList
-              events={events}
-              onEventClick={handleEventClick}
-              isLoading={isLoading || isSaving}
-              filter={filter}
-            />
+          <Card className="border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+            <CardContent className="p-0">
+              <div className="p-4">
+                <EventList
+                  events={events}
+                  onEventClick={handleEventClick}
+                  isLoading={isLoading || isSaving}
+                  filter={filter}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 

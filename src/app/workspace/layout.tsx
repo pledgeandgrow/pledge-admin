@@ -33,10 +33,12 @@ export default function WorkspaceLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <MegaMenu />
-      <main className="flex-1 ml-64 p-6 overflow-auto">
-        {children}
+      <main className="flex-1 ml-64 min-h-screen overflow-auto">
+        <div className="max-w-7xl mx-auto py-4">
+          {children}
+        </div>
       </main>
     </div>
   );

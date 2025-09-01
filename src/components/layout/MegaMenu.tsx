@@ -121,14 +121,13 @@ export function MegaMenu() {
         { href: '/communication/presse', icon: '📰', label: 'Presse' },
         { href: '/communication/relations-publiques/page', icon: '🤝', label: 'Relations Publiques' },
         { href: '/communication/newsletter', icon: '📧', label: 'Newsletter' },
-        { href: '/communication/reseaux-sociaux/page', icon: '📱', label: 'Réseaux Sociaux' },
         { href: '/communication/evenements', icon: '🎪', label: 'Événements' },
         { href: '/communication/blog', icon: '✍️', label: 'Blog' },
       ],
     },
     {
       id: 'comptabilite',
-      label: 'Comptabilité',
+      label: 'Finance',
       icon: '💰',
       subItems: [
         { href: '/comptabilite/facture', icon: '💸', label: 'Facture' },
@@ -141,7 +140,6 @@ export function MegaMenu() {
         { href: '/comptabilite/tva-et-taxes', icon: '💼', label: 'TVA & Taxes' },
         { href: '/comptabilite/rapports-financiers', icon: '📊', label: 'Rapports financiers' },
         { href: '/comptabilite/salaires-paiements', icon: '💵', label: 'Salaires & Paiements' },
-        { href: '/comptabilite/export-integration', icon: '🔄', label: 'Export & Intégration' },
       ],
     },
     {
@@ -210,35 +208,8 @@ export function MegaMenu() {
           href: '/marketing/seo-sem',
           icon: '🔍',
           label: 'SEO/SEM'
-        },
-        {
-          href: '/marketing/ambassadeur',
-          icon: '👑',
-          label: 'Ambassadeur'
-        },
-        {
-          href: '/marketing/geomarketing',
-          icon: '🗺️',
-          label: 'Geomarketing'
         }
       ]
-    },
-    {
-      id: 'operations',
-      label: 'Opérations',
-      icon: '⚙️',
-      subItems: [
-        { href: '/operations/gestion-stocks', icon: '📍', label: 'Stocks' },
-        { href: '/operations/temps-livraison', icon: '🚛', label: 'Livraison' },
-        { href: '/operations/gestion-societe', icon: '🏢', label: 'Gestion des Societe' },
-        { href: '/operations/suivi-missions', icon: '📦', label: 'Suivi des Missions' },
-        { href: '/operations/remboursements', icon: '🔄', label: 'Remboursements' },
-        { href: '/operations/couts-budgetisation', icon: '💰', label: 'Coûts & Budgétisation' },
-        { href: '/operations/achats', icon: '📜', label: 'Achats' },
-        { href: '/operations/planification', icon: '📅', label: 'Prévisions' },
-        { href: '/operations/fournisseurs', icon: '📡', label: 'Fournisseurs' },
-        { href: '/operations/optimisation', icon: '📈', label: 'Optimisation' },
-      ],
     },
     {
       id: 'rh',
@@ -252,7 +223,6 @@ export function MegaMenu() {
         { href: '/ressources-humaines/conformite', icon: '⚖️', label: 'Conformité' },
         { href: '/ressources-humaines/paie', icon: '💰', label: 'Paie' },
         { href: '/ressources-humaines/performance', icon: '📊', label: 'Performance' },
-        { href: '/ressources-humaines/culture', icon: '🌟', label: 'Culture' },
       ],
     },
 
