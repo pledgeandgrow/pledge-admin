@@ -7,7 +7,7 @@ import { Plus, Search, RefreshCw } from 'lucide-react';
 import { ContactTable } from './ContactTable';
 import { ContactForm } from './ContactForm';
 import { ContactView } from './ContactView';
-import { useRealtimeContacts } from '@/hooks/useRealtimeContacts';
+import { useContacts } from '@/hooks/useContacts';
 import { BaseContact, ContactType } from '@/types/contact';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
@@ -28,14 +28,14 @@ export function ContactList({ contactType, title, description }: ContactListProp
 
   const {
     contacts,
-    loading,
+    isLoading: loading,
     error,
     createContact,
     updateContact,
     deleteContact,
     realtimeEnabled,
     toggleRealtime
-  } = useRealtimeContacts({
+  } = useContacts({
     type: contactType,
     initialFilters: {
       orderBy: 'updated_at',
@@ -137,7 +137,8 @@ export function ContactList({ contactType, title, description }: ContactListProp
           <Button 
             onClick={toggleRealtime}
             variant="outline"
-            className={realtimeEnabled ? "bg-green-100 hover:bg-green-200" : ""}
+            className={realtimeEnabled ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50" : ""}
+            title="Toggle realtime updates"
           >
             {realtimeEnabled ? (
               <>
@@ -177,7 +178,7 @@ export function ContactList({ contactType, title, description }: ContactListProp
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Error loading contacts: {error.message}
+            Error loading contacts: {typeof error === 'object' && error !== null ? (error as Error).message : error}
           </AlertDescription>
         </Alert>
       )}

@@ -1,14 +1,12 @@
 import { createClient } from '@/lib/supabase';
 import { Product, ProductType, ProductStatistics } from '@/types/products';
 
-// Initialize Supabase client
-const supabase = createClient();
-
 // Product service functions
 export const productService = {
   // Get all products
   getAllProducts: async () => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -25,6 +23,7 @@ export const productService = {
   // Get products by type
   getProductsByType: async (type: ProductType) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -42,6 +41,7 @@ export const productService = {
   // Get product by ID
   getProductById: async (id: string) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -59,6 +59,7 @@ export const productService = {
   // Create a new product
   createProduct: async (product: Product) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('products')
         .insert(product)
@@ -76,6 +77,7 @@ export const productService = {
   // Update an existing product
   updateProduct: async (id: string, product: Partial<Product>) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('products')
         .update(product)
@@ -94,6 +96,7 @@ export const productService = {
   // Delete a product
   deleteProduct: async (id: string) => {
     try {
+      const supabase = createClient();
       const { error } = await supabase
         .from('products')
         .delete()
@@ -110,6 +113,7 @@ export const productService = {
   // Get product statistics
   getProductStatistics: async () => {
     try {
+      const supabase = createClient();
       const { data: products, error } = await supabase
         .from('products')
         .select('*');
@@ -127,7 +131,7 @@ export const productService = {
       };
       
       // Count products by type
-      products.forEach(product => {
+      products.forEach((product: Product) => {
         if (product.type in typeCount) {
           typeCount[product.type as ProductType]++;
         }
@@ -135,12 +139,12 @@ export const productService = {
       
       const statistics: ProductStatistics = {
         total: products.length,
-        active: products.filter(product => product.status === 'active').length,
-        discontinued: products.filter(product => product.status === 'discontinued').length,
-        draft: products.filter(product => product.status === 'draft').length,
-        archived: products.filter(product => product.status === 'archived').length,
-        totalRevenue: products.reduce((sum, product) => sum + (product.price || 0), 0),
-        totalCost: products.reduce((sum, product) => sum + (product.cost || 0), 0),
+        active: products.filter((product: Product) => product.status === 'active').length,
+        discontinued: products.filter((product: Product) => product.status === 'discontinued').length,
+        draft: products.filter((product: Product) => product.status === 'draft').length,
+        archived: products.filter((product: Product) => product.status === 'archived').length,
+        totalRevenue: products.reduce((sum: number, product: Product) => sum + (product.price || 0), 0),
+        totalCost: products.reduce((sum: number, product: Product) => sum + (product.cost || 0), 0),
         profitMargin: 0, // Will calculate below
         byType: typeCount
       };
@@ -177,6 +181,7 @@ export const productService = {
   // Search products by query
   searchProducts: async (query: string) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -193,6 +198,7 @@ export const productService = {
 
   async getPrestations() {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -212,6 +218,7 @@ export const productService = {
 
   async getPackages() {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -232,6 +239,7 @@ export const productService = {
   // Get other offers (products of type 'software', 'tool', 'hardware', etc.)
   getAutresOffres: async () => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('products')
         .select('*')

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Document, CreateDocumentParams, UpdateDocumentParams } from '@/types/documents';
 import { SpecificationMetadata } from './types';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { SpecificationEditor } from './SpecificationEditor';
+import { useToast } from '@/components/ui/use-toast';
 
 interface SpecificationFormProps {
   document?: Document | null;
@@ -43,18 +44,35 @@ export function SpecificationForm({
     metadata?.target_completion_date ? new Date(metadata.target_completion_date) : undefined
   );
 
+  const { toast } = useToast();
+
+  // Validate form data
+  const validateForm = () => {
+    if (!title.trim()) {
+      toast({
+        title: "Erreur de validation",
+        description: "Le titre est requis",
+        variant: "destructive"
+      });
+      return false;
+    }
+    return true;
+  };
+
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!validateForm()) return;
+    
     // Prepare metadata as a Record type to satisfy Supabase requirements
-    const newMetadata: Record<string, string | number | boolean | null> = {
+    const newMetadata: Record<string, string | number | boolean | null | string[] | Record<string, unknown>> = {
       content,
       status,
       client_name: clientName || null,
       project_name: projectName || null,
-      estimated_hours: estimatedHours || null,
-      estimated_cost: estimatedCost || null,
+      estimated_hours: estimatedHours !== undefined ? estimatedHours : null,
+      estimated_cost: estimatedCost !== undefined ? estimatedCost : null,
       target_completion_date: targetDate ? targetDate.toISOString() : null
     };
     
@@ -68,8 +86,10 @@ export function SpecificationForm({
           if (value === null || 
               typeof value === 'string' || 
               typeof value === 'number' || 
-              typeof value === 'boolean') {
-            newMetadata[key] = value;
+              typeof value === 'boolean' ||
+              Array.isArray(value) ||
+              (typeof value === 'object' && value !== null)) {
+            newMetadata[key] = value as string | number | boolean | null | string[] | Record<string, unknown>;
           }
         }
       });

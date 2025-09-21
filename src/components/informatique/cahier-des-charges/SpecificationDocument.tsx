@@ -3,9 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileDown, Pencil, Calendar, User, Briefcase, Clock } from "lucide-react";
+import { FileDown, Pencil, Calendar, User, Briefcase, Clock, DollarSign } from "lucide-react";
 import { Document } from "@/types/documents";
 import { SpecificationType, documentToSpecification, SpecificationMetadata } from "./types";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SpecificationDocumentProps {
   // Accept either a Document or legacy SpecificationType
@@ -27,6 +31,7 @@ export function SpecificationDocument({ document, specification: legacySpec, onE
   const metadata = document?.metadata as unknown as SpecificationMetadata | undefined;
   
   const handleExportPDF = async () => {
+    setIsExporting(true);
     try {
       const html2pdf = (await import("html2pdf.js")).default;
       // Use window.document instead of document to avoid TypeScript error
@@ -75,6 +80,8 @@ export function SpecificationDocument({ document, specification: legacySpec, onE
       await html2pdf().from(pdfContent).set(options).save();
     } catch (error) {
       console.error('Error exporting PDF:', error);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -91,12 +98,16 @@ export function SpecificationDocument({ document, specification: legacySpec, onE
 
   // Format date helper
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    try {
+      return format(new Date(dateString), "dd MMMM yyyy", { locale: fr });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return "Date inconnue";
+    }
   };
+  
+  // State for PDF export loading
+  const [isExporting, setIsExporting] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -113,34 +124,38 @@ export function SpecificationDocument({ document, specification: legacySpec, onE
           </div>
           
           {/* Display additional metadata if available */}
-          {metadata && (
-            <div className="flex flex-wrap gap-4 mt-3">
-              {metadata.project_name && (
-                <div className="flex items-center gap-1 text-sm">
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
-                  <span>{metadata.project_name}</span>
-                </div>
-              )}
-              {metadata.client_name && (
-                <div className="flex items-center gap-1 text-sm">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span>{metadata.client_name}</span>
-                </div>
-              )}
-              {metadata.target_completion_date && (
-                <div className="flex items-center gap-1 text-sm">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Échéance: {formatDate(metadata.target_completion_date)}</span>
-                </div>
-              )}
-              {metadata.estimated_hours && (
-                <div className="flex items-center gap-1 text-sm">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{metadata.estimated_hours}h estimées</span>
-                </div>
-              )}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-4 mt-3">
+            {metadata?.project_name && (
+              <div className="flex items-center gap-1 text-sm">
+                <Briefcase className="h-4 w-4 text-muted-foreground" />
+                <span>{metadata.project_name}</span>
+              </div>
+            )}
+            {metadata?.client_name && (
+              <div className="flex items-center gap-1 text-sm">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span>{metadata.client_name}</span>
+              </div>
+            )}
+            {metadata?.target_completion_date && (
+              <div className="flex items-center gap-1 text-sm">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>Échéance: {formatDate(metadata.target_completion_date)}</span>
+              </div>
+            )}
+            {metadata?.estimated_hours !== undefined && metadata?.estimated_hours !== null && (
+              <div className="flex items-center gap-1 text-sm">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span>{metadata.estimated_hours}h estimées</span>
+              </div>
+            )}
+            {metadata?.estimated_cost !== undefined && metadata?.estimated_cost !== null && (
+              <div className="flex items-center gap-1 text-sm">
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <span>{metadata.estimated_cost}€ estimés</span>
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="flex gap-2">
@@ -148,9 +163,10 @@ export function SpecificationDocument({ document, specification: legacySpec, onE
             variant="outline"
             size="sm"
             onClick={handleExportPDF}
+            disabled={isExporting}
           >
             <FileDown className="h-4 w-4 mr-2" />
-            Exporter PDF
+            {isExporting ? 'Exportation...' : 'Exporter PDF'}
           </Button>
           {onEdit && !readOnly && (
             <Button

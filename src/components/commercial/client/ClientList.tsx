@@ -4,12 +4,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, Loader2 } from 'lucide-react';
+import { Plus, Search, Loader2, RefreshCw } from 'lucide-react';
 import { ClientTable } from './ClientTable';
 import { ClientForm } from './ClientForm';
 import { ClientModal } from './ClientModal';
 import { Contact, ClientContact } from '@/types/contact';
-import useRealtimeContacts from '@/hooks/useRealtimeContacts';
+import { useContacts } from '@/hooks/useContacts';
 import { contactService } from '@/services/contactService';
 import { toast } from '@/components/ui/use-toast';
 
@@ -56,12 +56,12 @@ export function ClientList() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  // Use the realtime contacts hook to get clients
-  const { contacts: contactsData, loading, error } = useRealtimeContacts({ type: 'client' });
+  // Use the contacts hook to get clients
+  const { contacts: contactsData, isLoading: loading, error, realtimeEnabled, toggleRealtime } = useContacts({ type: 'client' });
   
   // Convert contacts to clients
   const clients = useMemo(() => {
-    return contactsData.map((contact: Contact) => {
+    return contactsData.map((contact) => {
       // Extract metadata fields from contact
       const metadata = contact.metadata as Record<string, string | number | boolean | null | Record<string, unknown>> || {};
       
@@ -204,7 +204,7 @@ export function ClientList() {
   if (error) {
     return (
       <div className="p-4 text-red-500">
-        Erreur: {error.message || 'Une erreur est survenue'}
+        Erreur: {typeof error === 'object' && error !== null ? (error as Error).message : error || 'Une erreur est survenue'}
       </div>
     );
   }
@@ -222,16 +222,36 @@ export function ClientList() {
             onChange={handleSearch}
           />
         </div>
-        <Button 
-          className="w-full sm:w-auto" 
-          onClick={() => {
-            setSelectedClient(null);
-            setIsFormOpen(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Nouveau client
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button 
+            onClick={toggleRealtime}
+            variant="outline"
+            className={realtimeEnabled ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50" : ""}
+            title="Toggle realtime updates"
+          >
+            {realtimeEnabled ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Realtime: ON
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Realtime: OFF
+              </>
+            )}
+          </Button>
+          <Button 
+            className="w-full sm:w-auto" 
+            onClick={() => {
+              setSelectedClient(null);
+              setIsFormOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nouveau client
+          </Button>
+        </div>
       </div>
 
       {filteredClients.length === 0 ? (

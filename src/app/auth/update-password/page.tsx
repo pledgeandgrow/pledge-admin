@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { EyeIcon, EyeOffIcon, Loader2, CheckCircle } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from '@/components/ui/use-toast';
+import { createClient } from '@/lib/supabase';
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState('');
@@ -22,39 +24,143 @@ export default function UpdatePasswordPage() {
   
   const router = useRouter();
   const searchParams = useSearchParams();
+  const supabase = createClient();
+  
+  // Supabase can send various parameters in password reset links
   const token = searchParams.get('token');
+  const type = searchParams.get('type');
+  const accessToken = searchParams.get('access_token');
+  const refreshToken = searchParams.get('refresh_token');
+  const expiresIn = searchParams.get('expires_in');
+  const isRecoveryFlow = type === 'recovery';
+  
+  // Check for any of the possible auth parameters
+  const hasAuthParams = token || isRecoveryFlow || accessToken || refreshToken;
+  
+  // Log all parameters for debugging
+  console.log('Auth parameters:', { 
+    token: !!token, 
+    type, 
+    accessToken: !!accessToken, 
+    refreshToken: !!refreshToken,
+    expiresIn
+  });
+  
   const { updatePassword } = useAuth();
 
   useEffect(() => {
     setIsMounted(true);
     
-    // If no token is present, redirect to forgot password
-    if (!token) {
-      router.push('/auth/forgot-password');
+    // Debug all URL parameters
+    if (typeof window !== 'undefined') {
+      const allParams: Record<string, string> = {};
+      searchParams.forEach((value, key) => {
+        allParams[key] = value;
+      });
+      console.log('All URL parameters:', allParams);
+      
+      // If we have a hash fragment in the URL, it might contain the access token
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const hashAccessToken = hashParams.get('access_token');
+      const hashType = hashParams.get('type');
+      
+      if (hashAccessToken) {
+        console.log('Found access token in hash fragment');
+        // We have the token in the hash, which means we need to process it
+        // This is how Supabase sends the token for password reset
+      }
     }
-  }, [token, router]);
+    
+    // If no auth params are present, redirect to forgot password
+    if (!hasAuthParams && typeof window !== 'undefined') {
+      console.log('No auth parameters found, redirecting to forgot-password');
+      router.push('/auth/forgot-password');
+    } else {
+      console.log('Auth parameters found, ready for password update');
+    }
+  }, [hasAuthParams, searchParams, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Validation
-    if (password !== confirmPassword) {
-      setError("Passwords don't match");
-      return;
+    try {
+      // Validation
+      if (password !== confirmPassword) {
+        setError("Passwords don't match");
+        return;
+      }
+      
+      if (!password || password.length < 8) {
+        setError("Password must be at least 8 characters long");
+        return;
+      }
+      
+      setIsLoading(true);
+      console.log('Attempting to update password');
+      
+      // Check if we have a hash fragment in the URL with an access token
+      let error = null;
+      if (typeof window !== 'undefined') {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const hashAccessToken = hashParams.get('access_token');
+        
+        if (hashAccessToken) {
+          // If we have an access token in the hash, we need to use it to update the password
+          // This is a special case for password reset links
+          try {
+            // First, set the session with the access token
+            const { data: { session: resetSession }, error: sessionError } = 
+              await supabase.auth.setSession({
+                access_token: hashAccessToken,
+                refresh_token: hashParams.get('refresh_token') || '',
+              });
+            
+            if (sessionError) {
+              console.error('Error setting session:', sessionError.message);
+              error = sessionError;
+            } else {
+              console.log('Session set successfully for password reset');
+              // Now update the password
+              const { error: updateError } = await updatePassword(password);
+              error = updateError;
+            }
+          } catch (err) {
+            console.error('Error processing hash token:', err);
+            error = { message: 'Failed to process authentication token' };
+          }
+        } else {
+          // Normal password update
+          const { error: updateError } = await updatePassword(password);
+          error = updateError;
+        }
+      } else {
+        // Fallback to normal password update
+        const { error: updateError } = await updatePassword(password);
+        error = updateError;
+      }
+      
+      if (error) {
+        console.error('Error updating password:', error.message);
+        setError(error.message);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Show success toast
+      toast({
+        title: "Password updated",
+        description: "Your password has been updated successfully.",
+        variant: "default",
+      });
+      
+      // Redirect to sign in page with success message
+      router.push('/auth/signin?message=Password updated successfully');
+    } catch (err) {
+      console.error('Unexpected error during password update:', err);
+      setError('An unexpected error occurred. Please try again.');
+      setIsLoading(false);
     }
-    
-    setIsLoading(true);
-    const { error } = await updatePassword(password);
-    setIsLoading(false);
-    
-    if (error) {
-      setError(error.message);
-      return;
-    }
-    
-    // Redirect to sign in page with success message
-    router.push('/auth/signin?message=Password updated successfully');
   };
 
   if (!isMounted) {
@@ -65,10 +171,10 @@ export default function UpdatePasswordPage() {
     );
   }
 
-  if (!token) {
+  if (!hasAuthParams) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-400">Invalid or expired token. Please try resetting your password again.</p>
+        <p className="text-gray-400">Invalid or expired password reset link. Please try resetting your password again.</p>
       </div>
     );
   }
@@ -107,9 +213,10 @@ export default function UpdatePasswordPage() {
             <CardContent className="space-y-4">
               {error && (
                 <div 
-                  className="p-3 bg-red-900/50 border border-red-800 text-red-200 rounded text-sm"
+                  className="p-3 bg-red-900/50 border border-red-800 text-red-200 rounded text-sm flex items-center"
                   role="alert"
                 >
+                  <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
                   {error}
                 </div>
               )}

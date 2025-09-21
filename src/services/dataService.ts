@@ -1,14 +1,12 @@
 import { createClient } from '@/lib/supabase';
 import { Data, DataType, DataStatistics } from '@/types/data';
 
-// Initialize Supabase client
-const supabase = createClient();
-
 // Data service functions
 export const dataService = {
   // Get all data entries
   getAllData: async () => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('data')
         .select('*')
@@ -25,6 +23,7 @@ export const dataService = {
   // Get data by type
   getDataByType: async (type: DataType) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('data')
         .select('*')
@@ -42,6 +41,7 @@ export const dataService = {
   // Get data by category
   getDataByCategory: async (category: string) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('data')
         .select('*')
@@ -59,6 +59,7 @@ export const dataService = {
   // Get published data
   getPublishedData: async () => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('data')
         .select('*')
@@ -76,6 +77,7 @@ export const dataService = {
   // Get data by ID
   getDataById: async (id: string) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('data')
         .select('*')
@@ -93,6 +95,7 @@ export const dataService = {
   // Get data by slug
   getDataBySlug: async (slug: string) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('data')
         .select('*')
@@ -118,6 +121,7 @@ export const dataService = {
           .replace(/\s+/g, '-');
       }
 
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('data')
         .insert(dataEntry)
@@ -143,6 +147,7 @@ export const dataService = {
           .replace(/\s+/g, '-');
       }
 
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('data')
         .update(dataEntry)
@@ -161,6 +166,7 @@ export const dataService = {
   // Publish a data entry
   publishData: async (id: string) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('data')
         .update({
@@ -182,6 +188,7 @@ export const dataService = {
   // Archive a data entry
   archiveData: async (id: string) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('data')
         .update({
@@ -202,6 +209,7 @@ export const dataService = {
   // Delete a data entry
   deleteData: async (id: string) => {
     try {
+      const supabase = createClient();
       const { error } = await supabase
         .from('data')
         .delete()
@@ -218,6 +226,7 @@ export const dataService = {
   // Search data entries
   searchData: async (query: string) => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('data')
         .select('*')
@@ -231,6 +240,7 @@ export const dataService = {
       
       // Fallback to basic search if full-text search fails
       try {
+        const supabase = createClient();
         const { data, error } = await supabase
           .from('data')
           .select('*')
@@ -249,6 +259,7 @@ export const dataService = {
   // Get data statistics
   getDataStatistics: async () => {
     try {
+      const supabase = createClient();
       const { data: entries, error } = await supabase
         .from('data')
         .select('*');
@@ -260,7 +271,7 @@ export const dataService = {
       const categoryCount: Record<string, number> = {};
       
       // Count entries by type and category
-      entries.forEach(entry => {
+      entries.forEach((entry: Data) => {
         // Count by type
         if (entry.data_type) {
           typeCount[entry.data_type] = (typeCount[entry.data_type] || 0) + 1;
@@ -274,14 +285,14 @@ export const dataService = {
       
       const statistics: DataStatistics = {
         total: entries.length,
-        published: entries.filter(entry => entry.status === 'published').length,
-        draft: entries.filter(entry => entry.status === 'draft').length,
-        archived: entries.filter(entry => entry.status === 'archived').length,
+        published: entries.filter((entry: Data) => entry.status === 'published').length,
+        draft: entries.filter((entry: Data) => entry.status === 'draft').length,
+        archived: entries.filter((entry: Data) => entry.status === 'archived').length,
         byType: typeCount,
         byCategory: categoryCount,
-        publicCount: entries.filter(entry => entry.is_public === true).length,
-        privateCount: entries.filter(entry => entry.visibility_level === 'private').length,
-        restrictedCount: entries.filter(entry => entry.visibility_level === 'restricted').length
+        publicCount: entries.filter((entry: Data) => entry.is_public === true).length,
+        privateCount: entries.filter((entry: Data) => entry.visibility_level === 'private').length,
+        restrictedCount: entries.filter((entry: Data) => entry.visibility_level === 'restricted').length
       };
       
       return statistics;

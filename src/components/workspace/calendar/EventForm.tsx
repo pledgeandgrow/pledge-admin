@@ -54,22 +54,31 @@ export function EventForm({ initialData, onSubmit, onCancel, isLoading = false }
   };
 
   // Date change handler with auto-adjustment of end date
-  const handleDateChange = (name: 'start_datetime' | 'end_datetime', date: Date) => {
+  const handleDateChange = useCallback((name: 'start_datetime' | 'end_datetime', date: Date) => {
     // Create a copy of the current form data
     const newData = { ...formData };
     const currentValue = name === 'start_datetime' ? formData.start_datetime : formData.end_datetime;
     
+    // Convert dates to ISO strings for comparison to avoid reference equality issues
+    const currentISOString = currentValue instanceof Date ? currentValue.toISOString() : currentValue?.toString();
+    const newISOString = date.toISOString();
+    
     // Only update if the date has actually changed
-    // Compare date strings to avoid reference equality issues
-    if (!currentValue || date.toString() !== currentValue.toString()) {
+    if (!currentValue || currentISOString !== newISOString) {
       if (name === 'start_datetime') {
         newData.start_datetime = date;
         
         // If start date is after end date, adjust end date
-        if (formData.end_datetime && date > formData.end_datetime) {
-          const newEndTime = new Date(date);
-          newEndTime.setHours(newEndTime.getHours() + 1);
-          newData.end_datetime = newEndTime;
+        if (formData.end_datetime) {
+          const endDateTime = formData.end_datetime instanceof Date 
+            ? formData.end_datetime 
+            : new Date(formData.end_datetime);
+            
+          if (date > endDateTime) {
+            const newEndTime = new Date(date);
+            newEndTime.setHours(newEndTime.getHours() + 1);
+            newData.end_datetime = newEndTime;
+          }
         }
       } else {
         newData.end_datetime = date;
@@ -77,7 +86,7 @@ export function EventForm({ initialData, onSubmit, onCancel, isLoading = false }
       
       setFormData(newData);
     }
-  };
+  }, [formData]);
 
   // Form submission
   const handleSubmit = (e: React.FormEvent) => {

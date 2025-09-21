@@ -89,10 +89,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Reset password
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/update-password`,
-    });
-    return { error };
+    try {
+      // Safely get the origin - works in both client and server contexts
+      const origin = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || '';
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${origin}/auth/update-password`,
+      });
+      
+      console.log('Password reset requested for:', email);
+      if (error) console.error('Password reset error:', error.message);
+      
+      return { error };
+    } catch (err) {
+      console.error('Unexpected error in resetPassword:', err);
+      return { error: { message: 'An unexpected error occurred', name: 'UnexpectedError' } as AuthError };
+    }
   };
 
   // Update password

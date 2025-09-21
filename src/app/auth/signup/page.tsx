@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { EyeIcon, EyeOffIcon, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from '@/components/ui/use-toast';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -26,6 +28,7 @@ export default function SignUpPage() {
   
   const router = useRouter();
   const supabase = createClient();
+  const { signUp: authSignUp } = useAuth();
 
   useEffect(() => {
     setIsMounted(true);
@@ -49,95 +52,57 @@ export default function SignUpPage() {
     }));
   };
 
-  // Function to handle user signup and profile creation
-  const signUp = async (email: string, password: string, userData: { firstName: string; lastName: string }) => {
-    try {
-      console.log('Starting signup process for:', email);
-      
-      // 1. Create the auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (authError) {
-        console.error('Auth signup error:', authError);
-        return { error: authError };
-      }
-
-      if (!authData.user) {
-        console.error('No user returned from auth signup');
-        return { error: { message: 'Failed to create user account' } };
-      }
-
-      console.log('Auth user created successfully:', authData.user.id);
-
-      // 2. Create user profile directly in the users table
-      const { firstName, lastName } = userData;
-      
-      // Generate avatar URL from initials
-      const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : '';
-      const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
-      const initials = firstInitial + lastInitial;
-      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=random`;
-      
-      const { data: profileData, error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email: email.toLowerCase(),
-          first_name: firstName || null,
-          last_name: lastName || null,
-          avatar_url: avatarUrl,
-          email_verified: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        return { error: { message: 'Account created but profile setup failed. Please contact support.' } };
-      }
-
-      console.log('User profile created successfully:', profileData);
-      return { data: authData, profile: profileData };
-    } catch (error) {
-      console.error('Unexpected error during signup:', error);
-      return { error: { message: 'An unexpected error occurred during signup' } };
-    }
-  };
+  // The user profile creation is now handled in the AuthContext
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords don't match");
-      setIsLoading(false);
-      return;
-    }
-
-    const { error } = await signUp(
-      formData.email,
-      formData.password,
-      {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+    try {
+      // Validate passwords match
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords don't match");
+        setIsLoading(false);
+        return;
       }
-    );
-    
-    setIsLoading(false);
-    
-    if (error) {
-      setError(error.message);
-      return;
+
+      // Validate password length
+      if (formData.password.length < 8) {
+        setError("Password must be at least 8 characters long");
+        setIsLoading(false);
+        return;
+      }
+
+      // Use the signUp function from AuthContext
+      const { error } = await authSignUp(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName
+      );
+      
+      if (error) {
+        console.error('Signup error:', error.message);
+        setError(error.message);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Show success toast
+      toast({
+        title: "Account created successfully",
+        description: "Please check your email to verify your account.",
+        variant: "default",
+      });
+      
+      // Redirect to verify email page
+      router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
+    } catch (err) {
+      console.error('Unexpected error during signup:', err);
+      setError('An unexpected error occurred. Please try again.');
+      setIsLoading(false);
     }
-    
-    // Redirect to verify email page
-    router.push('/auth/verify-email');
   };
 
   if (!isMounted) {

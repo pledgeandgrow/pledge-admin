@@ -65,6 +65,9 @@ export async function middleware(request: NextRequest) {
     '/auth/forgot-password',
     '/auth/update-password',
     '/auth/verify-email',
+    '/auth/account-locked',
+    '/auth/email-change',
+    '/auth/callback',
     '/privacy-policy',
     '/terms',
   ];
@@ -79,8 +82,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If the user is signed in and the current path is a public route, redirect to the dashboard
-  if (session && publicRoutes.includes(pathname)) {
+  // If the user is signed in and the current path is a signin or signup page, redirect to the dashboard
+  // But don't redirect for other public routes like verify-email or update-password
+  if (session && (pathname === '/auth/signin' || pathname === '/auth/signup')) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 

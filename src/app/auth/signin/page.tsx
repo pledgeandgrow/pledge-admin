@@ -1,17 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { EyeIcon, EyeOffIcon, Loader2 } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, Loader2, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-
-// Create a single supabase client for interacting with your database
-const supabase = createClient();
+import { toast } from '@/components/ui/use-toast';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
@@ -20,13 +20,31 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const message = searchParams.get('message');
+  const { signIn } = useAuth();
+  const supabase = createClient();
   
   // Redirect URL is handled by the signIn function in AuthContext
 
-  // Check for existing session on mount
+  // Check for existing session and message on mount
   useEffect(() => {
     let isActive = true;
     setIsMounted(true);
+    
+    // Check for success message in URL
+    if (message) {
+      setSuccessMessage(message);
+      // Show toast notification
+      toast({
+        title: "Success",
+        description: message,
+        variant: "default",
+      });
+    }
     
     const checkSession = async () => {
       try {
@@ -34,9 +52,7 @@ export default function SignInPage() {
         
         if (isActive && currentSession) {
           // If we have a session but are still on the sign-in page, redirect to dashboard
-          if (window.location.pathname.startsWith('/auth/signin')) {
-            window.location.href = '/dashboard';
-          }
+          router.push('/dashboard');
         }
       } catch (error) {
         if (isActive) {
@@ -51,7 +67,7 @@ export default function SignInPage() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [router, message, supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,10 +82,8 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password.trim(),
-      });
+      // Use the signIn function from AuthContext
+      const { error } = await signIn(email.trim(), password.trim());
       
       if (error) {
         // Handle specific error cases
@@ -78,7 +92,7 @@ export default function SignInPage() {
         } else if (error.message.includes('Email not confirmed')) {
           // If email is not confirmed, redirect to verification page
           const verificationUrl = `/auth/verify-email?email=${encodeURIComponent(email)}`;
-          window.location.href = verificationUrl;
+          router.push(verificationUrl);
           return;
         } else if (error.message.includes('Email rate limit exceeded')) {
           setError('Too many attempts. Please try again later.');
@@ -88,10 +102,8 @@ export default function SignInPage() {
         return;
       }
       
-      if (data?.user) {
-        // Force a page reload to ensure all auth state is updated
-        window.location.href = '/dashboard';
-      }
+      // If no error, the AuthContext will handle the session and redirect
+      router.push('/dashboard');
     } catch (err) {
       console.error('Sign in error:', err);
       setError('An unexpected error occurred. Please try again.');
@@ -151,6 +163,16 @@ export default function SignInPage() {
                 role="alert"
               >
                 {error}
+              </div>
+            )}
+            
+            {successMessage && (
+              <div 
+                className="p-3 bg-green-900/50 border border-green-800 text-green-200 rounded text-sm flex items-center"
+                role="alert"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                {successMessage}
               </div>
             )}
 

@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, ArrowLeft, MailCheck } from 'lucide-react';
+import { Loader2, ArrowLeft, MailCheck, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from '@/components/ui/use-toast';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -30,16 +31,37 @@ export default function ForgotPasswordPage() {
     setError(null);
     setIsLoading(true);
 
-    const { error } = await resetPassword(email);
-    
-    setIsLoading(false);
-    
-    if (error) {
-      setError(error.message);
-      return;
+    try {
+      // Basic validation
+      if (!email || !email.includes('@')) {
+        setError('Please enter a valid email address');
+        setIsLoading(false);
+        return;
+      }
+
+      const { error } = await resetPassword(email.trim());
+      
+      if (error) {
+        console.error('Password reset error:', error.message);
+        setError(error.message);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Show success toast
+      toast({
+        title: "Reset link sent",
+        description: "Check your email for password reset instructions.",
+        variant: "default",
+      });
+      
+      setIsSuccess(true);
+    } catch (err) {
+      console.error('Unexpected error during password reset:', err);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsSuccess(true);
   };
 
   if (!isMounted) {
@@ -89,9 +111,10 @@ export default function ForgotPasswordPage() {
             <CardContent className="space-y-4">
               {error && (
                 <div 
-                  className="p-3 bg-red-900/50 border border-red-800 text-red-200 rounded text-sm"
+                  className="p-3 bg-red-900/50 border border-red-800 text-red-200 rounded text-sm flex items-center"
                   role="alert"
                 >
+                  <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
                   {error}
                 </div>
               )}

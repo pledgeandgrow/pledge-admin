@@ -1,13 +1,25 @@
 'use client';
 
-import React from 'react';
-// Le composant Automatisation sera implémenté ultérieurement
+import { useData } from '@/hooks/useData';
+import { AutomationHeader } from '@/components/informatique/automatisation/AutomationHeader';
+import { AutomationList } from '@/components/informatique/automatisation/AutomationList';
 
 export default function AutomatisationPage() {
+  // Using 'documentation' type as a placeholder since 'automation' is not in DataType
+  const { data: automations = [], loading, error } = useData('documentation');
+
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">Solutions d&apos;Automatisation</h1>
-      <p>Contenu à venir prochainement...</p>
+    <div className="container mx-auto py-10 space-y-8">
+      <AutomationHeader 
+        title="Solutions d'Automatisation" 
+        subtitle="Découvrez nos outils et solutions pour automatiser vos processus" 
+      />
+      
+      <AutomationList 
+        automations={automations} 
+        isLoading={loading} 
+        error={error} 
+      />
     </div>
   );
 }

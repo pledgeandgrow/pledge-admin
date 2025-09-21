@@ -86,12 +86,15 @@ export function SpecificationList({}: SpecificationListProps) {
     if (documentTypes && documentTypes.length > 0) {
       // Find the document type for specifications
       const specType = documentTypes.find(type => 
+        type.name.toLowerCase() === 'cahier_des_charges' || 
         type.name.toLowerCase().includes('specification') || 
         type.name.toLowerCase().includes('cahier des charges'));
       
       if (specType) {
         setDocumentTypeId(specType.id);
         fetchDocuments();
+      } else {
+        console.warn('No document type found for cahier des charges');
       }
     }
   }, [documentTypes, fetchDocuments]);
@@ -154,6 +157,24 @@ export function SpecificationList({}: SpecificationListProps) {
   // Handle creating a document
   const handleCreateDocument = async (data: CreateDocumentParams) => {
     try {
+      // Ensure document_type_id is set
+      if (!data.document_type_id && documentTypeId) {
+        data.document_type_id = documentTypeId;
+      }
+      
+      // Ensure metadata is properly formatted
+      if (data.metadata) {
+        // Make sure content is a string
+        if (typeof data.metadata.content !== 'string') {
+          data.metadata.content = String(data.metadata.content || '');
+        }
+        
+        // Make sure status is one of the valid values
+        if (!['Draft', 'Review', 'Approved', 'Archived'].includes(String(data.metadata.status))) {
+          data.metadata.status = 'Draft';
+        }
+      }
+      
       await createDocument(data);
       setCreateDialogOpen(false);
       await fetchDocuments();
@@ -174,6 +195,19 @@ export function SpecificationList({}: SpecificationListProps) {
   // Handle updating a document
   const handleUpdateDocument = async (data: UpdateDocumentParams) => {
     try {
+      // Ensure metadata is properly formatted
+      if (data.metadata) {
+        // Make sure content is a string
+        if (typeof data.metadata.content !== 'string') {
+          data.metadata.content = String(data.metadata.content || '');
+        }
+        
+        // Make sure status is one of the valid values
+        if (!['Draft', 'Review', 'Approved', 'Archived'].includes(String(data.metadata.status))) {
+          data.metadata.status = 'Draft';
+        }
+      }
+      
       await updateDocument(data);
       setEditDialogOpen(false);
       setSelectedDocument(null);

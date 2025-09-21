@@ -113,35 +113,35 @@ export function MegaMenu() {
         }
       ]
     },
-    {
-      id: 'communication',
-      label: 'Communication',
-      icon: '📢',
-      subItems: [
-        { href: '/communication/presse', icon: '📰', label: 'Presse' },
-        { href: '/communication/relations-publiques/page', icon: '🤝', label: 'Relations Publiques' },
-        { href: '/communication/newsletter', icon: '📧', label: 'Newsletter' },
-        { href: '/communication/evenements', icon: '🎪', label: 'Événements' },
-        { href: '/communication/blog', icon: '✍️', label: 'Blog' },
-      ],
-    },
-    {
-      id: 'comptabilite',
-      label: 'Finance',
-      icon: '💰',
-      subItems: [
-        { href: '/comptabilite/facture', icon: '💸', label: 'Facture' },
-        { href: '/comptabilite/devis', icon: '📜', label: 'Devis' },
-        { href: '/comptabilite/depenses', icon: '💰', label: 'Dépenses' },
-        { href: '/comptabilite/recettes', icon: '📈', label: 'Recettes' },
-        { href: '/comptabilite/gestion-fournisseurs', icon: '👥', label: 'Fournisseurs' },
-        { href: '/comptabilite/comptes-bancaires', icon: '🏦', label: 'Comptes bancaires' },
-        { href: '/comptabilite/ecritures-comptables', icon: '📝', label: 'Écritures comptables' },
-        { href: '/comptabilite/tva-et-taxes', icon: '💼', label: 'TVA & Taxes' },
-        { href: '/comptabilite/rapports-financiers', icon: '📊', label: 'Rapports financiers' },
-        { href: '/comptabilite/salaires-paiements', icon: '💵', label: 'Salaires & Paiements' },
-      ],
-    },
+    // {
+    //   id: 'communication',
+    //   label: 'Communication',
+    //   icon: '📢',
+    //   subItems: [
+    //     { href: '/communication/presse', icon: '📰', label: 'Presse' },
+    //     { href: '/communication/relations-publiques/page', icon: '🤝', label: 'Relations Publiques' },
+    //     { href: '/communication/newsletter', icon: '📧', label: 'Newsletter' },
+    //     { href: '/communication/evenements', icon: '🎪', label: 'Événements' },
+    //     { href: '/communication/blog', icon: '✍️', label: 'Blog' },
+    //   ],
+    // },
+    // {
+    //   id: 'comptabilite',
+    //   label: 'Finance',
+    //   icon: '💰',
+    //   subItems: [
+    //     { href: '/comptabilite/facture', icon: '💸', label: 'Facture' },
+    //     { href: '/comptabilite/devis', icon: '📜', label: 'Devis' },
+    //     { href: '/comptabilite/depenses', icon: '💰', label: 'Dépenses' },
+    //     { href: '/comptabilite/recettes', icon: '📈', label: 'Recettes' },
+    //     { href: '/comptabilite/gestion-fournisseurs', icon: '👥', label: 'Fournisseurs' },
+    //     { href: '/comptabilite/comptes-bancaires', icon: '🏦', label: 'Comptes bancaires' },
+    //     { href: '/comptabilite/ecritures-comptables', icon: '📝', label: 'Écritures comptables' },
+    //     { href: '/comptabilite/tva-et-taxes', icon: '💼', label: 'TVA & Taxes' },
+    //     { href: '/comptabilite/rapports-financiers', icon: '📊', label: 'Rapports financiers' },
+    //     { href: '/comptabilite/salaires-paiements', icon: '💵', label: 'Salaires & Paiements' },
+    //   ],
+    // },
     {
       id: 'informatique',
       label: 'Informatique',
@@ -150,81 +150,74 @@ export function MegaMenu() {
         { href: '/informatique/fiche-technique', icon: '📋', label: 'Fiche Technique' },
         { href: '/informatique/cahier-des-charges', icon: '📑', label: 'Cahier des charges' },
         { href: '/informatique/projets', icon: '📊', label: 'Projets' },
-        { href: '/informatique/mise-a-jour', icon: '🔄', label: 'Mise à jour' },
-        { href: '/informatique/test-et-validation', icon: '✅', label: 'Test et validation' },
-        { href: '/informatique/serveurs', icon: '🖥️', label: 'Serveurs' },
-        { href: '/informatique/vpn-acces', icon: '🔑', label: 'VPN & Accès' },
         { href: '/informatique/nom-de-domaine', icon: '🌐', label: 'Nom de domaine' },
-        { href: '/informatique/architectures', icon: '🏗️', label: 'Architectures' },
+        { href: '/informatique/license-stock', icon: '📦', label: 'Licences & Stock' },
+        { href: '/informatique/support-center', icon: '🛟', label: 'Centre de Support' },
         { href: '/informatique/automatisation', icon: '🤖', label: 'Automatisation' },
-        { href: '/informatique/devops', icon: '⚙️', label: 'DevOps' },
         { href: '/informatique/cybersecurite', icon: '🔒', label: 'Cybersécurité' },
         { href: '/informatique/documentations', icon: '📚', label: 'Documentations' },
-        { href: '/informatique/outils-metiers', icon: '🛠️', label: 'Outils Métiers' },
       ]
     },
 
-    {
-      id: 'marketing',
-      label: 'Marketing',
-      icon: '🎯',
-      subItems: [
-        {
-          href: '/marketing/email-marketing',
-          icon: '📧',
-          label: 'Email Marketing'
-        },
-        {
-          href: '/marketing/reseaux-sociaux',
-          icon: '🌐',
-          label: 'Réseaux Sociaux'
-        },
-        {
-          href: '/marketing/publicite',
-          icon: '📢',
-          label: 'Publicité'
-        },
-        {
-          href: '/marketing/contenu',
-          icon: '📝',
-          label: 'Contenu'
-        },
-        {
-          href: '/marketing/branding',
-          icon: '🎨',
-          label: 'Branding'
-        },
-        {
-          href: '/marketing/affiliation',
-          icon: '🤝',
-          label: 'Affiliation'
-        },
-        {
-          href: '/marketing/fidelisation',
-          icon: '🎯',
-          label: 'Fidélisation'
-        },
-        {
-          href: '/marketing/seo-sem',
-          icon: '🔍',
-          label: 'SEO/SEM'
-        }
-      ]
-    },
-    {
-      id: 'rh',
-      label: 'RH',
-      icon: '👥',
-      subItems: [
-        { href: '/ressources-humaines/recrutement', icon: '🔍', label: 'Recrutement' },
-        { href: '/ressources-humaines/staff', icon: '👥', label: 'Staff' },
-        { href: '/ressources-humaines/formation', icon: '📚', label: 'Formation' },
-        { href: '/ressources-humaines/administration', icon: '📋', label: 'Administration' },
-        { href: '/ressources-humaines/conformite', icon: '⚖️', label: 'Conformité' },
-        { href: '/ressources-humaines/paie', icon: '💰', label: 'Paie' },
-        { href: '/ressources-humaines/performance', icon: '📊', label: 'Performance' },
-      ],
-    },
+    // {
+    //   id: 'marketing',
+    //   label: 'Marketing',
+    //   icon: '🎯',
+    //   subItems: [
+    //     {
+    //       href: '/marketing/email-marketing',
+    //       icon: '📧',
+    //       label: 'Email Marketing'
+    //     },
+    //     {
+    //       href: '/marketing/reseaux-sociaux',
+    //       icon: '🌐',
+    //       label: 'Réseaux Sociaux'
+    //     },
+    //     {
+    //       href: '/marketing/publicite',
+    //       icon: '📢',
+    //       label: 'Publicité'
+    //     },
+    //     {
+    //       href: '/marketing/contenu',
+    //       icon: '📝',
+    //       label: 'Contenu'
+    //     },
+    //     {
+    //       href: '/marketing/branding',
+    //       icon: '🎨',
+    //       label: 'Branding'
+    //     },
+    //     {
+    //       href: '/marketing/affiliation',
+    //       icon: '🤝',
+    //       label: 'Affiliation'
+    //     },
+    //     {
+    //       href: '/marketing/fidelisation',
+    //       icon: '🎯',
+    //       label: 'Fidélisation'
+    //     },
+    //     {
+    //       href: '/marketing/seo-sem',
+    //       icon: '🔍',
+    //       label: 'SEO/SEM'
+    //     }
+    //   ]
+    // },
+    // {
+    //   id: 'rh',
+    //   label: 'RH',
+    //   icon: '👥',
+    //   subItems: [
+    //     { href: '/ressources-humaines/recrutement', icon: '🔍', label: 'Recrutement' },
+    //     { href: '/ressources-humaines/staff', icon: '👥', label: 'Staff' },
+    //     { href: '/ressources-humaines/formation', icon: '📚', label: 'Formation' },
+    //     { href: '/ressources-humaines/administration', icon: '📋', label: 'Administration' },
+    //     { href: '/ressources-humaines/conformite', icon: '⚖️', label: 'Conformité' },
+    //   ],
+    // },
 
     {
       id: 'workspace',
@@ -283,7 +276,15 @@ export function MegaMenu() {
 
         {/* Menu Items */}
         <div className="flex-1 overflow-y-auto">
-          {menuItems.filter(item => item.id !== 'logo-section' && item.id !== 'parametres').map((item) => (
+          {menuItems.filter(item => 
+            item.id !== 'logo-section' && 
+            item.id !== 'parametres' && 
+            item.id !== 'communication' && 
+            item.id !== 'rh' &&
+            item.id !== 'comptabilite' &&
+            item.id !== 'informatique' &&
+            item.id !== 'marketing'
+          ).map((item) => (
             <div key={item.id} className="relative">
               {item.id === 'dashboard' ? (
                 <Link

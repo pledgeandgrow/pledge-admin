@@ -1,168 +1,427 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Contact, ContactType } from '@/types/contact';
-import * as contactService from '@/services/contactService';
-import { ContactFilters } from '@/services/contactService';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createClient } from '@/lib/supabase';
+
+export type ContactType = 
+  'board-member' | 'external' | 'freelance' | 'member' | 
+  'network' | 'partner' | 'waitlist' | 'blacklist' | 
+  'lead' | 'client' | 'investor';
+
+export interface Contact {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  type: ContactType;
+  status: string;
+  notes?: string;
+  metadata?: Record<string, any>;
+  company?: string;
+  position?: string;
+  tags?: string[];
+  created_at: string;
+  updated_at: string;
+  
+  // Type-specific fields
+  service?: string;
+  waitlist_position?: number;
+  joined_at?: string;
+  reason?: string;
+  added_by?: string;
+  expires_at?: string;
+  source?: string;
+  probability?: number;
+  last_contacted_at?: string;
+  next_follow_up?: string;
+  estimated_value?: number;
+  first_contact_date?: string;
+  last_purchase_date?: string;
+  total_spent?: number;
+  investment_stage?: string;
+  investment_focus?: string[];
+  portfolio_companies?: string[];
+  minimum_check_size?: number;
+  maximum_check_size?: number;
+  preferred_industries?: string[];
+  last_contact_date?: string;
+  investment_status?: string;
+}
+
+export interface ContactActivity {
+  id: string;
+  contact_id: string;
+  contact_name: string;
+  activity_type: string;
+  description: string;
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
+interface ContactFilters {
+  type?: ContactType | ContactType[];
+  status?: string | string[];
+  search?: string;
+  tags?: string[];
+  updatedAfter?: Date;
+  updatedBefore?: Date;
+}
 
 interface UseContactsOptions {
   type?: ContactType | ContactType[];
-  initialFilters?: ContactFilters;
-  autoFetch?: boolean;
+  initialFilters?: {
+    orderBy?: string;
+    orderDirection?: 'asc' | 'desc';
+    search?: string;
+    status?: string | string[];
+    tags?: string[];
+  };
 }
 
-interface UseContactsReturn {
-  contacts: Contact[];
-  loading: boolean;
-  error: Error | null;
-  totalCount: number;
-  fetchContacts: (filters?: ContactFilters) => Promise<void>;
-  createContact: (contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => Promise<Contact>;
-  updateContact: (id: string, contact: Partial<Contact>) => Promise<Contact>;
-  deleteContact: (id: string) => Promise<boolean>;
-  filters: ContactFilters;
-  setFilters: (filters: ContactFilters) => void;
-  refetch: () => Promise<void>;
-}
-
-export const useContacts = (options: UseContactsOptions = {}): UseContactsReturn => {
-  const { type, initialFilters = {}, autoFetch = true } = options;
-  
+export const useContacts = (options?: UseContactsOptions) => {
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [loading, setLoading] = useState<boolean>(autoFetch);
-  const [error, setError] = useState<Error | null>(null);
-  const [totalCount, setTotalCount] = useState<number>(0);
-  const [filters, setFilters] = useState<ContactFilters>({
-    ...initialFilters,
-    type: type || initialFilters.type,
-  });
+  const [recentActivities, setRecentActivities] = useState<ContactActivity[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [realtimeEnabled, setRealtimeEnabled] = useState<boolean>(false);
+  const supabase = createClient();
+  const supabaseChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  const fetchContacts = useCallback(async (newFilters?: ContactFilters) => {
+  const fetchContacts = useCallback(async (filters?: ContactFilters) => {
+    // Merge options.initialFilters with provided filters
+    const mergedFilters: ContactFilters = {
+      ...(options?.initialFilters || {}),
+      ...(filters || {}),
+    };
+    
+    // Always use the type filter from options if provided
+    if (options?.type) {
+      mergedFilters.type = options.type;
+    }
     try {
-      setLoading(true);
+      setIsLoading(true);
       setError(null);
+
+      let query = supabase
+        .from('contacts')
+        .select('*');
       
-      const mergedFilters = newFilters ? { ...filters, ...newFilters } : filters;
-      
-      // Fetch contacts with the current filters
-      const data = await contactService.getContacts(mergedFilters);
-      setContacts(data);
-      
-      // Get total count (without pagination)
-      const countFilters = { ...mergedFilters };
-      delete countFilters.limit;
-      delete countFilters.offset;
-      
-      // We're not actually fetching all contacts here, just getting the count from the stats
+      // Apply filters if provided
+      // Always apply type filter from mergedFilters
       if (mergedFilters.type) {
-        const stats = await contactService.getContactStatsByType();
-        const relevantTypes = Array.isArray(mergedFilters.type) 
-          ? mergedFilters.type 
-          : [mergedFilters.type];
-          
-        const count = stats
-          .filter(stat => relevantTypes.includes(stat.type as ContactType))
-          .reduce((acc, stat) => acc + stat.count, 0);
-          
-        setTotalCount(count);
-      } else {
-        // If no type filter, just use the length of the returned data
-        // This is not ideal but avoids fetching all contacts just for the count
-        setTotalCount(data.length);
+        const types = Array.isArray(mergedFilters.type) ? mergedFilters.type : [mergedFilters.type];
+        query = query.in('type', types);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      
+      // Apply other filters if provided
+      if (filters) {
+        
+        if (filters.status) {
+          const statuses = Array.isArray(filters.status) ? filters.status : [filters.status];
+          query = query.in('status', statuses);
+        }
+        
+        if (filters.search) {
+          query = query.or(`first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,company.ilike.%${filters.search}%`);
+        }
+        
+        if (filters.tags && filters.tags.length > 0) {
+          // For array columns, we need to use the contains operator
+          query = query.contains('tags', filters.tags);
+        }
+        
+        if (filters.updatedAfter) {
+          query = query.gte('updated_at', filters.updatedAfter.toISOString());
+        }
+        
+        if (filters.updatedBefore) {
+          query = query.lte('updated_at', filters.updatedBefore.toISOString());
+        }
+      }
+      
+      // Add ordering by updated_at (most recent first)
+      query = query.order('updated_at', { ascending: false });
+      
+      const { data, error } = await query;
+
+      if (error) {
+        throw error;
+      }
+
+      setContacts(data || []);
+      
+      // Generate mock recent activities based on contacts
+      // In a real app, this would come from a separate table or be generated from events
+      if (data && data.length > 0) {
+        const mockActivities: ContactActivity[] = [];
+        
+        // Generate activities for the 10 most recently updated contacts
+        const recentContacts = [...data].sort((a, b) => 
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        ).slice(0, 10);
+        
+        recentContacts.forEach(contact => {
+          // Create a random activity type
+          const activityTypes = ['added', 'updated', 'contacted', 'meeting', 'note'];
+          const randomType = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+          
+          let description = '';
+          switch (randomType) {
+            case 'added':
+              description = `${contact.first_name} ${contact.last_name} a été ajouté comme ${contact.type}`;
+              break;
+            case 'updated':
+              description = `Les informations de ${contact.first_name} ${contact.last_name} ont été mises à jour`;
+              break;
+            case 'contacted':
+              description = `${contact.first_name} ${contact.last_name} a été contacté par email`;
+              break;
+            case 'meeting':
+              description = `Réunion planifiée avec ${contact.first_name} ${contact.last_name}`;
+              break;
+            case 'note':
+              description = `Note ajoutée pour ${contact.first_name} ${contact.last_name}`;
+              break;
+          }
+          
+          mockActivities.push({
+            id: `activity-${contact.id}`,
+            contact_id: contact.id,
+            contact_name: `${contact.first_name} ${contact.last_name}`,
+            activity_type: randomType,
+            description,
+            timestamp: contact.updated_at,
+            metadata: {
+              contact_type: contact.type,
+              company: contact.company
+            }
+          });
+        });
+        
+        setRecentActivities(mockActivities);
+      }
+    } catch (err: any) {
       console.error('Error fetching contacts:', err);
+      setError(err.message || 'Failed to fetch contacts');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  }, [filters]);
+  }, [supabase]);
 
-  const refetch = useCallback(() => fetchContacts(), [fetchContacts]);
-
-  const createContactHandler = useCallback(async (contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => {
+  const createContact = useCallback(async (contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      // Validate required fields before sending to service
-      if (!contact.first_name || !contact.last_name || !contact.type || !contact.status) {
-        const error = new Error('Missing required fields for contact creation');
-        console.error('Validation error in useContacts:', error, { contact });
-        setError(error);
+      setIsLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from('contacts')
+        .insert(contact)
+        .select()
+        .single();
+
+      if (error) {
         throw error;
       }
 
-      // Ensure type is set correctly
-      if (!contact.type) {
-        console.warn('Contact type not set, this may cause issues');
-      }
+      setContacts(prev => [data, ...prev]);
+      return data;
+    } catch (err: any) {
+      console.error('Error creating contact:', err);
+      setError(err.message || 'Failed to create contact');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [supabase]);
 
-      console.log('Creating contact in useContacts hook:', JSON.stringify(contact, null, 2));
-      const newContact = await contactService.createContact(contact);
-      
-      if (!newContact || !newContact.id) {
-        const error = new Error('Failed to create contact: Invalid response');
-        setError(error);
+  const updateContact = useCallback(async (id: string, updates: Partial<Contact>) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from('contacts')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
         throw error;
       }
-      
-      console.log('Contact created successfully:', newContact.id);
-      setContacts(prev => [newContact, ...prev]);
-      setTotalCount(prev => prev + 1);
-      return newContact;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('An unknown error occurred creating contact');
-      setError(error);
-      console.error('Error creating contact in useContacts hook:', error);
-      throw error;
-    }
-  }, []);
 
-  const updateContactHandler = useCallback(async (id: string, contact: Partial<Contact>) => {
-    try {
-      const updatedContact = await contactService.updateContact(id, contact);
-      setContacts(prev => 
-        prev.map(c => c.id === id ? { ...c, ...updatedContact } as Contact : c)
-      );
-      return updatedContact;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      setContacts(prev => prev.map(contact => contact.id === id ? data : contact));
+      return data;
+    } catch (err: any) {
       console.error('Error updating contact:', err);
+      setError(err.message || 'Failed to update contact');
       throw err;
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
+  }, [supabase]);
 
-  const deleteContactHandler = useCallback(async (id: string) => {
+  const deleteContact = useCallback(async (id: string) => {
     try {
-      await contactService.deleteContact(id);
-      setContacts(prev => prev.filter(c => c.id !== id));
-      setTotalCount(prev => prev - 1);
+      setIsLoading(true);
+      setError(null);
+
+      const { error } = await supabase
+        .from('contacts')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+
+      setContacts(prev => prev.filter(contact => contact.id !== id));
       return true;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+    } catch (err: any) {
       console.error('Error deleting contact:', err);
-      throw err;
+      setError(err.message || 'Failed to delete contact');
+      return false;
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
+  }, [supabase]);
 
-  const setFiltersHandler = useCallback((newFilters: ContactFilters) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-  }, []);
+  // Get contact statistics
+  const getContactStatistics = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('type, status');
+      
+      if (error) {
+        throw error;
+      }
+      
+      const stats = {
+        total: data.length,
+        byType: {
+          client: data.filter(c => c.type === 'client').length,
+          lead: data.filter(c => c.type === 'lead').length,
+          partner: data.filter(c => c.type === 'partner').length,
+          member: data.filter(c => c.type === 'member').length,
+          freelance: data.filter(c => c.type === 'freelance').length,
+          investor: data.filter(c => c.type === 'investor').length,
+          other: data.filter(c => !['client', 'lead', 'partner', 'member', 'freelance', 'investor'].includes(c.type)).length
+        }
+      };
+      
+      return stats;
+    } catch (err: any) {
+      console.error('Error getting contact statistics:', err);
+      return {
+        total: 0,
+        byType: { client: 0, lead: 0, partner: 0, member: 0, freelance: 0, investor: 0, other: 0 }
+      };
+    }
+  }, [supabase]);
 
+  // Setup realtime subscription
+  const setupRealtimeSubscription = useCallback(() => {
+    if (!realtimeEnabled) return;
+    
+    // Clean up any existing subscription
+    if (supabaseChannel.current) {
+      supabase.removeChannel(supabaseChannel.current);
+    }
+    
+    // Create a new subscription
+    const channel = supabase
+      .channel('contacts-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'contacts' }, 
+        async (payload) => {
+          console.log('Realtime change received:', payload);
+          
+          // Handle the different types of changes
+          if (payload.eventType === 'INSERT') {
+            const newContact = payload.new as Contact;
+            // Only add if it matches our filters (if any)
+            if (options?.type && Array.isArray(options.type)) {
+              if (!options.type.includes(newContact.type as ContactType)) return;
+            } else if (options?.type && newContact.type !== options.type) {
+              return;
+            }
+            setContacts(prev => [newContact, ...prev]);
+          } 
+          else if (payload.eventType === 'UPDATE') {
+            const updatedContact = payload.new as Contact;
+            
+            // Check if the updated contact matches our type filter
+            if (options?.type) {
+              const typeFilter = Array.isArray(options.type) ? options.type : [options.type];
+              
+              // If the contact type doesn't match our filter, remove it from the list
+              if (!typeFilter.includes(updatedContact.type as ContactType)) {
+                setContacts(prev => prev.filter(contact => contact.id !== updatedContact.id));
+                return;
+              }
+            }
+            
+            // Update the contact in our list
+            setContacts(prev => 
+              prev.map(contact => 
+                contact.id === updatedContact.id ? updatedContact : contact
+              )
+            );
+          } 
+          else if (payload.eventType === 'DELETE') {
+            const deletedContactId = payload.old.id;
+            
+            // Always remove deleted contacts from our list
+            setContacts(prev => 
+              prev.filter(contact => contact.id !== deletedContactId)
+            );
+          }
+        }
+      )
+      .subscribe();
+    
+    supabaseChannel.current = channel;
+    
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [realtimeEnabled, supabase, options]);
+  
+  // Toggle realtime subscription
+  const toggleRealtime = useCallback(() => {
+    setRealtimeEnabled(prev => !prev);
+  }, []);
+  
+  // Effect for realtime subscription
   useEffect(() => {
-    if (autoFetch) {
-      fetchContacts();
+    const cleanup = setupRealtimeSubscription();
+    return cleanup;
+  }, [setupRealtimeSubscription]);
+  
+  // Load contacts on component mount with the type filter
+  useEffect(() => {
+    // Create a filter with the type from options
+    const initialFilter: ContactFilters = {};
+    if (options?.type) {
+      initialFilter.type = options.type;
     }
-  }, [autoFetch, fetchContacts]);
+    fetchContacts(initialFilter);
+  }, [fetchContacts]);
 
   return {
     contacts,
-    loading,
+    recentActivities,
+    isLoading,
     error,
-    totalCount,
     fetchContacts,
-    createContact: createContactHandler,
-    updateContact: updateContactHandler,
-    deleteContact: deleteContactHandler,
-    filters,
-    setFilters: setFiltersHandler,
-    refetch,
+    createContact,
+    updateContact,
+    deleteContact,
+    getContactStatistics,
+    realtimeEnabled,
+    toggleRealtime
   };
 };
 

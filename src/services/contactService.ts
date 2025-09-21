@@ -23,37 +23,37 @@ export interface ContactFilters {
 
 export const getContacts = async (filters: ContactFilters = {}) => {
   try {
-    let query = supabase
+    let queryBuilder = supabase
       .from('contacts')
       .select('*');
 
     // Apply type filter
     if (filters.type) {
       if (Array.isArray(filters.type)) {
-        query = query.in('type', filters.type);
+        queryBuilder = queryBuilder.in('type', filters.type);
       } else {
-        query = query.eq('type', filters.type);
+        queryBuilder = queryBuilder.eq('type', filters.type);
       }
     }
 
     // Apply status filter
     if (filters.status) {
       if (Array.isArray(filters.status)) {
-        query = query.in('status', filters.status);
+        queryBuilder = queryBuilder.in('status', filters.status);
       } else {
-        query = query.eq('status', filters.status);
+        queryBuilder = queryBuilder.eq('status', filters.status);
       }
     }
 
     // Apply company filter
     if (filters.company) {
-      query = query.eq('company', filters.company);
+      queryBuilder = queryBuilder.eq('company', filters.company);
     }
 
     // Apply search filter - use more efficient Supabase text search
     if (filters.search) {
       const searchTerm = `%${filters.search}%`;
-      query = query.or(
+      queryBuilder = queryBuilder.or(
         `first_name.ilike.${searchTerm},` +
         `last_name.ilike.${searchTerm},` +
         `email.ilike.${searchTerm},` +
@@ -64,21 +64,21 @@ export const getContacts = async (filters: ContactFilters = {}) => {
 
     // Apply pagination
     if (filters.limit) {
-      query = query.limit(filters.limit);
+      queryBuilder = queryBuilder.limit(filters.limit);
     }
 
     if (filters.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
+      queryBuilder = queryBuilder.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
     }
 
     // Apply ordering
     if (filters.orderBy) {
-      query = query.order(filters.orderBy, { ascending: filters.orderDirection !== 'desc' });
+      queryBuilder = queryBuilder.order(filters.orderBy, { ascending: filters.orderDirection !== 'desc' });
     } else {
-      query = query.order('updated_at', { ascending: false });
+      queryBuilder = queryBuilder.order('updated_at', { ascending: false });
     }
 
-    const { data, error } = await query;
+    const { data, error } = await queryBuilder;
 
     if (error) {
       console.error('Error fetching contacts:', error);

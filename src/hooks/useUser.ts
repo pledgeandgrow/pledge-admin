@@ -98,7 +98,7 @@ export function useUser(): UseUserReturn {
     return () => {
       subscription?.unsubscribe();
     };
-  }, [fetchUserProfile, supabase.auth]);
+  }, [fetchUserProfile, supabase, supabase.auth]);
 
   // Update user profile
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {

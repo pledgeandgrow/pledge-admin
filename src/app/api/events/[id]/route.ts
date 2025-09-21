@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { Database } from '@/types/supabase';
+import { Database } from '@/types/database';
 
 export async function GET(
   request: NextRequest,
@@ -9,7 +9,13 @@ export async function GET(
 ) {
   try {
     const eventId = params.id;
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: cookies
+      }
+    );
     
     // Check if user is authenticated
     const { data: { session } } = await supabase.auth.getSession();
@@ -45,7 +51,13 @@ export async function PUT(
 ) {
   try {
     const eventId = params.id;
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: cookies
+      }
+    );
     
     // Check if user is authenticated
     const { data: { session } } = await supabase.auth.getSession();
@@ -88,7 +100,13 @@ export async function DELETE(
 ) {
   try {
     const eventId = params.id;
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: cookies
+      }
+    );
     
     // Check if user is authenticated
     const { data: { session } } = await supabase.auth.getSession();

@@ -13,6 +13,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { useEvents } from '@/hooks/useEvents';
 import { toast } from '@/components/ui/use-toast';
 import { Plus } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 
 export default function CalendarPage() {
@@ -33,7 +34,7 @@ export default function CalendarPage() {
   // Apply filters when they change
   useEffect(() => {
     fetchEvents(filter);
-  }, [filter]);
+  }, [filter, fetchEvents]);
   
   // Show error toast if there's an error fetching events
   useEffect(() => {
@@ -56,89 +57,16 @@ export default function CalendarPage() {
     setIsModalOpen(true);
   };
   
-  // Handle event drag and drop
+  // We're not supporting drag and drop or resize with our custom calendar implementation
+  // These are placeholder functions to maintain the interface
   const handleEventDrop = async (event: CalendarEvent, delta: { days: number; minutes: number }) => {
-    try {
-      setIsSaving(true);
-      
-      // Calculate new start and end dates
-      const startDate = new Date(event.start_datetime);
-      startDate.setDate(startDate.getDate() + delta.days);
-      startDate.setMinutes(startDate.getMinutes() + delta.minutes);
-      
-      let endDate = event.end_datetime ? new Date(event.end_datetime) : null;
-      if (endDate) {
-        endDate.setDate(endDate.getDate() + delta.days);
-        endDate.setMinutes(endDate.getMinutes() + delta.minutes);
-      }
-      
-      // Prepare updated event data
-      const updatedEvent: CalendarEventFormData = {
-        ...event,
-        start_datetime: startDate,
-        end_datetime: endDate || undefined,
-      };
-      
-      // Update the event
-      await updateEvent(event.event_id, updatedEvent);
-      
-      toast({
-        title: "Success",
-        description: "Event updated successfully",
-      });
-      
-      // Refresh events with current filters
-      await fetchEvents(filter);
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to update event",
-        variant: "destructive",
-      });
-      // Refresh to revert the UI change
-      await fetchEvents(filter);
-    } finally {
-      setIsSaving(false);
-    }
+    // Not implemented in our custom calendar view
+    console.log('Event drag and drop not supported in this calendar implementation');
   };
   
-  // Handle event resize
   const handleEventResize = async (event: CalendarEvent, delta: { days: number; minutes: number }) => {
-    try {
-      setIsSaving(true);
-      
-      // Calculate new end date
-      let endDate = event.end_datetime ? new Date(event.end_datetime) : new Date(event.start_datetime);
-      endDate.setDate(endDate.getDate() + delta.days);
-      endDate.setMinutes(endDate.getMinutes() + delta.minutes);
-      
-      // Prepare updated event data
-      const updatedEvent: CalendarEventFormData = {
-        ...event,
-        end_datetime: endDate,
-      };
-      
-      // Update the event
-      await updateEvent(event.event_id, updatedEvent);
-      
-      toast({
-        title: "Success",
-        description: "Event updated successfully",
-      });
-      
-      // Refresh events with current filters
-      await fetchEvents(filter);
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to update event",
-        variant: "destructive",
-      });
-      // Refresh to revert the UI change
-      await fetchEvents(filter);
-    } finally {
-      setIsSaving(false);
-    }
+    // Not implemented in our custom calendar view
+    console.log('Event resize not supported in this calendar implementation');
   };
 
   const handleDateSelect = (start: Date, end: Date, allDay: boolean) => {
@@ -226,68 +154,76 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-8 space-y-6">
+      <div className="flex flex-col space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+          Calendrier des Événements
+        </h1>
+        <p className="text-muted-foreground">
+          Gérez vos événements et votre planning
+        </p>
+      </div>
+      
+      <Separator className="my-6" />
+      
       <div className="flex justify-between items-center">
-        <div className="space-y-1">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Calendar</h2>
-          <p className="text-muted-foreground">Manage your events and schedule</p>
-        </div>
+        <div></div>
         <Button 
           onClick={handleCreateEvent} 
           className="bg-primary hover:bg-primary/90 text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Create Event
+          Créer un événement
         </Button>
       </div>
 
       <Card className="border border-gray-200 dark:border-gray-800 shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold">Filter Events</CardTitle>
-          <CardDescription className="text-sm text-muted-foreground">Customize your calendar view</CardDescription>
+          <CardTitle className="text-lg font-semibold">Filtrer les événements</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">Personnalisez votre vue du calendrier</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4 items-end">
             <div className="w-full md:w-auto space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Event Type</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type d'événement</label>
               <Select onValueChange={(value) => handleFilterChange('event_type', value ? [value] : undefined)}>
                 <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder="Sélectionner un type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="meeting">Meetings</SelectItem>
-                  <SelectItem value="deadline">Deadlines</SelectItem>
-                  <SelectItem value="workshop">Workshops</SelectItem>
-                  <SelectItem value="event">Events</SelectItem>
-                  <SelectItem value="reminder">Reminders</SelectItem>
-                  <SelectItem value="task">Tasks</SelectItem>
+                  <SelectItem value="all">Tous les types</SelectItem>
+                  <SelectItem value="meeting">Réunions</SelectItem>
+                  <SelectItem value="deadline">Échéances</SelectItem>
+                  <SelectItem value="workshop">Ateliers</SelectItem>
+                  <SelectItem value="event">Événements</SelectItem>
+                  <SelectItem value="reminder">Rappels</SelectItem>
+                  <SelectItem value="task">Tâches</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="w-full md:w-auto space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Statut</label>
               <Select onValueChange={(value) => handleFilterChange('status', value ? value : undefined)}>
                 <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="Sélectionner un statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="scheduled">Planifié</SelectItem>
+                  <SelectItem value="cancelled">Annulé</SelectItem>
+                  <SelectItem value="completed">Terminé</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="w-full md:w-auto space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From Date</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de début</label>
               <DatePicker
                 date={filter.from}
                 onSelect={(date) => handleFilterChange('from', date)}
               />
             </div>
             <div className="w-full md:w-auto space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To Date</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de fin</label>
               <DatePicker
                 date={filter.to}
                 onSelect={(date) => handleFilterChange('to', date)}
@@ -300,7 +236,7 @@ export default function CalendarPage() {
                 disabled={isLoading || isSaving}
                 className="border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
-                Clear Filters
+                Effacer les filtres
               </Button>
               <Button 
                 onClick={() => fetchEvents(filter)}
@@ -310,9 +246,9 @@ export default function CalendarPage() {
                 {isLoading ? (
                   <>
                     <span className="mr-2 h-4 w-4 animate-spin">⏳</span>
-                    Loading...
+                    Chargement...
                   </>
-                ) : "Apply Filters"}
+                ) : "Appliquer les filtres"}
               </Button>
             </div>
           </div>
@@ -321,8 +257,8 @@ export default function CalendarPage() {
 
       <Tabs value={view} onValueChange={(value) => setView(value as 'calendar' | 'list')} className="w-full">
         <TabsList className="mb-4 bg-muted/50 dark:bg-muted/20 p-1 rounded-md">
-          <TabsTrigger value="calendar" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md">Calendar View</TabsTrigger>
-          <TabsTrigger value="list" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md">List View</TabsTrigger>
+          <TabsTrigger value="calendar" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md">Vue Calendrier</TabsTrigger>
+          <TabsTrigger value="list" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md">Vue Liste</TabsTrigger>
         </TabsList>
         <TabsContent value="calendar">
           <Card className="border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">

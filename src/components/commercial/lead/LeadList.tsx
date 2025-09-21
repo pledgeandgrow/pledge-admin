@@ -2,12 +2,13 @@
 
 import { useState, useMemo } from 'react';
 import { Contact, WaitlistContact } from '@/types/contact';
-import useRealtimeContacts from '@/hooks/useRealtimeContacts';
+import { useContacts } from '@/hooks/useContacts';
 import { LeadTable } from './LeadTable';
 import { AddLeadDialog } from './AddLeadDialog';
 import { EditLeadDialog } from './EditLeadDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RefreshCw } from 'lucide-react';
 
 // Define the Lead interface expected by the components
 interface Lead {
@@ -104,16 +105,14 @@ export function LeadList() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Use the existing useRealtimeContacts hook with lead type filter
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { contacts, loading } = useRealtimeContacts({
-    type: 'lead',
-    autoFetch: true
+  // Use the enhanced useContacts hook with lead type filter
+  const { contacts, isLoading: loading, error, realtimeEnabled, toggleRealtime } = useContacts({
+    type: 'lead'
   });
   
   // Convert contacts to leads format for the UI components
   const leads = useMemo(() => {
-    return contacts.map(contact => contactToLead(contact));
+    return contacts.map(contact => contactToLead(contact as unknown as Contact));
   }, [contacts]);
   
   // Keep track of the selected lead for editing
@@ -144,7 +143,27 @@ export function LeadList() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Leads</h1>
-        <Button onClick={() => setIsAddModalOpen(true)}>Add Lead</Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={toggleRealtime}
+            variant="outline"
+            className={realtimeEnabled ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50" : ""}
+            title="Toggle realtime updates"
+          >
+            {realtimeEnabled ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Realtime: ON
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Realtime: OFF
+              </>
+            )}
+          </Button>
+          <Button onClick={() => setIsAddModalOpen(true)}>Add Lead</Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -185,20 +204,41 @@ export function LeadList() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Liste des Leads</CardTitle>
-          <Button 
-            onClick={() => setIsAddModalOpen(true)} 
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            Ajouter un Lead
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={toggleRealtime}
+              variant="outline"
+              size="sm"
+              className={realtimeEnabled ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50" : ""}
+              title="Toggle realtime updates"
+            >
+              {realtimeEnabled ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Realtime
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Realtime
+                </>
+              )}
+            </Button>
+            <Button 
+              onClick={() => setIsAddModalOpen(true)} 
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Ajouter un Lead
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <LeadTable
             leads={leads}
             onEdit={(lead) => {
               const contact = contacts.find(c => c.id === lead.id);
-              if (contact) setSelectedContact(contact);
+              if (contact) setSelectedContact(contact as unknown as Contact);
             }}
             getStatusColor={getStatusColor}
           />

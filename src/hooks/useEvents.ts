@@ -1,14 +1,31 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/config/supabase';
-import { CalendarEvent, CalendarEventFormData } from '@/types/calendar';
+import { useState, useEffect, useCallback } from 'react';
+import { createClient } from '@/lib/supabase';
+import { CalendarEvent, CalendarEventFormData, EventStatus, EventPriority } from '@/types/calendar';
+
+// Define a type for the raw database event that matches events.sql schema
+type DbEvent = {
+  event_id: number;
+  title: string;
+  description?: string;
+  start_datetime: string;
+  end_datetime?: string;
+  event_type?: string;
+  location?: string;
+  is_all_day: boolean;
+  priority: number; // -1=low, 0=normal, 1=high
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
 
 export const useEvents = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
 
   // Fetch events with optional filtering
-  const fetchEvents = async (filters?: {
+  const fetchEvents = useCallback(async (filters?: {
     event_type?: string[];
     status?: string[];
     from?: Date;
@@ -51,22 +68,29 @@ export const useEvents = () => {
       }
 
       // Transform dates from strings to Date objects for UI components
-      const formattedEvents = data.map((event: any) => ({
+      const formattedEvents = data.map((event: DbEvent) => ({
         ...event,
         start_datetime: new Date(event.start_datetime),
         end_datetime: event.end_datetime ? new Date(event.end_datetime) : undefined,
+        created_at: event.created_at ? new Date(event.created_at) : undefined,
+        updated_at: event.updated_at ? new Date(event.updated_at) : undefined,
         // Add color based on event_type for UI
         color: getEventColor(event.event_type),
+        // Ensure required properties exist
+        is_all_day: event.is_all_day || false,
+        priority: (event.priority as EventPriority) ?? 0,
+        status: event.status as EventStatus
       }));
 
       setEvents(formattedEvents);
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error('Error fetching events:', err);
-      setError(err.message || 'Failed to fetch events');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage || 'Failed to fetch events');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Create a new event
   const createEvent = async (eventData: CalendarEventFormData) => {
@@ -99,18 +123,25 @@ export const useEvents = () => {
       }
 
       // Add the new event to the state with formatted dates
-      const newEvent = {
-        ...data[0],
-        start_datetime: new Date(data[0].start_datetime),
-        end_datetime: data[0].end_datetime ? new Date(data[0].end_datetime) : undefined,
-        color: getEventColor(data[0].event_type),
+      const dbEvent = data[0] as DbEvent;
+      const newEvent: CalendarEvent = {
+        ...dbEvent,
+        start_datetime: new Date(dbEvent.start_datetime),
+        end_datetime: dbEvent.end_datetime ? new Date(dbEvent.end_datetime) : undefined,
+        created_at: dbEvent.created_at ? new Date(dbEvent.created_at) : undefined,
+        updated_at: dbEvent.updated_at ? new Date(dbEvent.updated_at) : undefined,
+        color: getEventColor(dbEvent.event_type),
+        is_all_day: dbEvent.is_all_day || false,
+        priority: (dbEvent.priority as EventPriority) ?? 0,
+        status: dbEvent.status as EventStatus
       };
 
-      setEvents((prevEvents) => [...prevEvents, newEvent]);
+      setEvents((prevEvents: CalendarEvent[]) => [...prevEvents, newEvent]);
       return newEvent;
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error('Error creating event:', err);
-      setError(err.message || 'Failed to create event');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage || 'Failed to create event');
       return null;
     } finally {
       setIsLoading(false);
@@ -149,23 +180,30 @@ export const useEvents = () => {
       }
 
       // Update the event in the state with formatted dates
-      const updatedEvent = {
-        ...data[0],
-        start_datetime: new Date(data[0].start_datetime),
-        end_datetime: data[0].end_datetime ? new Date(data[0].end_datetime) : undefined,
-        color: getEventColor(data[0].event_type),
+      const dbEvent = data[0] as DbEvent;
+      const updatedEvent: CalendarEvent = {
+        ...dbEvent,
+        start_datetime: new Date(dbEvent.start_datetime),
+        end_datetime: dbEvent.end_datetime ? new Date(dbEvent.end_datetime) : undefined,
+        created_at: dbEvent.created_at ? new Date(dbEvent.created_at) : undefined,
+        updated_at: dbEvent.updated_at ? new Date(dbEvent.updated_at) : undefined,
+        color: getEventColor(dbEvent.event_type),
+        is_all_day: dbEvent.is_all_day || false,
+        priority: (dbEvent.priority as EventPriority) ?? 0,
+        status: dbEvent.status as EventStatus
       };
 
-      setEvents((prevEvents) =>
-        prevEvents.map((event) =>
+      setEvents((prevEvents: CalendarEvent[]) =>
+        prevEvents.map((event: CalendarEvent) =>
           event.event_id === eventId ? updatedEvent : event
         )
       );
 
       return updatedEvent;
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error('Error updating event:', err);
-      setError(err.message || 'Failed to update event');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage || 'Failed to update event');
       return null;
     } finally {
       setIsLoading(false);
@@ -188,14 +226,15 @@ export const useEvents = () => {
       }
 
       // Remove the event from the state
-      setEvents((prevEvents) =>
-        prevEvents.filter((event) => event.event_id !== eventId)
+      setEvents((prevEvents: CalendarEvent[]) =>
+        prevEvents.filter((event: CalendarEvent) => event.event_id !== eventId)
       );
 
       return true;
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error('Error deleting event:', err);
-      setError(err.message || 'Failed to delete event');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage || 'Failed to delete event');
       return false;
     } finally {
       setIsLoading(false);
@@ -223,7 +262,7 @@ export const useEvents = () => {
   // Load events on component mount
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [fetchEvents]);
 
   return {
     events,

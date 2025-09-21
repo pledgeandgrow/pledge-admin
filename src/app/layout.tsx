@@ -1,9 +1,11 @@
+import React from 'react';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AuthInitializer } from '@/components/auth/AuthInitializer';
+import ClientComponentWrapper from '@/components/layout/ClientComponentWrapper';
 import './globals.css';
 
 const geistSans = Geist({
@@ -39,7 +41,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <AuthInitializer>
-              {children}
+              <ClientComponentWrapper>{children}</ClientComponentWrapper>
               <Toaster />
             </AuthInitializer>
           </ThemeProvider>
@@ -48,3 +50,4 @@ export default function RootLayout({
     </html>
   );
 }
+

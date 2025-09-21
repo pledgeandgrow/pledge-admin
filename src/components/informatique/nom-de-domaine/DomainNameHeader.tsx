@@ -1,0 +1,32 @@
+'use client';
+
+import { Globe } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+
+interface DomainNameHeaderProps {
+  title: string;
+  subtitle: string;
+}
+
+export function DomainNameHeader({ title, subtitle }: DomainNameHeaderProps) {
+  return (
+    <>
+      <div className="flex items-center gap-4">
+        <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500/20 via-teal-500/20 to-green-500/20">
+          <Globe className="h-8 w-8 text-cyan-500" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            <span className="bg-gradient-to-r from-cyan-500 via-teal-500 to-green-500 bg-clip-text text-transparent">
+              {title}
+            </span>
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {subtitle}
+          </p>
+        </div>
+      </div>
+      <Separator className="bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-green-500/20 h-0.5 rounded-full" />
+    </>
+  );
+}
