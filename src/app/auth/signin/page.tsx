@@ -25,6 +25,8 @@ export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const message = searchParams.get('message');
+  const errorParam = searchParams.get('error');
+  const redirectedFrom = searchParams.get('redirectedFrom');
   const { signIn } = useAuth();
   const supabase = createClient();
   
@@ -35,6 +37,11 @@ export default function SignInPage() {
     let isActive = true;
     setIsMounted(true);
     
+    // Check for error message in URL
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam));
+    }
+    
     // Check for success message in URL
     if (message) {
       setSuccessMessage(message);
@@ -42,6 +49,15 @@ export default function SignInPage() {
       toast({
         title: "Success",
         description: message,
+        variant: "default",
+      });
+    }
+    
+    // Show message if redirected from protected route
+    if (redirectedFrom && !errorParam && !message) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to access that page",
         variant: "default",
       });
     }
@@ -67,7 +83,7 @@ export default function SignInPage() {
     return () => {
       isActive = false;
     };
-  }, [router, message, supabase]);
+  }, [router, message, errorParam, redirectedFrom, supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

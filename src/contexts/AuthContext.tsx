@@ -37,18 +37,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     // Get the current session
     const getSession = async () => {
-      setIsLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+      } catch (err) {
+        console.error('Unexpected error getting session:', err);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     getSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event: string, session: Session | null) => {
+      (event: string, session: Session | null) => {
+        console.log('Auth state changed:', event);
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
@@ -62,29 +73,77 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Sign in with email and password
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email: email.trim().toLowerCase(), 
+        password 
+      });
+      
+      if (error) {
+        console.error('Sign in error:', error.message);
+        return { error };
+      }
+      
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+      }
+      
+      return { error: null };
+    } catch (err) {
+      console.error('Unexpected sign in error:', err);
+      return { error: { message: 'An unexpected error occurred', name: 'UnexpectedError' } as AuthError };
+    }
   };
 
   // Sign up with email and password
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: firstName,
-          last_name: lastName,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          data: {
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+          },
+          emailRedirectTo: typeof window !== 'undefined' 
+            ? `${window.location.origin}/auth/callback` 
+            : undefined,
         },
-      },
-    });
-    return { error };
+      });
+      
+      if (error) {
+        console.error('Sign up error:', error.message);
+        return { error };
+      }
+      
+      console.log('Sign up successful:', data.user?.email);
+      return { error: null };
+    } catch (err) {
+      console.error('Unexpected sign up error:', err);
+      return { error: { message: 'An unexpected error occurred', name: 'UnexpectedError' } as AuthError };
+    }
   };
 
   // Sign out
   const signOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Sign out error:', error.message);
+      }
+      
+      // Clear local state
+      setSession(null);
+      setUser(null);
+      
+      // Redirect to home page
+      router.push('/');
+    } catch (err) {
+      console.error('Unexpected sign out error:', err);
+    }
   };
 
   // Reset password

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase';
+import { useUser } from '@/hooks/useUser';
 
 // Initialize Supabase client
 const supabase = createClient();
@@ -25,6 +26,7 @@ interface MenuItem {
 
 export function MegaMenu() {
   const { theme, setTheme } = useTheme();
+  const { user, profile } = useUser();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -269,7 +271,9 @@ export function MegaMenu() {
               Bonjour,
             </p>
             <p className="text-base font-semibold text-gray-900 dark:text-white">
-              User Name
+              {profile?.first_name && profile?.last_name
+                ? `${profile.first_name} ${profile.last_name}`
+                : user?.email?.split('@')[0] || 'Utilisateur'}
             </p>
           </div>
         </div>

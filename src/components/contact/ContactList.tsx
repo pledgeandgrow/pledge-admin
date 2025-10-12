@@ -124,6 +124,19 @@ export function ContactList({ contactType, title, description }: ContactListProp
     setSelectedContact(null);
   };
 
+  const handleSubmit = async (contactData: Partial<BaseContact>) => {
+    if (isEditing && selectedContact?.id) {
+      // For update, extract id and pass the rest as updates
+      const { id, ...updates } = contactData as BaseContact;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await updateContact(selectedContact.id, updates as any);
+    } else {
+      // For create, pass the whole object
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await createContact(contactData as any);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -203,8 +216,7 @@ export function ContactList({ contactType, title, description }: ContactListProp
         contact={selectedContact}
         contactType={contactType}
         onClose={handleCloseForm}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onSubmit={(isEditing ? updateContact : createContact) as any}
+        onSubmit={handleSubmit}
       />
 
       <ContactView

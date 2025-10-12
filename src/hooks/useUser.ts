@@ -37,6 +37,7 @@ export function useUser(): UseUserReturn {
       setIsLoading(true);
       setError(null);
       
+      // Check if users table exists by trying to fetch
       const { data, error: fetchError } = await supabase
         .from('users')
         .select('*')
@@ -44,14 +45,40 @@ export function useUser(): UseUserReturn {
         .single();
 
       if (fetchError) {
-        throw fetchError;
+        // If profile doesn't exist (PGRST116), this is not an error - user profile will be created by trigger
+        if (fetchError.code === 'PGRST116') {
+          setProfile(null);
+          return null;
+        }
+        
+        // If table doesn't exist or RLS blocks access
+        if (fetchError.code === '42P01' || fetchError.code === 'PGRST301') {
+          console.error('Users table not accessible:', fetchError.message);
+          setProfile(null);
+          setIsLoading(false);
+          return null;
+        }
+        
+        // For other errors, log only in development
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching user profile:', {
+            code: fetchError.code,
+            message: fetchError.message,
+          });
+        }
+        
+        // Don't throw - just set profile to null and continue
+        setProfile(null);
+        return null;
       }
 
+      console.log('✅ User profile loaded:', data);
       setProfile(data);
       return data;
     } catch (err) {
-      console.error('Error fetching user profile:', err);
-      setError(err instanceof Error ? err : new Error('Failed to fetch user profile'));
+      console.error('Unexpected error fetching user profile:', err);
+      // Don't set error state - just log and continue
+      setProfile(null);
       return null;
     } finally {
       setIsLoading(false);

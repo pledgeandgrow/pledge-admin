@@ -246,6 +246,12 @@ export const useContacts = (options?: UseContactsOptions) => {
         .single();
 
       if (error) {
+        console.error('Supabase error updating contact:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 
@@ -253,6 +259,7 @@ export const useContacts = (options?: UseContactsOptions) => {
       return data;
     } catch (err: any) {
       console.error('Error updating contact:', err);
+      console.error('Error details:', JSON.stringify(err, null, 2));
       setError(err.message || 'Failed to update contact');
       throw err;
     } finally {

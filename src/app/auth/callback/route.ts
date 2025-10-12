@@ -7,15 +7,26 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const next = requestUrl.searchParams.get('next') || '/dashboard';
+  const error = requestUrl.searchParams.get('error');
+  const errorDescription = requestUrl.searchParams.get('error_description');
+
+  // Handle OAuth errors
+  if (error) {
+    console.error('OAuth error:', error, errorDescription);
+    return NextResponse.redirect(
+      new URL(`/auth/signin?error=${encodeURIComponent(errorDescription || error)}`, request.url)
+    );
+  }
 
   if (!code) {
     // If there's no code, redirect to sign in
+    console.warn('No code provided in callback');
     return NextResponse.redirect(new URL('/auth/signin', request.url));
   }
 
   try {
     // Create a Supabase client for the Route Handler
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -25,10 +36,18 @@ export async function GET(request: NextRequest) {
             return cookieStore.get(name)?.value;
           },
           set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set(name, value, options as any);
+            try {
+              cookieStore.set(name, value, options as any);
+            } catch (err) {
+              console.error('Error setting cookie:', err);
+            }
           },
           remove(name: string, options: CookieOptions) {
-            cookieStore.set(name, '', { ...options as any, maxAge: 0 });
+            try {
+              cookieStore.set(name, '', { ...options as any, maxAge: 0 });
+            } catch (err) {
+              console.error('Error removing cookie:', err);
+            }
           },
         },
       }

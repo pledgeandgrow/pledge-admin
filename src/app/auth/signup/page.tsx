@@ -84,19 +84,21 @@ export default function SignUpPage() {
       
       if (error) {
         console.error('Signup error:', error.message);
-        setError(error.message);
+        
+        // Handle specific error cases
+        if (error.message.includes('already registered')) {
+          setError('This email is already registered. Please sign in instead.');
+        } else {
+          setError(error.message);
+        }
+        
         setIsLoading(false);
         return;
       }
       
-      // Show success toast
-      toast({
-        title: "Account created successfully",
-        description: "Please check your email to verify your account.",
-        variant: "default",
-      });
+      console.log('Account created successfully, redirecting to verify email page');
       
-      // Redirect to verify email page
+      // Redirect to verify email page (don't show toast here, show it on the verify page)
       router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       console.error('Unexpected error during signup:', err);

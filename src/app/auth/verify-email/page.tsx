@@ -23,7 +23,24 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    
+    // Check if user has already verified their email
+    const checkVerification = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        // If user has a valid session with verified email, redirect to dashboard
+        if (session?.user?.email_confirmed_at) {
+          console.log('Email already verified, redirecting to dashboard');
+          router.push('/dashboard');
+        }
+      } catch (error) {
+        console.error('Error checking verification status:', error);
+      }
+    };
+    
+    checkVerification();
+  }, [router, supabase]);
 
   const handleResendEmail = async () => {
     if (!email) {
@@ -121,16 +138,24 @@ export default function VerifyEmailPage() {
           )}
 
           <div className="flex flex-col items-center justify-center py-6 space-y-4">
-            <div className="p-4 bg-blue-900/30 rounded-full">
+            <div className="p-4 bg-blue-900/30 rounded-full animate-pulse">
               <Mail className="h-10 w-10 text-blue-400" />
             </div>
             <div className="text-center space-y-2">
               <h3 className="text-lg font-medium text-white">Check your inbox</h3>
               <p className="text-gray-400 text-sm">
-                Click the link in the verification email to activate your account.
+                We've sent a verification email to <span className="text-white font-medium">{email}</span>.
+                Click the link in the email to activate your account.
+              </p>
+              <p className="text-gray-500 text-xs mt-2">
                 If you don't see it, check your spam folder.
               </p>
             </div>
+          </div>
+          
+          <div className="p-3 bg-green-900/30 border border-green-800 text-green-200 rounded text-sm">
+            <p className="font-medium">✓ Account created successfully!</p>
+            <p className="text-xs mt-1">Please verify your email to complete the registration.</p>
           </div>
         </CardContent>
         

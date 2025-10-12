@@ -10,14 +10,16 @@ const publicRoutes = [
   '/auth/forgot-password',
   '/auth/update-password',
   '/auth/verify-email',
+  '/auth/callback',
+  '/auth/account-locked',
+  '/auth/email-change',
   '/privacy-policy',
   '/terms',
-  '/api/auth/callback',
   '/_next',
   '/_vercel',
   '/favicon.ico',
   '/logo',
-  '/api/'
+  '/api'
 ];
 
 // Auth routes that should redirect to dashboard if user is already authenticated
