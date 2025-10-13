@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
 
-// Initialize Supabase client
-const supabase = createClient();
-
 export async function GET() {
   try {
+    const supabase = createClient();
     const { data, error } = await supabase
       .from('projects')
       .select('*');
@@ -21,6 +19,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const supabase = createClient();
     const newProject = await request.json();
     
     // Remove id if provided to let the database generate it
@@ -44,6 +43,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const supabase = createClient();
     const updatedProject = await request.json();
     
     if (!updatedProject.id) {
@@ -74,6 +74,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const supabase = createClient();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     
