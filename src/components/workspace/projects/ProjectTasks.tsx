@@ -401,7 +401,7 @@ export function ProjectTasks({ projectId }: ProjectTasksProps) {
                       <TableCell>
                         {task.due_at ? (
                           <div className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4 text-gray-500" />
+                            <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                             {formatDate(task.due_at)}
                           </div>
                         ) : (

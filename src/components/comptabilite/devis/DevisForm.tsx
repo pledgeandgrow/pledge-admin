@@ -15,7 +15,7 @@ import { QuoteMetadata, QuoteItem, CompanyDetails, ExtendedClient } from "./type
 import { v4 as uuidv4 } from "uuid";
 import { Loader2, Plus, Trash2, Download, Save } from "lucide-react";
 import { useDocuments } from "@/hooks/useDocuments";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency } from "@/lib/utils";
 
 // Using ExtendedClient from types.ts
 

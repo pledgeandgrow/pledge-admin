@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, RefreshCw } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { ContactTable } from './ContactTable';
 import { ContactForm } from './ContactForm';
 import { ContactView } from './ContactView';
@@ -32,9 +32,7 @@ export function ContactList({ contactType, title, description }: ContactListProp
     error,
     createContact,
     updateContact,
-    deleteContact,
-    realtimeEnabled,
-    toggleRealtime
+    deleteContact
   } = useContacts({
     type: contactType,
     initialFilters: {
@@ -148,24 +146,6 @@ export function ContactList({ contactType, title, description }: ContactListProp
         </div>
         <div className="flex gap-2">
           <Button 
-            onClick={toggleRealtime}
-            variant="outline"
-            className={realtimeEnabled ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50" : ""}
-            title="Toggle realtime updates"
-          >
-            {realtimeEnabled ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Realtime: ON
-              </>
-            ) : (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Realtime: OFF
-              </>
-            )}
-          </Button>
-          <Button 
             onClick={handleAdd}
             className="bg-primary hover:bg-primary/90 text-white"
           >
@@ -182,7 +162,7 @@ export function ContactList({ contactType, title, description }: ContactListProp
             placeholder={`Search ${contactType}s...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 max-w-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
+            className="pl-8 max-w-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
           />
         </div>
       </div>

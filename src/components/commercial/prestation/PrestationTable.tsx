@@ -16,35 +16,18 @@ import { Product, ProductStatus } from '@/types/products';
 import { ViewPrestationDialog } from './ViewPrestationDialog';
 import { EditPrestationDialog } from './EditPrestationDialog';
 import { useToast } from '@/components/ui/use-toast';
-import { productService } from '@/services/productService';
+import { useProducts } from '@/hooks/useProducts';
 
 export default function PrestationTable() {
-  const [prestations, setPrestations] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loading, error, fetchProducts, updateProduct, createProduct, deleteProduct } = useProducts();
   const [selectedPrestation, setSelectedPrestation] = useState<Product | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchPrestations = async () => {
-      try {
-        const data = await productService.getPrestations();
-        setPrestations(data);
-      } catch (error) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de récupérer les prestations",
-          variant: "destructive"
-        });
-        console.error('Error fetching prestations:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchPrestations();
-  }, [toast]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -123,12 +106,7 @@ export default function PrestationTable() {
           }
         };
         
-        await productService.updateProduct(selectedPrestation.id, productData);
-        
-        // Update local state
-        setPrestations(prev =>
-          prev.map(p => (p.id === selectedPrestation.id ? { ...p, ...productData } as Product : p))
-        );
+        await updateProduct(selectedPrestation.id, productData);
         
         toast({
           title: 'Prestation mise à jour',
@@ -136,7 +114,7 @@ export default function PrestationTable() {
         });
       } else {
         // Add new prestation
-        const productData: Product = {
+        const productData: Omit<Product, 'id' | 'created_at' | 'updated_at'> = {
           name: prestationData.name || 'Nouvelle prestation',
           description: prestationData.description || '',
           type: 'service',
@@ -149,16 +127,12 @@ export default function PrestationTable() {
           }
         };
         
-        const newProduct = await productService.createProduct(productData);
+        await createProduct(productData);
         
-        if (newProduct) {
-          setPrestations(prev => [...prev, newProduct]);
-          
-          toast({
-            title: 'Prestation créée',
-            description: 'La nouvelle prestation a été ajoutée avec succès.',
-          });
-        }
+        toast({
+          title: 'Prestation créée',
+          description: 'La nouvelle prestation a été ajoutée avec succès.',
+        });
       }
     } catch (error) {
       console.error('Error saving prestation:', error);
@@ -176,9 +150,7 @@ export default function PrestationTable() {
   const handleDelete = async () => {
     if (selectedPrestation && selectedPrestation.id) {
       try {
-        await productService.deleteProduct(selectedPrestation.id);
-        
-        setPrestations(prev => prev.filter(p => p.id !== selectedPrestation.id));
+        await deleteProduct(selectedPrestation.id);
         
         toast({
           title: 'Prestation supprimée',
@@ -236,14 +208,14 @@ export default function PrestationTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {prestations.length === 0 ? (
+              {products.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     Aucune prestation trouvée
                   </TableCell>
                 </TableRow>
               ) : (
-                prestations.map((prestation) => (
+                products.map((prestation) => (
                   <TableRow key={prestation.id}>
                     <TableCell className="font-medium">{prestation.name}</TableCell>
                     <TableCell>{prestation.price ? `${prestation.price.toLocaleString('fr-FR')} €` : 'Sur devis'}</TableCell>

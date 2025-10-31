@@ -19,8 +19,8 @@ import {
   Loader2,
   ArrowLeft
 } from 'lucide-react';
-import { contactService } from '@/services/contactService';
-import { projectService } from '@/services/projectService';
+import { useContacts } from '@/hooks/useContacts';
+import { useProjects } from '@/hooks/useProjects';
 import { ClientContact } from '@/types/contact';
 import {
   Select,

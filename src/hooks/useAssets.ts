@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { assetService } from '@/services/assetService';
+import { createClient } from '@/lib/supabase';
 import { Asset, AssetType, AssetStatus } from '@/types/assets';
 import { toast } from '@/components/ui/use-toast';
 
@@ -40,6 +40,7 @@ interface UseAssetsReturn {
 
 export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
   const { type, initialFilters = {}, autoFetch = true } = options;
+  const supabase = createClient();
   
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState<boolean>(autoFetch);
@@ -60,16 +61,18 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
       // Fetch assets with the current filters
       let data: Asset[] = [];
       
+      let query = supabase.from('assets').select('*');
+      
       if (mergedFilters.type) {
-        // If type filter is specified, use getAssetsByType
         const assetType = Array.isArray(mergedFilters.type) 
-          ? mergedFilters.type[0] // Use first type if multiple are specified
+          ? mergedFilters.type[0]
           : mergedFilters.type;
-        data = await assetService.getAssetsByType(assetType);
-      } else {
-        // Otherwise get all assets
-        data = await assetService.getAllAssets();
+        query = query.eq('type', assetType);
       }
+      
+      const { data: fetchedData, error: fetchError } = await query.order('created_at', { ascending: false });
+      if (fetchError) throw fetchError;
+      data = fetchedData || [];
       
       // Apply additional filters client-side
       let filteredData = [...data];
@@ -190,23 +193,24 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
         throw error;
       }
 
-      const newAsset = await assetService.createAsset(asset as Asset);
+      const { data, error: err } = await supabase.from('assets').insert(asset).select().single();
+      if (err) throw err;
       
-      if (!newAsset) {
+      if (!data) {
         const error = new Error('Failed to create asset: Invalid response');
         setError(error);
         throw error;
       }
       
       // Update local state
-      setAssets(prev => [newAsset, ...prev]);
+      setAssets(prev => [data, ...prev]);
       
       toast({
         title: "Asset créé",
-        description: `L'asset ${newAsset.name} a été créé avec succès`,
+        description: `L'asset ${data.name} a été créé avec succès`,
       });
       
-      return newAsset;
+      return data;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to create asset');
       setError(error);
@@ -219,13 +223,14 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
       
       throw error;
     }
-  }, []);
+  }, [supabase]);
 
   const updateAsset = useCallback(async (id: string, assetUpdate: Partial<Asset>) => {
     try {
-      const updatedAsset = await assetService.updateAsset(id, assetUpdate);
+      const { data, error: err } = await supabase.from('assets').update(assetUpdate).eq('id', id).select().single();
+      if (err) throw err;
       
-      if (!updatedAsset) {
+      if (!data) {
         const error = new Error('Failed to update asset: Invalid response');
         setError(error);
         throw error;
@@ -233,15 +238,15 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
       
       // Update local state
       setAssets(prev => 
-        prev.map(a => a.id === id ? { ...a, ...updatedAsset } : a)
+        prev.map(a => a.id === id ? { ...a, ...data } : a)
       );
       
       toast({
         title: "Asset mis à jour",
-        description: `L'asset ${updatedAsset.name} a été mis à jour avec succès`,
+        description: `L'asset ${data.name} a été mis à jour avec succès`,
       });
       
-      return updatedAsset;
+      return data;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to update asset');
       setError(error);
@@ -254,11 +259,13 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
       
       throw error;
     }
-  }, []);
+  }, [supabase]);
 
   const deleteAsset = useCallback(async (id: string) => {
     try {
-      const success = await assetService.deleteAsset(id);
+      const { error: err } = await supabase.from('assets').delete().eq('id', id);
+      if (err) throw err;
+      const success = true;
       
       if (!success) {
         const error = new Error('Failed to delete asset');

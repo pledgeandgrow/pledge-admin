@@ -20,14 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ProjectType } from '@/types/project';
+import { BaseProject } from '@/hooks/useProjects';
 
 interface ProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Partial<ProjectType>) => void;
+  onSubmit: (data: Omit<BaseProject, 'id' | 'created_at' | 'updated_at'>) => void;
   isSubmitting: boolean;
-  project?: ProjectType;
+  project?: BaseProject;
 }
 
 export function ProjectDialog({ 
@@ -37,7 +37,7 @@ export function ProjectDialog({
   isSubmitting, 
   project 
 }: ProjectDialogProps) {
-  const [formData, setFormData] = useState<Partial<ProjectType>>(
+  const [formData, setFormData] = useState<Partial<BaseProject>>(
     project || {
       name: '',
       description: '',
@@ -69,22 +69,28 @@ export function ProjectDialog({
     if (name.includes('.')) {
       // Handle nested metadata fields
       const [parent, child] = name.split('.');
-      setFormData(prev => ({
+      setFormData((prev: Partial<BaseProject>) => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof ProjectType],
+          ...(prev[parent as keyof Partial<BaseProject>] as Record<string, unknown>),
           [child]: value
         }
       }));
     } else if (name === 'budget') {
       // Handle budget as number
-      setFormData(prev => ({
+      setFormData((prev: Partial<BaseProject>) => ({
         ...prev,
         [name]: value ? parseFloat(value) : undefined
       }));
+    } else if (name === 'progress') {
+      // Handle progress as number
+      setFormData((prev: Partial<BaseProject>) => ({
+        ...prev,
+        [name]: value ? parseInt(value, 10) : 0
+      }));
     } else {
       // Handle regular fields
-      setFormData(prev => ({
+      setFormData((prev: Partial<BaseProject>) => ({
         ...prev,
         [name]: value
       }));
@@ -95,15 +101,15 @@ export function ProjectDialog({
     if (name.includes('.')) {
       // Handle nested metadata fields
       const [parent, child] = name.split('.');
-      setFormData(prev => ({
+      setFormData((prev: Partial<BaseProject>) => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof ProjectType],
+          ...(prev[parent as keyof Partial<BaseProject>] as Record<string, unknown>),
           [child]: value
         }
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev: Partial<BaseProject>) => ({
         ...prev,
         [name]: value
       }));
@@ -112,7 +118,7 @@ export function ProjectDialog({
 
   const handleAddTag = () => {
     if (newTag && !formData.tags?.includes(newTag)) {
-      setFormData(prev => ({
+      setFormData((prev: Partial<BaseProject>) => ({
         ...prev,
         tags: [...(prev.tags || []), newTag]
       }));
@@ -121,15 +127,15 @@ export function ProjectDialog({
   };
 
   const handleRemoveTag = (tag: string) => {
-    setFormData(prev => ({
+    setFormData((prev: Partial<BaseProject>) => ({
       ...prev,
-      tags: prev.tags?.filter(t => t !== tag)
+      tags: prev.tags?.filter((t: string) => t !== tag)
     }));
   };
 
   const handleAddTeamMember = () => {
     if (newTeamMember && !(formData.metadata?.team_members as string[])?.includes(newTeamMember)) {
-      setFormData(prev => ({
+      setFormData((prev: Partial<BaseProject>) => ({
         ...prev,
         metadata: {
           ...prev.metadata,
@@ -141,18 +147,23 @@ export function ProjectDialog({
   };
 
   const handleRemoveTeamMember = (member: string) => {
-    setFormData(prev => ({
+    setFormData((prev: Partial<BaseProject>) => ({
       ...prev,
       metadata: {
         ...prev.metadata,
-        team_members: (prev.metadata?.team_members as string[])?.filter(m => m !== member)
+        team_members: (prev.metadata?.team_members as string[])?.filter((m: string) => m !== member)
       }
     }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    // Ensure required fields are present
+    if (!formData.name || !formData.project_type || !formData.status) {
+      alert('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+    onSubmit(formData as Omit<BaseProject, 'id' | 'created_at' | 'updated_at'>);
   };
 
   return (
@@ -369,7 +380,7 @@ export function ProjectDialog({
               </Label>
               <div className="col-span-3 space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {(formData.metadata?.team_members as string[] || []).map((member, index) => (
+                  {(formData.metadata?.team_members as string[] || []).map((member: string, index: number) => (
                     <div 
                       key={index} 
                       className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-md flex items-center gap-1 text-sm"
@@ -411,7 +422,7 @@ export function ProjectDialog({
               </Label>
               <div className="col-span-3 space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {(formData.tags || []).map((tag, index) => (
+                  {(formData.tags || []).map((tag: string, index: number) => (
                     <div 
                       key={index} 
                       className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-md flex items-center gap-1 text-sm"

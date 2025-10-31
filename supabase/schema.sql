@@ -1,6 +1,18 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
+CREATE TABLE public.activity_log (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  entity_type text NOT NULL CHECK (entity_type = ANY (ARRAY['task'::text, 'project'::text, 'document'::text, 'event'::text, 'contact'::text])),
+  entity_id uuid NOT NULL,
+  action text NOT NULL CHECK (action = ANY (ARRAY['created'::text, 'updated'::text, 'deleted'::text, 'commented'::text, 'assigned'::text, 'completed'::text, 'archived'::text, 'restored'::text])),
+  description text,
+  changes jsonb,
+  user_id uuid,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT activity_log_pkey PRIMARY KEY (id),
+  CONSTRAINT activity_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
 CREATE TABLE public.articles (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   devis_id uuid,
@@ -34,6 +46,37 @@ CREATE TABLE public.assets (
   CONSTRAINT assets_pkey PRIMARY KEY (id),
   CONSTRAINT assets_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
   CONSTRAINT assets_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.attachments (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  entity_type text NOT NULL CHECK (entity_type = ANY (ARRAY['task'::text, 'project'::text, 'document'::text, 'event'::text, 'comment'::text])),
+  entity_id uuid NOT NULL,
+  file_name text NOT NULL,
+  file_path text NOT NULL,
+  file_size integer,
+  file_type text,
+  mime_type text,
+  uploaded_by uuid,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT attachments_pkey PRIMARY KEY (id),
+  CONSTRAINT attachments_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.comments (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  entity_type text NOT NULL CHECK (entity_type = ANY (ARRAY['task'::text, 'project'::text, 'document'::text, 'event'::text])),
+  entity_id uuid NOT NULL,
+  content text NOT NULL,
+  author_id uuid,
+  parent_comment_id uuid,
+  reactions jsonb DEFAULT '{}'::jsonb,
+  is_edited boolean DEFAULT false,
+  is_deleted boolean DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT comments_pkey PRIMARY KEY (id),
+  CONSTRAINT comments_author_id_fkey FOREIGN KEY (author_id) REFERENCES auth.users(id),
+  CONSTRAINT comments_parent_comment_id_fkey FOREIGN KEY (parent_comment_id) REFERENCES public.comments(id)
 );
 CREATE TABLE public.contacts (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -72,8 +115,13 @@ CREATE TABLE public.contacts (
   investment_status text CHECK (investment_status = ANY (ARRAY['active'::text, 'inactive'::text, 'following'::text, 'not-interested'::text])),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  user_id uuid,
+  lead_source text,
+  lead_score integer CHECK (lead_score >= 0 AND lead_score <= 100),
+  client_since timestamp with time zone,
   CONSTRAINT contacts_pkey PRIMARY KEY (id),
-  CONSTRAINT contacts_added_by_fkey FOREIGN KEY (added_by) REFERENCES auth.users(id)
+  CONSTRAINT contacts_added_by_fkey FOREIGN KEY (added_by) REFERENCES auth.users(id),
+  CONSTRAINT contacts_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.data (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -151,7 +199,84 @@ CREATE TABLE public.events (
   status character varying DEFAULT 'scheduled'::character varying,
   created_at timestamp without time zone DEFAULT now(),
   updated_at timestamp without time zone DEFAULT now(),
+  attendees jsonb DEFAULT '[]'::jsonb,
+  recurrence jsonb,
   CONSTRAINT events_pkey PRIMARY KEY (event_id)
+);
+CREATE TABLE public.formations (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  description text,
+  category text,
+  level text CHECK (level = ANY (ARRAY['beginner'::text, 'intermediate'::text, 'advanced'::text, 'expert'::text])),
+  price numeric NOT NULL,
+  currency text DEFAULT 'EUR'::text,
+  duration_hours numeric NOT NULL,
+  max_participants integer,
+  format text CHECK (format = ANY (ARRAY['online'::text, 'in-person'::text, 'hybrid'::text])),
+  language text DEFAULT 'fr'::text,
+  start_date timestamp with time zone,
+  end_date timestamp with time zone,
+  schedule text,
+  objectives ARRAY,
+  prerequisites ARRAY,
+  program jsonb DEFAULT '[]'::jsonb,
+  materials ARRAY,
+  instructor_id uuid,
+  instructor_name text,
+  status text DEFAULT 'draft'::text CHECK (status = ANY (ARRAY['draft'::text, 'published'::text, 'ongoing'::text, 'completed'::text, 'cancelled'::text, 'archived'::text])),
+  current_participants integer DEFAULT 0,
+  tags ARRAY,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_by uuid,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT formations_pkey PRIMARY KEY (id),
+  CONSTRAINT formations_instructor_id_fkey FOREIGN KEY (instructor_id) REFERENCES public.contacts(id),
+  CONSTRAINT formations_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.offers (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  description text,
+  type text CHECK (type = ANY (ARRAY['product'::text, 'service'::text, 'subscription'::text, 'bundle'::text, 'other'::text])),
+  price numeric NOT NULL,
+  currency text DEFAULT 'EUR'::text,
+  original_price numeric,
+  features ARRAY,
+  limitations ARRAY,
+  valid_from timestamp with time zone,
+  valid_until timestamp with time zone,
+  is_limited_time boolean DEFAULT false,
+  status text DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'inactive'::text, 'draft'::text, 'expired'::text, 'archived'::text])),
+  tags ARRAY,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_by uuid,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT offers_pkey PRIMARY KEY (id),
+  CONSTRAINT offers_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.packages (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  description text,
+  price numeric NOT NULL,
+  currency text DEFAULT 'EUR'::text,
+  discount_percentage numeric DEFAULT 0 CHECK (discount_percentage >= 0::numeric AND discount_percentage <= 100::numeric),
+  services jsonb DEFAULT '[]'::jsonb,
+  duration_months integer,
+  features ARRAY,
+  benefits ARRAY,
+  status text DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'inactive'::text, 'draft'::text, 'archived'::text])),
+  is_popular boolean DEFAULT false,
+  tags ARRAY,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_by uuid,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT packages_pkey PRIMARY KEY (id),
+  CONSTRAINT packages_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.products (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -198,6 +323,26 @@ CREATE TABLE public.projects (
   CONSTRAINT projects_primary_contact_id_fkey FOREIGN KEY (primary_contact_id) REFERENCES public.contacts(id),
   CONSTRAINT fk_primary_contact FOREIGN KEY (primary_contact_id) REFERENCES public.contacts(id)
 );
+CREATE TABLE public.services (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  description text,
+  category text CHECK (category = ANY (ARRAY['consulting'::text, 'development'::text, 'design'::text, 'marketing'::text, 'training'::text, 'support'::text, 'other'::text])),
+  price numeric NOT NULL,
+  currency text DEFAULT 'EUR'::text,
+  billing_type text DEFAULT 'one-time'::text CHECK (billing_type = ANY (ARRAY['one-time'::text, 'hourly'::text, 'daily'::text, 'monthly'::text, 'yearly'::text])),
+  duration_hours numeric,
+  deliverables ARRAY,
+  requirements ARRAY,
+  status text DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'inactive'::text, 'draft'::text, 'archived'::text])),
+  tags ARRAY,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_by uuid,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT services_pkey PRIMARY KEY (id),
+  CONSTRAINT services_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
+);
 CREATE TABLE public.tasks (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   project_id uuid,
@@ -225,6 +370,27 @@ CREATE TABLE public.tasks (
   CONSTRAINT tasks_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.contacts(id),
   CONSTRAINT tasks_parent_task_id_fkey FOREIGN KEY (parent_task_id) REFERENCES public.tasks(id)
 );
+CREATE TABLE public.time_entries (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  task_id uuid,
+  project_id uuid,
+  user_id uuid,
+  start_time timestamp with time zone NOT NULL,
+  end_time timestamp with time zone,
+  duration_minutes integer,
+  description text,
+  billable boolean DEFAULT true,
+  hourly_rate numeric,
+  status text DEFAULT 'running'::text CHECK (status = ANY (ARRAY['running'::text, 'paused'::text, 'completed'::text, 'cancelled'::text])),
+  tags ARRAY,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT time_entries_pkey PRIMARY KEY (id),
+  CONSTRAINT time_entries_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.tasks(id),
+  CONSTRAINT time_entries_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.projects(id),
+  CONSTRAINT time_entries_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
 CREATE TABLE public.users (
   id uuid NOT NULL,
   email text NOT NULL UNIQUE,
@@ -241,6 +407,8 @@ CREATE TABLE public.users (
   preferences jsonb DEFAULT '{}'::jsonb,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  contact_id uuid,
   CONSTRAINT users_pkey PRIMARY KEY (id),
-  CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+  CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id),
+  CONSTRAINT users_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES public.contacts(id)
 );

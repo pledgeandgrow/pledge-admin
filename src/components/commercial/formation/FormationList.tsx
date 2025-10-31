@@ -6,7 +6,7 @@ import { Plus, Eye, Pencil, FileText, Clock, User } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Data, DataStatus } from '@/types/data';
-import { dataService } from '@/services/dataService';
+import { useData } from '@/hooks/useData';
 import { ViewFormationDialog } from './ViewFormationDialog';
 import { EditFormationDialog } from './EditFormationDialog';
 import { useToast } from '@/components/ui/use-toast';
@@ -25,9 +25,7 @@ interface FormationMetadata extends Record<string, unknown> {
 }
 
 export function FormationList() {
-  const [formations, setFormations] = useState<Data[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: formations, loading, error, fetchData, updateData, createData, deleteData } = useData('formation');
   const [selectedFormation, setSelectedFormation] = useState<Data | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -37,20 +35,14 @@ export function FormationList() {
   useEffect(() => {
     const loadFormations = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        const data = await dataService.getDataByType('formation');
-        setFormations(data);
+        await fetchData();
       } catch (err) {
         console.error('Error loading formations:', err);
-        setError('Erreur lors du chargement des formations');
-      } finally {
-        setLoading(false);
       }
-    }
+    };
     
     loadFormations();
-  }, []); // Add supabase as a dependency
+  }, [fetchData]);
 
   const getLevelColor = (level: string) => {
     const colors: { [key: string]: string } = {
@@ -96,27 +88,21 @@ export function FormationList() {
     try {
       if (selectedFormation?.id) {
         // Update existing formation
-        const updated = await dataService.updateData(selectedFormation.id, formationData);
-        if (updated) {
-          setFormations(prev => prev.map(f => f.id === updated.id ? updated : f));
-          toast({
-            title: 'Formation mise à jour',
-            description: 'La formation a été modifiée avec succès.',
-          });
-        }
+        await updateData(selectedFormation.id, formationData);
+        toast({
+          title: 'Formation mise à jour',
+          description: 'La formation a été modifiée avec succès.',
+        });
       } else {
         // Add new formation
-        const created = await dataService.createData({
+        await createData({
           ...formationData,
           data_type: 'formation',
         } as Data);
-        if (created) {
-          setFormations(prev => [...prev, created]);
-          toast({
-            title: 'Formation créée',
-            description: 'La nouvelle formation a été ajoutée avec succès.',
-          });
-        }
+        toast({
+          title: 'Formation créée',
+          description: 'La nouvelle formation a été ajoutée avec succès.',
+        });
       }
       setEditDialogOpen(false);
       setSelectedFormation(null);
@@ -133,17 +119,14 @@ export function FormationList() {
   const handleDelete = async () => {
     if (selectedFormation?.id) {
       try {
-        const success = await dataService.deleteData(selectedFormation.id);
-        if (success) {
-          setFormations(prev => prev.filter(f => f.id !== selectedFormation.id));
-          toast({
-            title: 'Formation supprimée',
-            description: 'La formation a été supprimée avec succès.',
-            variant: 'destructive',
-          });
-          setEditDialogOpen(false);
-          setSelectedFormation(null);
-        }
+        await deleteData(selectedFormation.id);
+        toast({
+          title: 'Formation supprimée',
+          description: 'La formation a été supprimée avec succès.',
+          variant: 'destructive',
+        });
+        setEditDialogOpen(false);
+        setSelectedFormation(null);
       } catch (error) {
         console.error('Error deleting formation:', error);
         toast({

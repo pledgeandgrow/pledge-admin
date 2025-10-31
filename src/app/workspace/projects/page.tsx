@@ -18,10 +18,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, Search } from 'lucide-react';
-import { ProjectType } from '@/types/project';
+import { BaseProject } from '@/hooks/useProjects';
 
 export default function ProjectsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<BaseProject | null>(null);
+  const [isViewMode, setIsViewMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -29,11 +31,13 @@ export default function ProjectsPage() {
   
   const { 
     projects, 
-    isLoading, 
+    loading, 
     error, 
     createProject,
-    isCreating
-  } = useProjects();
+    updateProject,
+    deleteProject,
+    fetchProjects
+  } = useProjects({ autoFetch: true }); // Enable auto-fetch for projects page
 
   useEffect(() => {
     if (error) {
@@ -45,15 +49,17 @@ export default function ProjectsPage() {
     }
   }, [error]);
 
-  const handleCreateProject = async (projectData: Partial<ProjectType>) => {
+  const handleCreateProject = async (projectData: Omit<BaseProject, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const newProject = await createProject(projectData);
       setIsDialogOpen(false);
+      setSelectedProject(null);
       toast({
         title: 'Success',
         description: 'Project created successfully',
       });
-      router.push(`/projects/${newProject.id}`);
+      // Refresh the list
+      await fetchProjects();
     } catch (err) {
       console.error('Error creating project:', err);
       toast({
@@ -64,8 +70,72 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleViewProject = (projectId: string) => {
-    router.push(`/projects/${projectId}`);
+  const handleUpdateProject = async (projectData: Omit<BaseProject, 'id' | 'created_at' | 'updated_at'>) => {
+    if (!selectedProject?.id) return;
+    
+    try {
+      await updateProject(selectedProject.id, projectData);
+      setIsDialogOpen(false);
+      setSelectedProject(null);
+      setIsViewMode(false);
+      toast({
+        title: 'Success',
+        description: 'Project updated successfully',
+      });
+      // Refresh the list
+      await fetchProjects();
+    } catch (err) {
+      console.error('Error updating project:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to update project',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!selectedProject?.id) return;
+    
+    if (!window.confirm('Are you sure you want to delete this project?')) return;
+    
+    try {
+      await deleteProject(selectedProject.id);
+      setIsDialogOpen(false);
+      setSelectedProject(null);
+      setIsViewMode(false);
+      toast({
+        title: 'Success',
+        description: 'Project deleted successfully',
+      });
+      // Refresh the list
+      await fetchProjects();
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete project',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleViewProject = (project: BaseProject) => {
+    setSelectedProject(project);
+    setIsViewMode(true);
+    setIsDialogOpen(true);
+  };
+
+  const handleEditProject = (project: BaseProject) => {
+    setSelectedProject(project);
+    setIsViewMode(false);
+    setIsDialogOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setSelectedProject(null);
+    setIsViewMode(false);
+    setIsDialogOpen(true);
   };
 
   const filteredProjects = projects.filter(project => {
@@ -80,10 +150,12 @@ export default function ProjectsPage() {
   return (
     <div className="p-8 space-y-6">
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-          Gestion des Projets
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+            Gestion des Projets
+          </span>
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground dark:text-gray-400">
           Gérez vos projets et suivez leur avancement
         </p>
       </div>
@@ -91,8 +163,19 @@ export default function ProjectsPage() {
       <Separator className="my-6" />
       
       <div className="flex justify-between items-center">
-        <div></div>
-        <Button onClick={() => setIsDialogOpen(true)} className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
+          {error && (
+            <Button 
+              onClick={() => fetchProjects()} 
+              variant="outline" 
+              size="sm"
+              className="text-orange-600 hover:text-orange-700"
+            >
+              Réessayer le chargement
+            </Button>
+          )}
+        </div>
+        <Button onClick={handleAddNew} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Nouveau projet
         </Button>
@@ -138,7 +221,7 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {isLoading ? (
+      {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="border rounded-lg p-4 space-y-3">
@@ -161,7 +244,7 @@ export default function ProjectsPage() {
               : "Aucun projet ne correspond à vos critères de recherche."}
           </p>
           {projects.length === 0 && (
-            <Button onClick={() => setIsDialogOpen(true)} className="mt-4">
+            <Button onClick={handleAddNew} className="mt-4">
               Créer un projet
             </Button>
           )}
@@ -169,20 +252,29 @@ export default function ProjectsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
-            <ProjectCard 
-              key={project.id} 
-              project={project} 
-              onClick={() => handleViewProject(project.id)} 
-            />
+            project.id && (
+              <ProjectCard 
+                key={project.id} 
+                project={project} 
+                onClick={() => handleViewProject(project)} 
+              />
+            )
           ))}
         </div>
       )}
 
       <ProjectDialog 
         open={isDialogOpen} 
-        onOpenChange={setIsDialogOpen}
-        onSubmit={handleCreateProject}
-        isSubmitting={isCreating}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            setSelectedProject(null);
+            setIsViewMode(false);
+          }
+        }}
+        project={selectedProject || undefined}
+        onSubmit={selectedProject ? handleUpdateProject : handleCreateProject}
+        isSubmitting={loading}
       />
     </div>
   );

@@ -335,6 +335,9 @@ export const useContacts = (options?: UseContactsOptions) => {
       supabase.removeChannel(supabaseChannel.current);
     }
     
+    // Capture the type filter at subscription time
+    const typeFilter = options?.type;
+    
     // Create a new subscription
     const channel = supabase
       .channel('contacts-changes')
@@ -347,9 +350,9 @@ export const useContacts = (options?: UseContactsOptions) => {
           if (payload.eventType === 'INSERT') {
             const newContact = payload.new as Contact;
             // Only add if it matches our filters (if any)
-            if (options?.type && Array.isArray(options.type)) {
-              if (!options.type.includes(newContact.type as ContactType)) return;
-            } else if (options?.type && newContact.type !== options.type) {
+            if (typeFilter && Array.isArray(typeFilter)) {
+              if (!typeFilter.includes(newContact.type as ContactType)) return;
+            } else if (typeFilter && newContact.type !== typeFilter) {
               return;
             }
             setContacts(prev => [newContact, ...prev]);
@@ -358,11 +361,11 @@ export const useContacts = (options?: UseContactsOptions) => {
             const updatedContact = payload.new as Contact;
             
             // Check if the updated contact matches our type filter
-            if (options?.type) {
-              const typeFilter = Array.isArray(options.type) ? options.type : [options.type];
+            if (typeFilter) {
+              const filterArray = Array.isArray(typeFilter) ? typeFilter : [typeFilter];
               
               // If the contact type doesn't match our filter, remove it from the list
-              if (!typeFilter.includes(updatedContact.type as ContactType)) {
+              if (!filterArray.includes(updatedContact.type as ContactType)) {
                 setContacts(prev => prev.filter(contact => contact.id !== updatedContact.id));
                 return;
               }
@@ -394,7 +397,8 @@ export const useContacts = (options?: UseContactsOptions) => {
         supabase.removeChannel(channel);
       }
     };
-  }, [realtimeEnabled, supabase, options]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [realtimeEnabled, supabase]); // Removed options from dependencies
   
   // Toggle realtime subscription
   const toggleRealtime = useCallback(() => {
@@ -405,7 +409,8 @@ export const useContacts = (options?: UseContactsOptions) => {
   useEffect(() => {
     const cleanup = setupRealtimeSubscription();
     return cleanup;
-  }, [setupRealtimeSubscription]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [realtimeEnabled, options?.type]); // Only re-setup when realtime is toggled or type filter changes
   
   // Load contacts on component mount with the type filter
   useEffect(() => {
@@ -415,7 +420,8 @@ export const useContacts = (options?: UseContactsOptions) => {
       initialFilter.type = options.type;
     }
     fetchContacts(initialFilter);
-  }, [fetchContacts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options?.type]); // Only re-fetch when the type filter changes
 
   return {
     contacts,

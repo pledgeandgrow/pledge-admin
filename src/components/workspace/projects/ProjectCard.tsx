@@ -5,10 +5,10 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar, Users } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ProjectType } from '@/types/project';
+import { BaseProject } from '@/hooks/useProjects';
 
 interface ProjectCardProps {
-  project: ProjectType;
+  project: BaseProject;
   onClick: () => void;
 }
 

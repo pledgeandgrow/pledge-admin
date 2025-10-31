@@ -12,12 +12,12 @@ export default function ExternalPage() {
           <Building2 className="h-8 w-8 text-orange-500" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             <span className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 bg-clip-text text-transparent">
               External Contacts
             </span>
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground dark:text-gray-400 mt-1">
             Manage external contractors, agencies, and service providers
           </p>
         </div>

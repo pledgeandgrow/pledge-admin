@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { PageLayout } from '@/components/layout/PageLayout';
-import { PageHeader } from '@/components/layout/PageHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -533,51 +531,53 @@ useEffect(() => {
   const isAdmin = userProfile?.role === 'admin';
 
   return (
-    <PageLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
       {/* Admin Header with Pledge & Grow Branding */}
-      <div className="flex items-center mb-6">
-        <div className="hidden md:block mr-3">
-          <Image 
-            src="/logopledge.png" 
-            alt="Pledge & Grow" 
-            width={48} 
-            height={48} 
-            className="rounded-md"
-          />
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <div className="hidden md:block">
+            <Image 
+              src="/logopledge.png" 
+              alt="Pledge & Grow" 
+              width={48} 
+              height={48} 
+              className="rounded-md"
+            />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+              Admin Dashboard
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Welcome back, {userProfile?.first_name || 'Admin'}. Here's your system overview.
+            </p>
+          </div>
         </div>
-        <PageHeader
-          title="Admin Dashboard"
-          description={`Welcome back, ${userProfile?.first_name || 'Admin'}. Here's your system overview.`}
-          badge={{ text: 'Admin', variant: 'admin' }}
-          actions={
-            <>
-              <Select
-                value={timeRange}
-                onValueChange={(value) => handleTimeRangeChange(value as any)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select time range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="week">This Week</SelectItem>
-                  <SelectItem value="month">This Month</SelectItem>
-                  <SelectItem value="quarter">This Quarter</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Button variant="outline" size="sm" className="gap-2 border-gray-300 dark:border-gray-700">
-                <Download className="h-4 w-4" />
-                Export Report
-              </Button>
-              <Button size="sm" className="gap-2 bg-blue-600 hover:bg-blue-700">
-                <Shield className="h-4 w-4" />
-                Admin Actions
-              </Button>
-            </>
-          }
-        />
+        <div className="flex items-center gap-2">
+          <Select
+            value={timeRange}
+            onValueChange={(value) => handleTimeRangeChange(value as any)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select time range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="quarter">This Quarter</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button variant="outline" size="sm" className="gap-2 border-gray-300 dark:border-gray-700">
+            <Download className="h-4 w-4" />
+            Export Report
+          </Button>
+          <Button size="sm" className="gap-2 bg-blue-600 hover:bg-blue-700">
+            <Shield className="h-4 w-4" />
+            Admin Actions
+          </Button>
+        </div>
       </div>
       
       {/* Admin Navigation */}
@@ -987,7 +987,6 @@ useEffect(() => {
           )}
         </>
       )}
-      </div>
-    </PageLayout>
+    </div>
   );
 }

@@ -7,10 +7,12 @@ export default function TasksPage() {
   return (
     <div className="p-8 space-y-6">
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-          Gestion des Tâches
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+            Gestion des Tâches
+          </span>
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground dark:text-gray-400">
           Gérez vos tâches et suivez leur avancement
         </p>
       </div>

@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Pencil, Trash2 } from 'lucide-react';
-import { dataService } from '@/services/dataService';
+import { useData } from '@/hooks/useData';
 import { Data } from '@/types/data';
 import { ViewFormationDialog } from './ViewFormationDialog';
 import { EditFormationDialog } from './EditFormationDialog';
@@ -30,9 +30,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-export function FormationTable() {
-  const [formations, setFormations] = useState<Data[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function FormationTable() {
+  const { data: formations, loading, fetchData, updateData, createData, deleteData } = useData('formation');
   const [selectedFormation, setSelectedFormation] = useState<Data | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -41,10 +40,8 @@ export function FormationTable() {
   const { toast } = useToast();
 
   const fetchFormations = useCallback(async () => {
-    setLoading(true);
     try {
-      const data = await dataService.getDataByType('formation');
-      setFormations(data);
+      await fetchData();
     } catch (error) {
       console.error('Error fetching formations:', error);
       toast({
@@ -52,11 +49,9 @@ export function FormationTable() {
         description: 'Impossible de charger les formations.',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
-  }, [setFormations, setLoading, toast]);
-  
+  }, [fetchData, toast]);
+
   useEffect(() => {
     fetchFormations();
   }, [fetchFormations]);
@@ -105,7 +100,7 @@ export function FormationTable() {
     try {
       if (selectedFormation?.id) {
         // Update existing formation
-        await dataService.updateData(selectedFormation.id, {
+        await updateData(selectedFormation.id, {
           ...formationData,
           data_type: 'formation'
         });
@@ -115,11 +110,10 @@ export function FormationTable() {
         });
       } else {
         // Add new formation
-        await dataService.createData({
+        await createData({
           ...formationData,
           data_type: 'formation',
           title: formationData.title || 'Nouvelle formation',
-          status: formationData.status || 'draft',
         } as Data);
         toast({
           title: 'Formation créée',
@@ -143,7 +137,7 @@ export function FormationTable() {
   const handleDelete = async () => {
     if (selectedFormation?.id) {
       try {
-        await dataService.deleteData(selectedFormation.id);
+        await deleteData(selectedFormation.id);
         toast({
           title: 'Formation supprimée',
           description: 'La formation a été supprimée avec succès.',

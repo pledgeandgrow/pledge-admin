@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { contactService } from '@/services/contactService';
+import { useContacts } from '@/hooks/useContacts';
 import { ContactType } from '@/types/contact';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +52,7 @@ interface AddLeadDialogProps {
 }
 
 export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
+  const { createContact } = useContacts();
   const [newLead, setNewLead] = useState<LeadFormData>(initialLead);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -87,7 +88,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
       };
       
       // Add contact to Supabase
-      await contactService.addContact(contactData);
+      await createContact(contactData);
       
       toast({
         title: "Lead ajouté",

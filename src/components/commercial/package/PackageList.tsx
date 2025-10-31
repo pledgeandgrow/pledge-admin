@@ -10,7 +10,7 @@ import { Product, ProductStatus } from '@/types/products';
 import { ViewPackageDialog } from './ViewPackageDialog';
 import { EditPackageDialog } from './EditPackageDialog';
 import { useToast } from '@/components/ui/use-toast';
-import { productService } from '@/services/productService';
+import { useProducts } from '@/hooks/useProducts';
 
 // Helper function to get status display text
 const getStatusText = (status: ProductStatus): string => {
@@ -24,32 +24,15 @@ const getStatusText = (status: ProductStatus): string => {
 };
 
 export function PackageList() {
-  const [packages, setPackages] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loading, fetchProducts, updateProduct, createProduct, deleteProduct } = useProducts();
   const [selectedPackage, setSelectedPackage] = useState<Product | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchPackages = async () => {
-      try {
-        const data = await productService.getPackages();
-        setPackages(data);
-      } catch (error) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de récupérer les packages",
-          variant: "destructive"
-        });
-        console.error('Error fetching packages:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchPackages();
-  }, [toast]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const getLevelColor = (level: string) => {
     const colors: Record<string, string> = {
@@ -100,12 +83,7 @@ export function PackageList() {
     try {
       if (selectedPackage && selectedPackage.id) {
         // Update existing package
-        await productService.updateProduct(selectedPackage.id, productData);
-        
-        // Update local state
-        setPackages(prev =>
-          prev.map(p => (p.id === selectedPackage.id ? { ...p, ...productData } : p))
-        );
+        await updateProduct(selectedPackage.id, productData);
         
         toast({
           title: 'Package mis à jour',
@@ -119,16 +97,12 @@ export function PackageList() {
           type: 'package'
         } as Product;
         
-        const newProduct = await productService.createProduct(newProductData);
+        await createProduct(newProductData);
         
-        if (newProduct) {
-          setPackages(prev => [...prev, newProduct]);
-          
-          toast({
-            title: 'Package créé',
-            description: 'Le nouveau package a été ajouté avec succès.',
-          });
-        }
+        toast({
+          title: 'Package créé',
+          description: 'Le nouveau package a été ajouté avec succès.',
+        });
       }
     } catch (error) {
       console.error('Error saving package:', error);
@@ -146,9 +120,7 @@ export function PackageList() {
   const handleDelete = async () => {
     if (selectedPackage && selectedPackage.id) {
       try {
-        await productService.deleteProduct(selectedPackage.id);
-        
-        setPackages(prev => prev.filter(p => p.id !== selectedPackage.id));
+        await deleteProduct(selectedPackage.id);
         
         toast({
           title: 'Package supprimé',
@@ -186,7 +158,7 @@ export function PackageList() {
         </Button>
       </div>
       
-      {packages.length === 0 ? (
+      {products.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">Aucun package trouvé</p>
           <Button className="mt-4" onClick={handleAddPackage}>
@@ -196,7 +168,7 @@ export function PackageList() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {packages.map((pkg) => (
+          {products.map((pkg) => (
             <Card key={pkg.id} className="overflow-hidden">
               <CardHeader>
                 <div className="flex justify-between items-start">

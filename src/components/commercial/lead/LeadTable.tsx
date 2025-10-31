@@ -20,7 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Edit, Trash } from 'lucide-react';
-import { contactService } from '@/services/contactService';
+import { useContacts } from '@/hooks/useContacts';
 import { toast } from '@/components/ui/use-toast';
 
 // Define the Lead interface for the table
@@ -50,6 +50,7 @@ interface LeadTableProps {
 }
 
 export function LeadTable({ leads, onEdit, getStatusColor }: LeadTableProps) {
+  const { deleteContact } = useContacts();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const handleDelete = async (id: string | undefined) => {
@@ -57,7 +58,7 @@ export function LeadTable({ leads, onEdit, getStatusColor }: LeadTableProps) {
     
     setIsDeleting(id);
     try {
-      await contactService.deleteContact(id);
+      await deleteContact(id);
       toast({
         title: "Lead supprimé",
         description: "Le lead a été supprimé avec succès.",

@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useProjects } from '@/hooks/useProjects';
-import { BaseProject, ProjectStatus } from '@/services/projectService';
+import { useProjects, BaseProject, ProjectStatus } from '@/hooks/useProjects';
 import { CalendarIcon, ClockIcon, UsersIcon } from 'lucide-react';
 
 interface ProjectSummaryCardProps {

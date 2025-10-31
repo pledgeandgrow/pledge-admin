@@ -9,35 +9,18 @@ import { Product, ProductStatus } from '@/types/products';
 import { ViewPrestationDialog } from './ViewPrestationDialog';
 import { EditPrestationDialog } from './EditPrestationDialog';
 import { useToast } from '@/components/ui/use-toast';
-import { productService } from '@/services/productService';
+import { useProducts } from '@/hooks/useProducts';
 
 export function PrestationList() {
-  const [prestations, setPrestations] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loading, fetchProducts, updateProduct, createProduct, deleteProduct } = useProducts();
   const [selectedPrestation, setSelectedPrestation] = useState<Product | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchPrestations = async () => {
-      try {
-        const data = await productService.getPrestations();
-        setPrestations(data as Product[]);
-      } catch (error) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de récupérer les prestations",
-          variant: "destructive"
-        });
-        console.error('Error fetching prestations:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchPrestations();
-  }, [toast]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   // Helper function to get category color classes
   const getCategoryColor = (category: string) => {
@@ -111,12 +94,7 @@ export function PrestationList() {
           type: productData.type || selectedPrestation.type || 'service',
         };
         
-        await productService.updateProduct(selectedPrestation.id, updatedProduct);
-        
-        // Update local state
-        setPrestations(prev =>
-          prev.map(p => (p.id === selectedPrestation.id ? { ...p, ...updatedProduct } : p))
-        );
+        await updateProduct(selectedPrestation.id, updatedProduct);
         
         toast({
           title: 'Prestation mise à jour',
@@ -132,16 +110,12 @@ export function PrestationList() {
           status: productData.status || 'draft',
         };
         
-        const newProduct = await productService.createProduct(newProductData);
+        await createProduct(newProductData);
         
-        if (newProduct) {
-          setPrestations(prev => [...prev, newProduct]);
-          
-          toast({
-            title: 'Prestation créée',
-            description: 'La nouvelle prestation a été ajoutée avec succès.',
-          });
-        }
+        toast({
+          title: 'Prestation créée',
+          description: 'La nouvelle prestation a été ajoutée avec succès.',
+        });
       }
     } catch (error) {
       console.error('Error saving prestation:', error);
@@ -159,9 +133,7 @@ export function PrestationList() {
   const handleDelete = async () => {
     if (selectedPrestation && selectedPrestation.id) {
       try {
-        await productService.deleteProduct(selectedPrestation.id);
-        
-        setPrestations(prev => prev.filter(p => p.id !== selectedPrestation.id));
+        await deleteProduct(selectedPrestation.id);
         
         toast({
           title: 'Prestation supprimée',
@@ -199,7 +171,7 @@ export function PrestationList() {
         </Button>
       </div>
       
-      {prestations.length === 0 ? (
+      {products.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">Aucune prestation trouvée</p>
           <Button className="mt-4" onClick={handleAddPrestation}>
@@ -209,7 +181,7 @@ export function PrestationList() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {prestations.map((prestation) => {
+          {products.map((prestation) => {
             const metadata = prestation.metadata || {};
             const category = metadata.category as string || 'Non spécifié';
             const duration = metadata.duration as string || 'Non spécifié';

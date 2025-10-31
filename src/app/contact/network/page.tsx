@@ -12,12 +12,12 @@ export default function NetworkPage() {
           <Network className="h-8 w-8 text-blue-500" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             <span className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">
               Network
             </span>
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground dark:text-gray-400 mt-1">
             Manage your professional network and track relationships
           </p>
         </div>

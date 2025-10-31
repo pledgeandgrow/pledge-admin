@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
+import { retryWithBackoff } from '@/lib/supabase';
 
+// Task status values from schema
 export type TaskStatus = 'todo' | 'in_progress' | 'in_review' | 'blocked' | 'done' | 'archived';
+// Task priority values from schema (lowercase)
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface Task {

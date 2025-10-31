@@ -328,7 +328,7 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
     } else if (fileType.includes('excel') || fileType.includes('sheet')) {
       return <FileText className="h-4 w-4 text-green-700" />;
     } else {
-      return <File className="h-4 w-4 text-gray-500" />;
+      return <File className="h-4 w-4 text-gray-500 dark:text-gray-400" />;
     }
   };
 

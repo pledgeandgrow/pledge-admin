@@ -13,12 +13,12 @@ export default function MembersPage() {
           <Users className="h-8 w-8 text-purple-500" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             <span className="bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500 bg-clip-text text-transparent">
               Members
             </span>
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground dark:text-gray-400 mt-1">
             Manage organization members and their information
           </p>
         </div>

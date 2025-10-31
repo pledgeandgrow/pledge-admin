@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ViewAutreOffreDialog } from './ViewAutreOffreDialog';
 import { EditAutreOffreDialog } from './EditAutreOffreDialog';
 import { AddAutreOffreDialog } from './AddAutreOffreDialog';
-import { productService } from '@/services/productService';
+import { useProducts } from '@/hooks/useProducts';
 import { useToast } from '@/components/ui/use-toast';
 
 // Helper function to map product type to display name
@@ -26,35 +26,16 @@ const getProductTypeDisplay = (type: string): string => {
 };
 
 export function AutresOffresList() {
-  const [autresOffres, setAutresOffres] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loading, fetchProducts, updateProduct, createProduct, deleteProduct } = useProducts();
   const [selectedOffre, setSelectedOffre] = useState<Product | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  // Fetch autres offres from Supabase
-  const loadOffres = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await productService.getAutresOffres();
-      setAutresOffres(data);
-    } catch (error) {
-      console.error('Error fetching autres offres:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de récupérer les autres offres",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-  
   useEffect(() => {
-    loadOffres();
-  }, [loadOffres]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const getAvailabilityColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -99,18 +80,16 @@ export function AutresOffresList() {
   
   const handleSave = async (offre: Product) => {
     try {
-      setLoading(true);
-      
       if (offre.id) {
         // Update existing offre
-        await productService.updateProduct(offre.id, offre);
+        await updateProduct(offre.id, offre);
         toast({
           title: "Succès",
           description: "L'offre a été mise à jour avec succès.",
         });
       } else {
         // Create new offre
-        await productService.createProduct(offre);
+        await createProduct(offre);
         toast({
           title: "Succès",
           description: "L'offre a été créée avec succès.",
@@ -118,7 +97,6 @@ export function AutresOffresList() {
       }
       
       setEditDialogOpen(false);
-      loadOffres();
     } catch (error) {
       console.error('Error saving offre:', error);
       toast({
@@ -126,8 +104,6 @@ export function AutresOffresList() {
         description: "Une erreur est survenue lors de l'enregistrement.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
   
@@ -137,15 +113,13 @@ export function AutresOffresList() {
         return;
       }
       
-      setLoading(true);
-      await productService.deleteProduct(id);
+      await deleteProduct(id);
       toast({
         title: "Succès",
         description: "L'offre a été supprimée avec succès.",
       });
       setViewDialogOpen(false);
       setEditDialogOpen(false);
-      loadOffres();
     } catch (error) {
       console.error('Error deleting offre:', error);
       toast({
@@ -153,8 +127,6 @@ export function AutresOffresList() {
         description: "Une erreur est survenue lors de la suppression.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -179,13 +151,13 @@ export function AutresOffresList() {
         <div className="flex justify-center items-center h-64">
           <p>Chargement des offres...</p>
         </div>
-      ) : autresOffres.length === 0 ? (
+      ) : products.length === 0 ? (
         <div className="flex justify-center items-center h-64">
           <p>Aucune offre disponible</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-          {autresOffres.map((offre) => (
+          {products.map((offre) => (
             <Card key={offre.id} className="overflow-hidden border border-gray-200 dark:border-gray-800 bg-white/5 backdrop-blur-lg hover:bg-white/10 transition-all duration-300 shadow-lg">
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start">

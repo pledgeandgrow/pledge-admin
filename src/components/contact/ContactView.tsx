@@ -242,7 +242,7 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
             <Label className="text-gray-600 dark:text-gray-300">Portfolio Companies</Label>
             <div className="flex flex-wrap gap-2">
               {investorContact.portfolio_companies && investorContact.portfolio_companies.map((company, index) => (
-                <Badge key={index} variant="outline" className="border-gray-200 dark:border-gray-700">
+                <Badge key={index} variant="outline" className="border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
                   {company}
                 </Badge>
               ))}

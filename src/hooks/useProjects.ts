@@ -1,8 +1,33 @@
-import { useState, useEffect, useCallback } from 'react';
-import { projectService } from '@/services/projectService';
-import { BaseProject, ProjectType, ProjectStatus, ProjectPriority } from '@/services/projectService';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createClient } from '@/lib/supabase';
+import { retryWithBackoff } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
-// Removed unused import: import { v4 as uuidv4 } from 'uuid';
+
+// Project types
+export type ProjectType = 'Client' | 'Internal' | 'External' | 'Partner' | 'Lead';
+export type ProjectStatus = 'Active' | 'Completed' | 'On Hold' | 'Cancelled';
+export type ProjectPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
+
+// Base project interface matching the database schema
+export interface BaseProject {
+  id?: string;
+  name: string;
+  description?: string;
+  project_type: ProjectType;
+  status: ProjectStatus;
+  start_date?: string;
+  end_date?: string;
+  budget?: number;
+  primary_contact_id?: string;
+  team_contacts?: Array<{ id: string; role: string }>;
+  contact_roles?: Record<string, { role: string; permissions?: string[]; notes?: string }>;
+  tags?: string[];
+  priority?: ProjectPriority;
+  progress?: number;
+  metadata?: Record<string, string | number | boolean | null | string[] | Record<string, unknown>>;
+  created_at?: string;
+  updated_at?: string;
+}
 
 interface ProjectFilters {
   type?: ProjectType | ProjectType[];
@@ -37,6 +62,7 @@ interface UseProjectsReturn {
 
 export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn => {
   const { type, initialFilters = {}, autoFetch = true } = options;
+  const supabase = createClient();
   
   const [projects, setProjects] = useState<BaseProject[]>([]);
   const [loading, setLoading] = useState<boolean>(autoFetch);
@@ -46,29 +72,54 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
     ...initialFilters,
     type: type || initialFilters.type,
   });
+  
+  // Request deduplication: track in-flight requests
+  const fetchAbortControllerRef = useRef<AbortController | null>(null);
+  const isMountedRef = useRef(true);
+  const filtersRef = useRef(filters);
+  
+  // Keep filtersRef in sync with filters state
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
 
   const fetchProjects = useCallback(async (newFilters?: ProjectFilters) => {
     try {
       setLoading(true);
       setError(null);
       
-      const mergedFilters = newFilters ? { ...filters, ...newFilters } : filters;
+      // Use ref to get the latest filters without causing re-renders
+      const currentFilters = newFilters || filtersRef.current;
+      const mergedFilters = newFilters ? { ...filtersRef.current, ...newFilters } : currentFilters;
       
-      // Fetch projects with the current filters
+      // Cancel previous request if still in flight
+      if (fetchAbortControllerRef.current) {
+        fetchAbortControllerRef.current.abort();
+      }
+      
+      // Create new abort controller for this request
+      fetchAbortControllerRef.current = new AbortController();
+      
+      // Fetch projects with retry logic
       let data: BaseProject[] = [];
       
-      if (mergedFilters.type) {
-        // If type filter is specified, use getProjectsByType
-        const projectType = Array.isArray(mergedFilters.type) 
-          ? mergedFilters.type[0] // Use first type if multiple are specified
-          : mergedFilters.type;
-        // getProjectsByType returns array directly
-        data = await projectService.getProjectsByType(projectType);
-      } else {
-        // Otherwise get all projects
-        // getAllProjects returns array directly
-        data = await projectService.getAllProjects();
-      }
+      await retryWithBackoff(async () => {
+        let query = supabase.from('projects').select('*');
+        
+        // Apply type filter if specified
+        if (mergedFilters.type) {
+          const projectType = Array.isArray(mergedFilters.type) 
+            ? mergedFilters.type[0]
+            : mergedFilters.type;
+          query = query.eq('project_type', projectType);
+        }
+        
+        query = query.order('created_at', { ascending: false });
+        
+        const { data: fetchedData, error: fetchError } = await query;
+        if (fetchError) throw fetchError;
+        data = fetchedData || [];
+      }, 3, 1000);
       
       // Apply additional filters client-side
       let filteredData = [...data];
@@ -144,7 +195,8 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Remove filters dependency to prevent stale closures
 
   const refetch = useCallback(() => fetchProjects(), [fetchProjects]);
 
@@ -178,19 +230,26 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
         metadata: project.metadata || {}
       };
 
-      console.log('Calling projectService.createProject with:', projectToCreate);
-      const response = await projectService.createProject(projectToCreate);
-      console.log('projectService.createProject response:', response);
+      console.log('Creating project with:', projectToCreate);
       
-      if (!response || !response.success || !response.data) {
-        const error = new Error('Failed to create project: Invalid response');
-        console.error('Invalid response from projectService.createProject:', response);
+      const { data, error: createError } = await supabase
+        .from('projects')
+        .insert(projectToCreate)
+        .select()
+        .single();
+      
+      if (createError) {
+        throw createError;
+      }
+      
+      if (!data) {
+        const error = new Error('Failed to create project: No data returned');
+        console.error('No data returned from project creation');
         setError(error);
         throw error;
       }
       
-      // Extract the actual project data from the response
-      const result = response.data as BaseProject;
+      const result = data as BaseProject;
       
       // Update local state
       setProjects(prev => [result, ...prev]);
@@ -228,16 +287,24 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
         }
       });
 
-      const response = await projectService.updateProject(id, cleanedUpdate);
+      const { data, error: updateError } = await supabase
+        .from('projects')
+        .update(cleanedUpdate)
+        .eq('id', id)
+        .select()
+        .single();
       
-      if (!response || !response.success || !response.data) {
-        const error = new Error('Failed to update project: Invalid response');
+      if (updateError) {
+        throw updateError;
+      }
+      
+      if (!data) {
+        const error = new Error('Failed to update project: No data returned');
         setError(error);
         throw error;
       }
       
-      // Extract the actual project data from the response
-      const result = response.data as BaseProject;
+      const result = data as BaseProject;
       
       // Update local state
       setProjects(prev => 
@@ -266,12 +333,13 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
 
   const deleteProject = useCallback(async (id: string): Promise<boolean> => {
     try {
-      const response = await projectService.deleteProject(id);
+      const { error: deleteError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id);
       
-      if (!response || !response.success) {
-        const error = new Error('Failed to delete project');
-        setError(error);
-        throw error;
+      if (deleteError) {
+        throw deleteError;
       }
       
       // Update local state
@@ -302,7 +370,15 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
     if (autoFetch) {
       fetchProjects();
     }
-  }, [autoFetch, fetchProjects]);
+    
+    // Cleanup on unmount
+    return () => {
+      isMountedRef.current = false;
+      if (fetchAbortControllerRef.current) {
+        fetchAbortControllerRef.current.abort();
+      }
+    };
+  }, [autoFetch]); // Only depend on autoFetch, not fetchProjects
 
   return {
     projects,

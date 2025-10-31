@@ -26,7 +26,7 @@ export default function ClientLayout({
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {showMegaMenu && <MegaMenu />}
-      <main className={`flex-1 ${showMegaMenu ? 'ml-72' : ''} min-h-screen overflow-auto ${showMegaMenu ? 'pl-20 pr-12' : 'px-4'} pt-4`}>
+      <main className={`flex-1 ${showMegaMenu ? 'ml-96' : ''} min-h-screen overflow-auto ${showMegaMenu ? 'pl-40 pr-24' : 'px-4'} pt-4`}>
         <div className="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
           {children}
         </div>

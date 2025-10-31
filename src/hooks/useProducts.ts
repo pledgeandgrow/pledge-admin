@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { productService } from '@/services/productService';
+import { createClient } from '@/lib/supabase';
 import { Product, ProductType, ProductStatus } from '@/types/products';
 import { toast } from '@/components/ui/use-toast';
+import { retryWithBackoff } from '@/lib/supabase';
 // Removed unused import: import { v4 as uuidv4 } from 'uuid';
 
 interface ProductFilters {
@@ -39,6 +40,7 @@ interface UseProductsReturn {
 
 export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn => {
   const { type, initialFilters = {}, autoFetch = true } = options;
+  const supabase = createClient();
   
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(autoFetch);
@@ -59,18 +61,22 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       // Fetch products with the current filters
       let data: Product[] = [];
       
-      if (mergedFilters.type) {
-        // If type filter is specified, use getProductsByType
-        const productType = Array.isArray(mergedFilters.type) 
-          ? mergedFilters.type[0] // Use first type if multiple are specified
-          : mergedFilters.type;
-        // getProductsByType returns array directly
-        data = await productService.getProductsByType(productType);
-      } else {
-        // Otherwise get all products
-        // getAllProducts returns array directly
-        data = await productService.getAllProducts();
-      }
+      await retryWithBackoff(async () => {
+        let query = supabase.from('products').select('*');
+        
+        if (mergedFilters.type) {
+          const productType = Array.isArray(mergedFilters.type) 
+            ? mergedFilters.type[0]
+            : mergedFilters.type;
+          query = query.eq('type', productType);
+        }
+        
+        query = query.order('created_at', { ascending: false });
+        
+        const { data: fetchedData, error: fetchError } = await query;
+        if (fetchError) throw fetchError;
+        data = fetchedData || [];
+      }, 3, 1000);
       
       // Apply additional filters client-side
       let filteredData = [...data];
@@ -188,23 +194,31 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
         metadata: product.metadata || {}
       };
 
-      const result = await productService.createProduct(productToCreate);
+      const { data, error: createError } = await supabase
+        .from('products')
+        .insert(productToCreate)
+        .select()
+        .single();
       
-      if (!result) {
-        const error = new Error('Failed to create product: Invalid response');
+      if (createError) {
+        throw createError;
+      }
+      
+      if (!data) {
+        const error = new Error('Failed to create product: No data returned');
         setError(error);
         throw error;
       }
       
       // Update local state
-      setProducts(prev => [result, ...prev]);
+      setProducts(prev => [data, ...prev]);
       
       toast({
         title: "Produit créé",
-        description: `Le produit ${result.name} a été créé avec succès`,
+        description: `Le produit ${data.name} a été créé avec succès`,
       });
       
-      return result;
+      return data;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to create product');
       setError(error);
@@ -217,7 +231,7 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       
       throw error;
     }
-  }, []);
+  }, [supabase]);
 
   const updateProduct = useCallback(async (id: string, productUpdate: Partial<Product>): Promise<Product> => {
     try {
@@ -232,25 +246,34 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
         }
       });
 
-      const result = await productService.updateProduct(id, cleanedUpdate);
+      const { data, error: updateError } = await supabase
+        .from('products')
+        .update(cleanedUpdate)
+        .eq('id', id)
+        .select()
+        .single();
       
-      if (!result) {
-        const error = new Error('Failed to update product: Invalid response');
+      if (updateError) {
+        throw updateError;
+      }
+      
+      if (!data) {
+        const error = new Error('Failed to update product: No data returned');
         setError(error);
         throw error;
       }
       
       // Update local state
       setProducts(prev => 
-        prev.map(p => p.id === id ? { ...p, ...result } : p)
+        prev.map(p => p.id === id ? { ...p, ...data } : p)
       );
       
       toast({
         title: "Produit mis à jour",
-        description: `Le produit ${result.name} a été mis à jour avec succès`,
+        description: `Le produit ${data.name} a été mis à jour avec succès`,
       });
       
-      return result;
+      return data;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to update product');
       setError(error);
@@ -263,11 +286,19 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       
       throw error;
     }
-  }, []);
+  }, [supabase]);
 
   const deleteProduct = useCallback(async (id: string): Promise<boolean> => {
     try {
-      const result = await productService.deleteProduct(id);
+      const { error: deleteError } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+      
+      if (deleteError) {
+        throw deleteError;
+      }
+      const result = true;
       
       if (result === false) {
         const error = new Error('Failed to delete product');

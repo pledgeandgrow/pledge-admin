@@ -8,7 +8,7 @@ import {
   FileText,
   XCircle,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency } from "@/lib/utils";
 
 interface DevisStats {
   total_count: number;

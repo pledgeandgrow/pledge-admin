@@ -21,7 +21,7 @@ import {
 import { ViewPackageDialog } from './ViewPackageDialog';
 import { EditPackageDialog } from './EditPackageDialog';
 import { useToast } from '@/components/ui/use-toast';
-import { productService } from '@/services/productService';
+import { useProducts } from '@/hooks/useProducts';
 import { Product, ProductStatus } from '@/types/products';
 
 // Helper function to get status display text
@@ -36,32 +36,15 @@ const getStatusText = (status: ProductStatus): string => {
 };
 
 export default function PackageTable() {
-  const [packages, setPackages] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loading, fetchProducts, updateProduct, createProduct, deleteProduct } = useProducts();
   const [selectedPackage, setSelectedPackage] = useState<Product | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchPackages = async () => {
-      try {
-        const data = await productService.getPackages();
-        setPackages(data);
-      } catch (error) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de récupérer les packages",
-          variant: "destructive"
-        });
-        console.error('Error fetching packages:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchPackages();
-  }, [toast]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const getLevelColor = (level: string) => {
     const colors: Record<string, string> = {
@@ -127,12 +110,7 @@ export default function PackageTable() {
     try {
       if (selectedPackage && selectedPackage.id) {
         // Update existing package
-        await productService.updateProduct(selectedPackage.id, productData);
-        
-        // Update local state
-        setPackages(prev =>
-          prev.map(p => (p.id === selectedPackage.id ? { ...p, ...productData } : p))
-        );
+        await updateProduct(selectedPackage.id, productData);
         
         toast({
           title: 'Package mis à jour',
@@ -146,16 +124,12 @@ export default function PackageTable() {
           type: 'package'
         } as Product;
         
-        const newProduct = await productService.createProduct(newProductData);
+        await createProduct(newProductData);
         
-        if (newProduct) {
-          setPackages(prev => [...prev, newProduct]);
-          
-          toast({
-            title: 'Package créé',
-            description: 'Le nouveau package a été ajouté avec succès.',
-          });
-        }
+        toast({
+          title: 'Package créé',
+          description: 'Le nouveau package a été ajouté avec succès.',
+        });
       }
     } catch (error) {
       console.error('Error saving package:', error);
@@ -173,9 +147,7 @@ export default function PackageTable() {
   const handleDelete = async () => {
     if (selectedPackage && selectedPackage.id) {
       try {
-        await productService.deleteProduct(selectedPackage.id);
-        
-        setPackages(prev => prev.filter(p => p.id !== selectedPackage.id));
+        await deleteProduct(selectedPackage.id);
         
         toast({
           title: 'Package supprimé',
@@ -213,7 +185,7 @@ export default function PackageTable() {
         </Button>
       </div>
       
-      {packages.length === 0 ? (
+      {products.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">Aucun package trouvé</p>
           <Button className="mt-4" onClick={handleAddPackage}>
@@ -236,7 +208,7 @@ export default function PackageTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {packages.map((pkg) => (
+              {products.map((pkg) => (
                 <TableRow key={pkg.id}>
                   <TableCell className="font-medium">{pkg.name}</TableCell>
                   <TableCell>{pkg.price ? `${pkg.price.toLocaleString('fr-FR')} €` : 'Sur devis'}</TableCell>

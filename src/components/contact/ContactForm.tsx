@@ -102,6 +102,20 @@ export function ContactForm({
           preferred_industries: []
         }));
       }
+      // Initialize empty arrays for freelance-specific fields when creating a new freelance contact
+      if (contactType === 'freelance') {
+        setFormData(prev => ({
+          ...prev,
+          type: contactType,
+          status: 'active',
+          metadata: {
+            availability: 'available',
+            certifications: [],
+            languages: [],
+            projects: []
+          }
+        }));
+      }
     }
   }, [contact, contactType]);
 
@@ -418,6 +432,15 @@ export function ContactForm({
         // Ensure languages and education are arrays
         if (!dataToSubmit.metadata.languages) dataToSubmit.metadata.languages = [];
         if (!dataToSubmit.metadata.education) dataToSubmit.metadata.education = [];
+      }
+      
+      // Handle freelance-specific fields
+      if (contactType === 'freelance') {
+        // Ensure freelance metadata fields are properly initialized
+        if (!dataToSubmit.metadata.availability) dataToSubmit.metadata.availability = 'available';
+        if (!dataToSubmit.metadata.certifications) dataToSubmit.metadata.certifications = [];
+        if (!dataToSubmit.metadata.languages) dataToSubmit.metadata.languages = [];
+        if (!dataToSubmit.metadata.projects) dataToSubmit.metadata.projects = [];
       }
       
       // Handle investor-specific fields
@@ -839,100 +862,6 @@ export function ContactForm({
                 />
               </div>
             </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <Label>Skills</Label>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => addArrayItem('', 'skills')}
-                >
-                  <Plus className="h-4 w-4 mr-1" /> Add
-                </Button>
-              </div>
-              {formData.metadata?.skills?.map((skill: string, index: number) => (
-                <div key={index} className="flex items-center mb-2">
-                  <Input
-                    value={skill}
-                    onChange={(e) => handleStringArrayItemChange('skills', index, e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => removeArrayItem('', 'skills', index)}
-                    className="ml-2"
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <Label>Experience</Label>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => addArrayItem('', 'experience')}
-                >
-                  <Plus className="h-4 w-4 mr-1" /> Add
-                </Button>
-              </div>
-              {formData.metadata?.experience?.map((exp: {company: string, role: string, duration: string, description: string}, index: number) => (
-                <div key={index} className="border rounded-md p-3 mb-3">
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    <div>
-                      <Label>Company</Label>
-                      <Input
-                        value={exp.company}
-                        onChange={(e) => handleArrayItemChange('', 'experience', index, 'company', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Role</Label>
-                      <Input
-                        value={exp.role}
-                        onChange={(e) => handleArrayItemChange('', 'experience', index, 'role', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="mb-2">
-                    <Label>Duration</Label>
-                    <Input
-                      value={exp.duration}
-                      onChange={(e) => handleArrayItemChange('', 'experience', index, 'duration', e.target.value)}
-                      placeholder="e.g. Jan 2020 - Dec 2021"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <Label>Description</Label>
-                    <div className="flex items-start">
-                      <Textarea
-                        value={exp.description}
-                        onChange={(e) => handleArrayItemChange('', 'experience', index, 'description', e.target.value)}
-                        className="flex-1"
-                        rows={2}
-                      />
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => removeArrayItem('', 'experience', index)}
-                        className="ml-2 mt-1"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
           </>
         );
       
@@ -1260,7 +1189,7 @@ export function ContactForm({
           </Alert>
         )}
         
-        <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
+        <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto pr-2 text-gray-900 dark:text-white">
           {renderFormFields()}
         </div>
         

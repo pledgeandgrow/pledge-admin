@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { contactService } from '@/services/contactService';
+import { useContacts } from '@/hooks/useContacts';
 import { ContactType } from '@/types/contact';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +50,7 @@ interface EditLeadDialogProps {
 }
 
 export function EditLeadDialog({ lead, open, onOpenChange }: EditLeadDialogProps) {
+  const { updateContact } = useContacts();
   const [editedLead, setEditedLead] = useState<Lead>(lead);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -94,7 +95,7 @@ export function EditLeadDialog({ lead, open, onOpenChange }: EditLeadDialogProps
       
       // Update contact in Supabase
       const { id, ...contactDataWithoutId } = contactData;
-      await contactService.updateContact(id, contactDataWithoutId);
+      await updateContact(id, contactDataWithoutId);
       
       toast({
         title: "Lead mis à jour",

@@ -119,13 +119,13 @@ export function ContactTable({ contacts, contactType, onView, onEdit, onDelete }
         );
       case 'department':
         return (
-          <Badge variant="outline" className="border-gray-200 dark:border-gray-700">
+          <Badge variant="outline" className="border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
             {typeof contact.metadata?.department === 'string' ? contact.metadata.department : 'N/A'}
           </Badge>
         );
       case 'company':
         return (
-          <Badge variant="outline" className="border-gray-200 dark:border-gray-700">
+          <Badge variant="outline" className="border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
             {typeof contact.metadata?.company === 'string' ? contact.metadata.company : 'N/A'}
           </Badge>
         );
@@ -183,7 +183,7 @@ export function ContactTable({ contacts, contactType, onView, onEdit, onDelete }
         if (contact.type === 'investor') {
           const stage = (contact as InvestorContact).investment_stage;
           return stage ? (
-            <Badge variant="outline" className="capitalize border-gray-200 dark:border-gray-700">
+            <Badge variant="outline" className="capitalize border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
               {stage.replace('-', ' ')}
             </Badge>
           ) : 'N/A';
@@ -279,7 +279,7 @@ export function ContactTable({ contacts, contactType, onView, onEdit, onDelete }
 
   if (contacts.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center text-gray-500">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center text-gray-500 dark:text-gray-400">
         <p>No {contactType}s found.</p>
       </div>
     );
@@ -291,7 +291,7 @@ export function ContactTable({ contacts, contactType, onView, onEdit, onDelete }
         <TableHeader>
           <TableRow className="border-gray-200 dark:border-gray-700">
             {columns.map((column) => (
-              <TableHead key={column.key}>{column.header}</TableHead>
+              <TableHead key={column.key} className="text-gray-900 dark:text-white">{column.header}</TableHead>
             ))}
           </TableRow>
         </TableHeader>
@@ -299,7 +299,7 @@ export function ContactTable({ contacts, contactType, onView, onEdit, onDelete }
           {contacts.map((contact) => (
             <TableRow key={contact.id} className="border-gray-200 dark:border-gray-700">
               {columns.map((column) => (
-                <TableCell key={`${contact.id}-${column.key}`} className={column.key === 'actions' ? 'text-right' : ''}>
+                <TableCell key={`${contact.id}-${column.key}`} className={`text-gray-900 dark:text-white ${column.key === 'actions' ? 'text-right' : ''}`}>
                   {renderCell(contact, column.key)}
                 </TableCell>
               ))}

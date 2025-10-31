@@ -2,7 +2,7 @@
 
 import { Document } from '@/types/documents';
 import { InvoiceMetadata } from './types';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Card,

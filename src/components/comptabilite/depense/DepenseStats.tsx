@@ -7,7 +7,7 @@ import {
   CreditCard,
   XCircle,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency } from "@/lib/utils";
 import { Data } from "@/types/data";
 
 export interface DepenseStatsType {

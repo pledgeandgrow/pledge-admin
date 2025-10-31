@@ -11,7 +11,7 @@ import {
   AlertOctagon,
   LucideIcon
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency } from "@/lib/utils";
 
 interface InvoiceStatsProps {
   stats: InvoiceStatsType;

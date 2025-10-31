@@ -10,7 +10,7 @@ import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
-import { contactService } from '@/services/contactService';
+import { useContacts } from '@/hooks/useContacts';
 
 // Form data interface to handle client form fields
 interface ClientFormData {
@@ -48,6 +48,8 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientFormProps) {
+  const { createContact, updateContact } = useContacts();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<ClientFormData>({
     defaultValues: client ? {
       // Base fields
@@ -194,13 +196,13 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
       console.log('Submitting client data:', contactData);
 
       if (client?.id) {
-        await contactService.updateContact(client.id, contactData);
+        await updateContact(client.id, contactData);
         toast({
           title: 'Succès',
           description: 'Client mis à jour avec succès',
         });
       } else {
-        await contactService.addContact(contactData);
+        await createContact(contactData);
         toast({
           title: 'Succès',
           description: 'Client créé avec succès',

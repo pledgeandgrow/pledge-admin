@@ -258,7 +258,7 @@ export function ProjectResources({ projectId }: ProjectResourcesProps) {
                 <div className="p-4 flex justify-between items-start">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-gray-500" />
+                      <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                       <h3 className="font-medium">{resource.name}</h3>
                       {getStatusBadge(resource.status)}
                     </div>
@@ -267,12 +267,12 @@ export function ProjectResources({ projectId }: ProjectResourcesProps) {
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4 text-gray-500" />
+                        <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                         <span>Allocation: {resource.allocation}%</span>
                       </div>
                       {resource.start_date && resource.end_date && (
                         <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4 text-gray-500" />
+                          <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                           <span>
                             {new Date(resource.start_date).toLocaleDateString()} - {new Date(resource.end_date).toLocaleDateString()}
                           </span>

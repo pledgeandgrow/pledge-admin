@@ -16,36 +16,18 @@ import { Product } from '@/types/products';
 import { ViewAutreOffreDialog } from './ViewAutreOffreDialog';
 import { EditAutreOffreDialog } from './EditAutreOffreDialog';
 import { useToast } from '@/components/ui/use-toast';
-import { productService } from '@/services/productService';
+import { useProducts } from '@/hooks/useProducts';
 
 export default function AutresOffresTable() {
-  const [autresOffres, setAutresOffres] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loading, fetchProducts, updateProduct, createProduct, deleteProduct } = useProducts();
   const [selectedOffre, setSelectedOffre] = useState<Product | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const loadOffres = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await productService.getAutresOffres();
-      setAutresOffres(data);
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de récupérer les autres offres",
-        variant: "destructive"
-      });
-      console.error('Error fetching autres offres:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [setAutresOffres, setLoading, toast]);
-  
   useEffect(() => {
-    loadOffres();
-  }, [loadOffres]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
@@ -108,18 +90,16 @@ export default function AutresOffresTable() {
 
   const handleSave = async (offre: Product) => {
     try {
-      setLoading(true);
-      
       if (offre.id) {
         // Update existing offre
-        await productService.updateProduct(offre.id, offre);
+        await updateProduct(offre.id, offre);
         toast({
           title: "Succès",
           description: "L'offre a été mise à jour avec succès.",
         });
       } else {
         // Create new offre
-        await productService.createProduct(offre);
+        await createProduct(offre);
         toast({
           title: "Succès",
           description: "L'offre a été créée avec succès.",
@@ -127,7 +107,6 @@ export default function AutresOffresTable() {
       }
       
       setEditDialogOpen(false);
-      loadOffres();
     } catch (error) {
       console.error('Error saving offre:', error);
       toast({
@@ -135,16 +114,13 @@ export default function AutresOffresTable() {
         description: "Une erreur est survenue lors de l'enregistrement.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')) {
       try {
-        await productService.deleteProduct(id);
-        setAutresOffres(prevOffres => prevOffres.filter(p => p.id !== id));
+        await deleteProduct(id);
         toast({
           title: "Succès",
           description: "Offre supprimée avec succès",
@@ -185,7 +161,7 @@ export default function AutresOffresTable() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <span className="ml-2">Chargement des offres...</span>
         </div>
-      ) : autresOffres.length === 0 ? (
+      ) : products.length === 0 ? (
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -219,7 +195,7 @@ export default function AutresOffresTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {autresOffres.map((offre) => (
+              {products.map((offre) => (
                 <TableRow key={offre.id}>
                   <TableCell className="font-medium">{offre.name}</TableCell>
                   <TableCell>

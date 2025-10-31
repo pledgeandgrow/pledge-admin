@@ -62,8 +62,16 @@ export const supabaseClient = createSupabaseClient(
   SUPABASE_ANON_KEY
 );
 
-// Function to create a browser client (for client components)
+// Singleton browser client instance
+let browserClient: ReturnType<typeof createBrowserClient> | null = null;
+
+// Function to create or get a singleton browser client (for client components)
 export function createClient() {
+  // Return existing client if already created
+  if (browserClient) {
+    return browserClient;
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   
@@ -73,5 +81,37 @@ export function createClient() {
     );
   }
   
-  return createBrowserClient(url, key);
+  // Create and cache the client
+  browserClient = createBrowserClient(url, key);
+  return browserClient;
+}
+
+// Utility function for retry logic with exponential backoff
+export async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  initialDelayMs: number = 1000
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      // Don't retry on auth errors or 4xx errors
+      if (lastError.message.includes('401') || lastError.message.includes('403') || lastError.message.includes('404')) {
+        throw lastError;
+      }
+      
+      // Calculate exponential backoff delay
+      if (attempt < maxRetries - 1) {
+        const delayMs = initialDelayMs * Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  
+  throw lastError || new Error('Max retries exceeded');
 }

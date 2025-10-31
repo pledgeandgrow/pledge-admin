@@ -12,12 +12,12 @@ export default function PartnersPage() {
           <Handshake className="h-8 w-8 text-green-500" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             <span className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 bg-clip-text text-transparent">
               Partners
             </span>
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground dark:text-gray-400 mt-1">
             Manage partnerships and track mutual benefits
           </p>
         </div>

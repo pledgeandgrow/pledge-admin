@@ -10,7 +10,6 @@ import { ClientForm } from './ClientForm';
 import { ClientModal } from './ClientModal';
 import { Contact, ClientContact } from '@/types/contact';
 import { useContacts } from '@/hooks/useContacts';
-import { contactService } from '@/services/contactService';
 import { toast } from '@/components/ui/use-toast';
 
 // Define Client interface for UI representation
@@ -135,11 +134,13 @@ export function ClientList() {
   };
 
   // Handle delete client
+  const { deleteContact } = useContacts();
+  
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this client?')) {
       setIsDeleting(id);
       try {
-        await contactService.deleteContact(id);
+        await deleteContact(id);
         toast({
           title: 'Client deleted',
           description: 'Client has been deleted successfully',
@@ -301,7 +302,7 @@ export function ClientList() {
         }}
         onDelete={async (id) => {
           try {
-            await contactService.deleteContact(id);
+            await deleteContact(id);
             toast({
               title: 'Succès',
               description: 'Le client a été supprimé avec succès',

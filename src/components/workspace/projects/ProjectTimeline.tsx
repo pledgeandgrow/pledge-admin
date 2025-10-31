@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { ProjectType } from '@/types/project';
-import { useProject } from '@/hooks/useProject';
+import { Button } from '@/components/ui/button';
+import { BaseProject } from '@/hooks/useProjects';
+import { useTasks } from '@/hooks/useTasks';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -20,13 +21,14 @@ interface TimelineItem {
 }
 
 interface ProjectTimelineProps {
-  project: ProjectType;
+  project: BaseProject;
 }
 
 export function ProjectTimeline({ project }: ProjectTimelineProps) {
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { fetchProjectTasks, fetchProjectMilestones } = useProject(project.id);
+  const [error, setError] = useState<string | null>(null);
+  const { tasks, isLoading: tasksLoading, error: tasksError, fetchTasks } = useTasks();
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [totalDays, setTotalDays] = useState(0);
@@ -34,37 +36,30 @@ export function ProjectTimeline({ project }: ProjectTimelineProps) {
   useEffect(() => {
     const loadTimelineData = async () => {
       setIsLoading(true);
+      setError(null);
       try {
-        // Fetch tasks and milestones
-        const tasks = await fetchProjectTasks();
-        const milestones = await fetchProjectMilestones();
+        // Fetch tasks for this project
+        if (project.id) {
+          await fetchTasks({ project_id: project.id });
+        }
         
         // Create timeline items from tasks
-        const taskItems = tasks.map(task => ({
-          id: task.id,
-          title: task.title,
-          startDate: task.start_at ? new Date(task.start_at) : new Date(),
-          endDate: task.due_at ? new Date(task.due_at) : addDays(new Date(), 1),
-          status: task.status,
-          type: 'task' as const,
-          progress: task.progress || 0
-        }));
-        
-        // Create timeline items from milestones
-        const milestoneItems = milestones.map(milestone => ({
-          id: milestone.id,
-          title: milestone.title,
-          startDate: milestone.date ? new Date(milestone.date) : new Date(),
-          endDate: milestone.date ? new Date(milestone.date) : new Date(),
-          status: milestone.status,
-          type: 'milestone' as const,
-          progress: milestone.completed ? 100 : 0
-        }));
+        const taskItems = tasks
+          .filter(task => task.project_id === project.id)
+          .map((task: any) => ({
+            id: task.id,
+            title: task.title,
+            startDate: task.start_at ? new Date(task.start_at) : new Date(),
+            endDate: task.due_at ? new Date(task.due_at) : addDays(new Date(), 1),
+            status: task.status,
+            type: 'task' as const,
+            progress: task.progress || 0
+          }));
         
         // Create phases based on project metadata if available
         const phaseItems: TimelineItem[] = [];
         if (project.metadata?.phases && Array.isArray(project.metadata.phases)) {
-          project.metadata.phases.forEach((phase: any) => {
+          (project.metadata.phases as any[]).forEach((phase: any) => {
             if (phase.name && phase.start_date && phase.end_date) {
               phaseItems.push({
                 id: `phase-${phase.name}`,
@@ -79,8 +74,8 @@ export function ProjectTimeline({ project }: ProjectTimelineProps) {
           });
         }
         
-        // Combine all timeline items
-        const allItems = [...taskItems, ...milestoneItems, ...phaseItems];
+        // Combine all timeline items (tasks and phases, milestones from metadata)
+        const allItems = [...taskItems, ...phaseItems];
         
         // Calculate project timeline boundaries
         if (allItems.length > 0) {
@@ -112,7 +107,7 @@ export function ProjectTimeline({ project }: ProjectTimelineProps) {
     };
     
     loadTimelineData();
-  }, [project.id, fetchProjectTasks, fetchProjectMilestones, project.metadata, project.start_date, project.end_date]);
+  }, [project.id, project.metadata, project.start_date, project.end_date]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -208,7 +203,7 @@ export function ProjectTimeline({ project }: ProjectTimelineProps) {
     );
   };
 
-  if (isLoading) {
+  if (isLoading || tasksLoading) {
     return (
       <Card>
         <CardHeader>
@@ -220,6 +215,33 @@ export function ProjectTimeline({ project }: ProjectTimelineProps) {
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error || tasksError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Chronologie du projet</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400 p-4 rounded-md flex justify-between items-center">
+            <span>Erreur lors du chargement de la chronologie</span>
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => {
+                setError(null);
+                if (project.id) {
+                  fetchTasks({ project_id: project.id });
+                }
+              }}
+            >
+              Réessayer
+            </Button>
           </div>
         </CardContent>
       </Card>
