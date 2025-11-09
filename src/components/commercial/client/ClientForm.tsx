@@ -49,7 +49,6 @@ interface ClientFormProps {
 
 export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientFormProps) {
   const { createContact, updateContact } = useContacts();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<ClientFormData>({
     defaultValues: client ? {
       // Base fields

@@ -15,7 +15,7 @@ export interface Notification {
   type: NotificationType;
   is_read: boolean;
   link?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -26,11 +26,11 @@ export const useNotifications = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
-  const supabase = createClient();
+  const _supabase = createClient(); // Reserved for future real-time notifications
 
   // Generate mock notifications for demonstration purposes
   const generateMockNotifications = useCallback(() => {
-    if (!user) return [];
+    if (!user) {return [];}
     
     const mockNotifications: Notification[] = [
       {
@@ -131,9 +131,10 @@ export const useNotifications = () => {
       
       setNotifications(mockData);
       setUnreadCount(mockData.filter(n => !n.is_read).length);
-    } catch (err: any) {
-      console.error('Error fetching notifications:', err);
-      setError(err.message || 'Failed to fetch notifications');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to fetch notifications');
+      console.error('Error fetching notifications:', error);
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -158,9 +159,10 @@ export const useNotifications = () => {
       setUnreadCount(prev => Math.max(0, prev - 1));
       
       return true;
-    } catch (err: any) {
-      console.error('Error marking notification as read:', err);
-      setError(err.message || 'Failed to mark notification as read');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to mark notification as read');
+      console.error('Error marking notification as read:', error);
+      setError(error.message);
       return false;
     } finally {
       setIsLoading(false);
@@ -186,9 +188,10 @@ export const useNotifications = () => {
       setUnreadCount(0);
       
       return true;
-    } catch (err: any) {
-      console.error('Error marking all notifications as read:', err);
-      setError(err.message || 'Failed to mark all notifications as read');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to mark all notifications as read');
+      console.error('Error marking all notifications as read:', error);
+      setError(error.message);
       return false;
     } finally {
       setIsLoading(false);
@@ -211,9 +214,10 @@ export const useNotifications = () => {
       }
       
       return true;
-    } catch (err: any) {
-      console.error('Error deleting notification:', err);
-      setError(err.message || 'Failed to delete notification');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to delete notification');
+      console.error('Error deleting notification:', error);
+      setError(error.message);
       return false;
     } finally {
       setIsLoading(false);

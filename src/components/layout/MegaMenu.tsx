@@ -359,7 +359,7 @@ export function MegaMenu() {
             onClick={async () => {
               try {
                 const { error } = await supabase.auth.signOut();
-                if (error) throw error;
+                if (error) {throw error;}
                 window.location.href = '/';
               } catch (error) {
                 console.error('Error signing out:', error);

@@ -49,7 +49,7 @@ const TasksOverviewWidget: React.FC<TasksOverviewWidgetProps> = ({
       setStats(newStats);
       
       // Filter and sort tasks
-      let filtered = [...tasks];
+      const filtered = [...tasks];
       
       // Sort by priority (high to low) and then by due date (soonest first)
       filtered.sort((a, b) => {
@@ -67,8 +67,8 @@ const TasksOverviewWidget: React.FC<TasksOverviewWidgetProps> = ({
         }
         
         // If one has due date and other doesn't
-        if (a.due_at && !b.due_at) return -1;
-        if (!a.due_at && b.due_at) return 1;
+        if (a.due_at && !b.due_at) {return -1;}
+        if (!a.due_at && b.due_at) {return 1;}
         
         return 0;
       });
@@ -118,7 +118,7 @@ const TasksOverviewWidget: React.FC<TasksOverviewWidgetProps> = ({
   };
 
   const formatDate = (date: Date | string | undefined) => {
-    if (!date) return 'Non défini';
+    if (!date) {return 'Non défini';}
     
     const dateObj = new Date(date);
     const today = new Date();
@@ -140,7 +140,7 @@ const TasksOverviewWidget: React.FC<TasksOverviewWidgetProps> = ({
   };
 
   const isOverdue = (dueDate: Date | string | undefined) => {
-    if (!dueDate) return false;
+    if (!dueDate) {return false;}
     const now = new Date();
     const due = new Date(dueDate);
     return due < now;

@@ -71,7 +71,7 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
       }
       
       const { data: fetchedData, error: fetchError } = await query.order('created_at', { ascending: false });
-      if (fetchError) throw fetchError;
+      if (fetchError) {throw fetchError;}
       data = fetchedData || [];
       
       // Apply additional filters client-side
@@ -107,13 +107,13 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
       // Value range filter
       if (mergedFilters.minValue !== undefined || mergedFilters.maxValue !== undefined) {
         filteredData = filteredData.filter(asset => {
-          if (!asset.value) return false;
+          if (!asset.value) {return false;}
           
           const value = Number(asset.value);
-          if (isNaN(value)) return false;
+          if (isNaN(value)) {return false;}
           
-          if (mergedFilters.minValue !== undefined && value < mergedFilters.minValue) return false;
-          if (mergedFilters.maxValue !== undefined && value > mergedFilters.maxValue) return false;
+          if (mergedFilters.minValue !== undefined && value < mergedFilters.minValue) {return false;}
+          if (mergedFilters.maxValue !== undefined && value > mergedFilters.maxValue) {return false;}
           
           return true;
         });
@@ -122,18 +122,18 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
       // Date range filter
       if (mergedFilters.fromDate || mergedFilters.toDate) {
         filteredData = filteredData.filter(asset => {
-          if (!asset.acquisition_date) return false;
+          if (!asset.acquisition_date) {return false;}
           
           const acquisitionDate = new Date(asset.acquisition_date);
           
           if (mergedFilters.fromDate) {
             const fromDate = new Date(mergedFilters.fromDate);
-            if (acquisitionDate < fromDate) return false;
+            if (acquisitionDate < fromDate) {return false;}
           }
           
           if (mergedFilters.toDate) {
             const toDate = new Date(mergedFilters.toDate);
-            if (acquisitionDate > toDate) return false;
+            if (acquisitionDate > toDate) {return false;}
           }
           
           return true;
@@ -149,16 +149,16 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
           const valueA = a[sortField];
           const valueB = b[sortField];
           
-          if (valueA === undefined && valueB === undefined) return 0;
-          if (valueA === undefined) return 1 * sortOrder;
-          if (valueB === undefined) return -1 * sortOrder;
+          if (valueA === undefined && valueB === undefined) {return 0;}
+          if (valueA === undefined) {return 1 * sortOrder;}
+          if (valueB === undefined) {return -1 * sortOrder;}
           
           if (typeof valueA === 'string' && typeof valueB === 'string') {
             return sortOrder * valueA.localeCompare(valueB);
           }
           
-          if (valueA < valueB) return -1 * sortOrder;
-          if (valueA > valueB) return 1 * sortOrder;
+          if (valueA < valueB) {return -1 * sortOrder;}
+          if (valueA > valueB) {return 1 * sortOrder;}
           return 0;
         });
       }
@@ -194,7 +194,7 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
       }
 
       const { data, error: err } = await supabase.from('assets').insert(asset).select().single();
-      if (err) throw err;
+      if (err) {throw err;}
       
       if (!data) {
         const error = new Error('Failed to create asset: Invalid response');
@@ -228,7 +228,7 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
   const updateAsset = useCallback(async (id: string, assetUpdate: Partial<Asset>) => {
     try {
       const { data, error: err } = await supabase.from('assets').update(assetUpdate).eq('id', id).select().single();
-      if (err) throw err;
+      if (err) {throw err;}
       
       if (!data) {
         const error = new Error('Failed to update asset: Invalid response');
@@ -264,7 +264,7 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
   const deleteAsset = useCallback(async (id: string) => {
     try {
       const { error: err } = await supabase.from('assets').delete().eq('id', id);
-      if (err) throw err;
+      if (err) {throw err;}
       const success = true;
       
       if (!success) {

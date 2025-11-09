@@ -57,7 +57,7 @@ export function ViewAutreOffreDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Prix</Label>
-              <p className="text-lg font-semibold">{offre.price ? offre.price.toLocaleString('fr-FR') + ' €' : 'Sur devis'}</p>
+              <p className="text-lg font-semibold">{offre.price ? `${offre.price.toLocaleString('fr-FR')  } €` : 'Sur devis'}</p>
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Type</Label>

@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Task, TaskStatus, TaskPriority } from '@/hooks/useTasks';
+import { Task } from '@/hooks/useTasks';
 
 const taskFormSchema = z.object({
   title: z.string().min(2, {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Eye, Pencil, Clock } from 'lucide-react';
 import { Product } from '@/types/products';
@@ -174,7 +174,7 @@ export function AutresOffresList() {
                 <div className="flex flex-col gap-4">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-muted-foreground">Prix</span>
-                    <span className="font-semibold">{offre.price ? offre.price.toLocaleString('fr-FR') + ' €' : 'Sur devis'}</span>
+                    <span className="font-semibold">{offre.price ? `${offre.price.toLocaleString('fr-FR')  } €` : 'Sur devis'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-muted-foreground">Disponibilité</span>

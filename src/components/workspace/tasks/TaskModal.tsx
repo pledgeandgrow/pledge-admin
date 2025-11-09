@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -39,15 +39,15 @@ export function TaskModal({
     parentTask => !task || parentTask.id !== task.id
   );
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: Partial<Task>) => {
     try {
       setIsSubmitting(true);
       
       // Process dates
       const taskData = {
         ...formData,
-        start_at: formData.start_date ? new Date(formData.start_date).toISOString() : undefined,
-        due_at: formData.due_date ? new Date(formData.due_date).toISOString() : undefined,
+        start_at: formData.start_at ? new Date(formData.start_at).toISOString() : undefined,
+        due_at: formData.due_at ? new Date(formData.due_at).toISOString() : undefined,
       };
       
       await onSubmit(taskData);

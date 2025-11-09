@@ -9,7 +9,7 @@ import { Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EmailChangePage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, _setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   
   const router = useRouter();

@@ -3,10 +3,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CalendarEvent, EventListProps, EventStatus } from '@/types/calendar';
-import { format, parseISO, isAfter, isBefore, isEqual } from 'date-fns';
+import { format, parseISO, isAfter, isBefore } from 'date-fns';
 import { Calendar, Clock, MapPin, Users, Tag, AlertCircle } from 'lucide-react';
 
 // Helper function to get colors based on event type
@@ -42,7 +41,7 @@ export function EventList({
   }, []);
 
   const filteredEvents = useMemo(() => {
-    if (!events) return [];
+    if (!events) {return [];}
     
     return events.filter(event => {
       // Filter by type

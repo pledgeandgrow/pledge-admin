@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { EyeIcon, EyeOffIcon, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { toast } from '@/components/ui/use-toast';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({

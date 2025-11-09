@@ -18,8 +18,8 @@ export interface Task {
   actual_hours: number | null;
   parent_task_id: string | null;
   order_index: number;
-  comments: any[]; // You might want to type this more specifically
-  info: Record<string, any>; // Additional metadata
+  comments: Record<string, unknown>[]; // Array of comment objects
+  info: Record<string, unknown>; // Additional metadata
   tags: string[] | null;
   created_at: string;
   updated_at: string;

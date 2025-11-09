@@ -6,15 +6,15 @@ import { Button } from '@/components/ui/button';
 import { FileText, File, Download, Share2, Edit2, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { DocumentType } from '@/types/documents';
+import { Document as DocumentModel } from '@/types/documents';
 
 interface DocumentCardProps {
-  document: DocumentType;
-  onDownload: (document: DocumentType) => void;
-  onShare: (document: DocumentType) => void;
+  document: DocumentModel;
+  onDownload: (document: DocumentModel) => void;
+  onShare: (document: DocumentModel) => void;
   onDelete: (documentId: string) => void;
-  onEdit: (document: DocumentType) => void;
-  onView: (document: DocumentType) => void;
+  onEdit: (document: DocumentModel) => void;
+  onView: (document: DocumentModel) => void;
 }
 
 export function DocumentCard({
@@ -26,11 +26,11 @@ export function DocumentCard({
   onView,
 }: DocumentCardProps) {
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) {return '0 Bytes';}
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
   };
 
   const getStatusBadge = (status: string) => {
@@ -66,7 +66,7 @@ export function DocumentCard({
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg font-semibold truncate">{document.name}</CardTitle>
+          <CardTitle className="text-lg font-semibold truncate">{document.title}</CardTitle>
           {getStatusBadge(document.status)}
         </div>
       </CardHeader>
@@ -76,7 +76,7 @@ export function DocumentCard({
             className="mb-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             onClick={() => onView(document)}
           >
-            {getFileIcon(document.file_type)}
+            {getFileIcon(document.file_type || 'unknown')}
           </div>
           {document.description && (
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center line-clamp-2">
@@ -86,7 +86,7 @@ export function DocumentCard({
           <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 space-y-1 w-full">
             <div className="flex justify-between">
               <span>Taille:</span>
-              <span className="font-medium">{formatFileSize(document.file_size)}</span>
+              <span className="font-medium">{formatFileSize(document.file_size || 0)}</span>
             </div>
             <div className="flex justify-between">
               <span>Date:</span>

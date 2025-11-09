@@ -8,8 +8,7 @@ import {
   Calendar, 
   CheckSquare, 
   Users, 
-  FileText,
-  ChevronRight
+  FileText
 } from 'lucide-react';
 
 interface ProjectNavigationProps {

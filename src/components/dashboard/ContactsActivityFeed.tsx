@@ -1,14 +1,14 @@
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useContacts, ContactActivity, ContactType } from '@/hooks/useContacts';
+import { Badge } from '@/components/ui/badge';
+import { useContacts, ContactType } from '@/hooks/useContacts';
 import { UserIcon, Users2Icon, UserPlusIcon, MessageSquareIcon, FileTextIcon, CalendarIcon } from 'lucide-react';
 
 interface ContactsActivityFeedProps {
   limit?: number;
   filter?: {
-    contactType?: ContactType[];
+    contactType?: string[];
     activityType?: string[];
   };
 }
@@ -17,11 +17,11 @@ const ContactsActivityFeed: React.FC<ContactsActivityFeedProps> = ({
   limit = 10,
   filter
 }) => {
-  const { recentActivities, contacts, isLoading, error, fetchContacts } = useContacts();
+  const { recentActivities, contacts: _contacts, isLoading, error, fetchContacts } = useContacts();
 
   useEffect(() => {
     fetchContacts({
-      type: filter?.contactType,
+      type: filter?.contactType as ContactType | ContactType[] | undefined,
       updatedAfter: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
     });
   }, [fetchContacts, filter]);
@@ -96,7 +96,7 @@ const ContactsActivityFeed: React.FC<ContactsActivityFeedProps> = ({
   // Filter activities based on props
   const filteredActivities = recentActivities
     .filter(activity => {
-      if (!filter) return true;
+      if (!filter) {return true;}
       
       if (filter.activityType && filter.activityType.length > 0) {
         return filter.activityType.includes(activity.activity_type);
@@ -159,18 +159,18 @@ const ContactsActivityFeed: React.FC<ContactsActivityFeedProps> = ({
                       <span className="ml-1 capitalize">{activity.activity_type}</span>
                     </div>
                     
-                    {activity.metadata?.contact_type && (
-                      <Badge className={`${getContactTypeColor(activity.metadata.contact_type)} text-white text-xs`}>
-                        {activity.metadata.contact_type}
+                    {activity.metadata?.contact_type ? (
+                      <Badge className={`${getContactTypeColor(String(activity.metadata.contact_type))} text-white text-xs`}>
+                        {String(activity.metadata.contact_type)}
                       </Badge>
-                    )}
+                    ) : null}
                     
-                    {activity.metadata?.company && (
+                    {activity.metadata?.company && typeof activity.metadata.company !== 'object' ? (
                       <div className="flex items-center text-xs text-gray-500">
                         <Users2Icon className="h-3 w-3 mr-1" />
-                        <span>{activity.metadata.company}</span>
+                        <span>{String(activity.metadata.company)}</span>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>

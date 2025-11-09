@@ -2,17 +2,20 @@ import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Users, Eye, Edit } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { BaseProject } from '@/hooks/useProjects';
 
 interface ProjectCardProps {
   project: BaseProject;
-  onClick: () => void;
+  _onClick?: () => void;
+  onView?: () => void;
+  onEdit?: () => void;
 }
 
-export function ProjectCard({ project, onClick }: ProjectCardProps) {
+export function ProjectCard({ project, _onClick, onView, onEdit }: ProjectCardProps) {
   // Helper function to get status badge variant
   const getStatusVariant = (status: string): "default" | "outline" | "secondary" | "destructive" => {
     switch (status) {
@@ -47,7 +50,7 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
 
   // Format date for display
   const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return null;
+    if (!dateString) {return null;}
     try {
       return format(parseISO(dateString), "d MMM yyyy", { locale: fr });
     } catch {
@@ -60,8 +63,7 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
 
   return (
     <Card 
-      className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer border border-gray-200 dark:border-gray-800"
-      onClick={onClick}
+      className="overflow-hidden hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-800"
     >
       <CardContent className="p-6">
         <div className="space-y-4">
@@ -98,27 +100,59 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="bg-gray-50 dark:bg-gray-800/50 px-6 py-3 border-t border-gray-100 dark:border-gray-800 flex justify-between">
-        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-          <Calendar className="h-4 w-4 mr-1" />
-          <span>
-            {startDate && endDate 
-              ? `${startDate} - ${endDate}`
-              : startDate 
-                ? `Début: ${startDate}`
-                : endDate 
-                  ? `Fin: ${endDate}`
-                  : 'Dates non définies'
-            }
-          </span>
-        </div>
-        
-        {project.metadata?.team_members && Array.isArray(project.metadata.team_members) && project.metadata.team_members.length > 0 && (
-          <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-            <Users className="h-4 w-4 mr-1" />
-            <span>{(project.metadata.team_members as string[]).length}</span>
+      <CardFooter className="bg-gray-50 dark:bg-gray-800/50 px-6 py-3 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <Calendar className="h-4 w-4 mr-1" />
+              <span>
+                {startDate && endDate 
+                  ? `${startDate} - ${endDate}`
+                  : startDate 
+                    ? `Début: ${startDate}`
+                    : endDate 
+                      ? `Fin: ${endDate}`
+                      : 'Dates non définies'}
+              </span>
+            </div>
+            
+            {project.metadata?.team_members && Array.isArray(project.metadata.team_members) && project.metadata.team_members.length > 0 && (
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                <Users className="h-4 w-4 mr-1" />
+                <span>{(project.metadata.team_members as string[]).length}</span>
+              </div>
+            )}
           </div>
-        )}
+          
+          <div className="flex items-center gap-2">
+            {onView && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onView();
+                }}
+                className="h-8 w-8 p-0"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            )}
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}
+                className="h-8 w-8 p-0"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
       </CardFooter>
     </Card>
   );

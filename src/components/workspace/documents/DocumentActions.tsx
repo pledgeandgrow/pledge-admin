@@ -13,14 +13,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Share2, AlertTriangle } from 'lucide-react';
-import { DocumentType } from '@/types/documents';
+import { Document } from '@/types/documents';
 
 interface DocumentActionsProps {
   isShareDialogOpen: boolean;
   onShareDialogClose: () => void;
   isDeleteDialogOpen: boolean;
   onDeleteDialogClose: () => void;
-  selectedDocument: DocumentType | null;
+  selectedDocument: Document | null;
   onShare: (documentId: string, shareData: ShareFormData) => Promise<void>;
   onDelete: (documentId: string) => Promise<void>;
 }
@@ -115,7 +115,7 @@ export function DocumentActions({
           <DialogHeader>
             <DialogTitle>Partager le document</DialogTitle>
             <DialogDescription>
-              {selectedDocument && `Partagez "${selectedDocument.name}" avec d'autres utilisateurs.`}
+              {selectedDocument && `Partagez "${selectedDocument.title}" avec d'autres utilisateurs.`}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleShareSubmit}>
@@ -199,7 +199,7 @@ export function DocumentActions({
           <div className="py-4">
             {selectedDocument && (
               <p className="font-medium">
-                "{selectedDocument.name}"
+                "{selectedDocument.title}"
               </p>
             )}
           </div>

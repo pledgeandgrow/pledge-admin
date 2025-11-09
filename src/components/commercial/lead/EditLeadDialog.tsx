@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useContacts } from '@/hooks/useContacts';
-import { ContactType } from '@/types/contact';
+import { type Lead } from '@/hooks/useLeads';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,35 +22,34 @@ import {
 } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 
-// Define the Lead interface for the component
-interface Lead {
-  id?: string;
+// UI Lead interface
+interface UILead {
+  id: string;
   name: string;
   position: string;
   company: string;
   email: string;
   phone: string;
   commentaires: string;
-  status: "New" | "In Progress" | "Converted" | "Contacted" | "Qualified" | "Lost";
-  service: string;
+  status: string;
   source?: string;
   probability?: number;
   last_contacted_at?: string;
   next_follow_up?: string;
   estimated_value?: number;
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface EditLeadDialogProps {
-  lead: Lead;
+  lead: UILead;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onUpdateLead?: (id: string, updates: Partial<Lead>) => Promise<Lead>;
 }
 
-export function EditLeadDialog({ lead, open, onOpenChange }: EditLeadDialogProps) {
-  const { updateContact } = useContacts();
-  const [editedLead, setEditedLead] = useState<Lead>(lead);
+export function EditLeadDialog({ lead, open, onOpenChange, onUpdateLead }: EditLeadDialogProps) {
+  const [editedLead, setEditedLead] = useState<UILead>(lead);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Update the form when the lead prop changes
@@ -61,7 +59,7 @@ export function EditLeadDialog({ lead, open, onOpenChange }: EditLeadDialogProps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editedLead.id) return;
+    if (!editedLead.id) {return;}
     
     setIsSubmitting(true);
     
@@ -71,43 +69,45 @@ export function EditLeadDialog({ lead, open, onOpenChange }: EditLeadDialogProps
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
       
-      // Create contact object from lead form data
-      const contactData = {
-        id: editedLead.id,
+      // Create lead update object
+      const leadData: Record<string, unknown> = {
         first_name: firstName,
         last_name: lastName,
-        position: editedLead.position,
-        company: editedLead.company,
-        email: editedLead.email,
-        phone: editedLead.phone,
-        notes: editedLead.commentaires,
+        position: editedLead.position || null,
+        company: editedLead.company || null,
+        email: editedLead.email || null,
+        phone: editedLead.phone || null,
+        notes: editedLead.commentaires || null,
         status: editedLead.status,
-        type: 'lead' as ContactType,
-        metadata: {
-          service: editedLead.service,
-          source: editedLead.source || '',
-          probability: editedLead.probability || 0,
-          last_contacted_at: editedLead.last_contacted_at || new Date().toISOString(),
-          next_follow_up: editedLead.next_follow_up || '',
-          estimated_value: editedLead.estimated_value || 0
-        }
+        lead_source: editedLead.source || null,
+        probability: editedLead.probability || null,
+        estimated_value: editedLead.estimated_value || null,
       };
       
-      // Update contact in Supabase
-      const { id, ...contactDataWithoutId } = contactData;
-      await updateContact(id, contactDataWithoutId);
+      // Only add timestamps if they have valid values
+      if (editedLead.last_contacted_at) {
+        leadData.last_contacted_at = editedLead.last_contacted_at;
+      }
+      if (editedLead.next_follow_up) {
+        leadData.next_follow_up = editedLead.next_follow_up;
+      }
+      
+      // Update lead in Supabase
+      if (onUpdateLead) {
+        await onUpdateLead(editedLead.id, leadData);
+      }
       
       toast({
-        title: "Lead mis à jour",
-        description: "Le lead a été mis à jour avec succès.",
+        title: "Lead updated",
+        description: "The lead has been updated successfully.",
       });
       
       onOpenChange(false);
     } catch (error) {
       console.error("Error updating lead:", error);
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la mise à jour du lead.",
+        title: "Error",
+        description: "An error occurred while updating the lead.",
         variant: "destructive",
       });
     } finally {
@@ -117,9 +117,11 @@ export function EditLeadDialog({ lead, open, onOpenChange }: EditLeadDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
         <DialogHeader>
-          <DialogTitle>Modifier le Lead</DialogTitle>
+          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Edit Lead
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -186,7 +188,7 @@ export function EditLeadDialog({ lead, open, onOpenChange }: EditLeadDialogProps
               </Label>
               <Select
                 value={editedLead.status}
-                onValueChange={(value) => setEditedLead({ ...editedLead, status: value as Lead['status'] })}
+                onValueChange={(value) => setEditedLead({ ...editedLead, status: value })}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Sélectionner un statut" />
@@ -201,43 +203,48 @@ export function EditLeadDialog({ lead, open, onOpenChange }: EditLeadDialogProps
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="service" className="text-right">
-                Service
-              </Label>
-              <Input
-                id="service"
-                value={editedLead.service}
-                onChange={(e) => setEditedLead({ ...editedLead, service: e.target.value })}
-                className="col-span-3"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="source">Lead Source</Label>
+                <Input
+                  id="source"
+                  value={editedLead.source || ''}
+                  onChange={(e) => setEditedLead({ ...editedLead, source: e.target.value })}
+                  placeholder="e.g., Website, Referral, Event"
+                />
+              </div>
+              <div>
+                <Label htmlFor="probability">Probability (%)</Label>
+                <Input
+                  id="probability"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={editedLead.probability || 0}
+                  onChange={(e) => setEditedLead({ ...editedLead, probability: parseInt(e.target.value) || 0 })}
+                />
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="probability" className="text-right">
-                Probabilité (%)
-              </Label>
-              <Input
-                id="probability"
-                type="number"
-                min="0"
-                max="100"
-                value={editedLead.probability || 0}
-                onChange={(e) => setEditedLead({ ...editedLead, probability: parseInt(e.target.value) || 0 })}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="estimated_value" className="text-right">
-                Valeur estimée (€)
-              </Label>
-              <Input
-                id="estimated_value"
-                type="number"
-                min="0"
-                value={editedLead.estimated_value || 0}
-                onChange={(e) => setEditedLead({ ...editedLead, estimated_value: parseInt(e.target.value) || 0 })}
-                className="col-span-3"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="estimated_value">Estimated Value ($)</Label>
+                <Input
+                  id="estimated_value"
+                  type="number"
+                  min="0"
+                  value={editedLead.estimated_value || 0}
+                  onChange={(e) => setEditedLead({ ...editedLead, estimated_value: parseFloat(e.target.value) || 0 })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="next_follow_up">Next Follow-up</Label>
+                <Input
+                  id="next_follow_up"
+                  type="date"
+                  value={editedLead.next_follow_up ? new Date(editedLead.next_follow_up).toISOString().split('T')[0] : ''}
+                  onChange={(e) => setEditedLead({ ...editedLead, next_follow_up: e.target.value })}
+                />
+              </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="commentaires" className="text-right">
@@ -252,8 +259,15 @@ export function EditLeadDialog({ lead, open, onOpenChange }: EditLeadDialogProps
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Mise à jour...' : 'Mettre à jour'}
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            >
+              {isSubmitting ? 'Updating...' : 'Update Lead'}
             </Button>
           </DialogFooter>
         </form>

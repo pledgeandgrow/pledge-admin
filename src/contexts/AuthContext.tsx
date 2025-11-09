@@ -157,7 +157,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
       
       console.log('Password reset requested for:', email);
-      if (error) console.error('Password reset error:', error.message);
+      if (error) {console.error('Password reset error:', error.message);}
       
       return { error };
     } catch (err) {

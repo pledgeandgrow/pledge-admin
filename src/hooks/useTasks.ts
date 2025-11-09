@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
-import { retryWithBackoff } from '@/lib/supabase';
 
 // Task status values from schema
 export type TaskStatus = 'todo' | 'in_progress' | 'in_review' | 'blocked' | 'done' | 'archived';
@@ -24,8 +23,8 @@ export interface Task {
   actual_hours?: number;
   parent_task_id?: string;
   order_index?: number;
-  comments?: any[];
-  info?: Record<string, any>;
+  comments?: Record<string, unknown>[];
+  info?: Record<string, unknown>;
   tags?: string[];
   created_at: Date | string;
   updated_at: Date | string;
@@ -112,7 +111,7 @@ export const useTasks = () => {
       }
 
       // Transform the data to include project name
-      const transformedData: TaskWithProject[] = data.map(task => ({
+      const transformedData: TaskWithProject[] = data.map((task: Task & { projects?: { name: string } }) => ({
         ...task,
         project_name: task.projects?.name,
         // Convert date strings to Date objects for easier handling in UI
@@ -124,9 +123,10 @@ export const useTasks = () => {
       }));
 
       setTasks(transformedData);
-    } catch (err: any) {
-      console.error('Error fetching tasks:', err);
-      setError(err.message || 'Failed to fetch tasks');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to fetch tasks');
+      console.error('Error fetching tasks:', error);
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -174,10 +174,11 @@ export const useTasks = () => {
       // Add the new task to the state
       setTasks(prev => [newTask, ...prev]);
       return newTask;
-    } catch (err: any) {
-      console.error('Error creating task:', err);
-      setError(err.message || 'Failed to create task');
-      throw err;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to create task');
+      console.error('Error creating task:', error);
+      setError(error.message);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -226,10 +227,11 @@ export const useTasks = () => {
       // Update the task in the state
       setTasks(prev => prev.map(task => task.id === id ? updatedTask : task));
       return updatedTask;
-    } catch (err: any) {
-      console.error('Error updating task:', err);
-      setError(err.message || 'Failed to update task');
-      throw err;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to update task');
+      console.error('Error updating task:', error);
+      setError(error.message);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -252,9 +254,10 @@ export const useTasks = () => {
       // Remove the task from the state
       setTasks(prev => prev.filter(task => task.id !== id));
       return true;
-    } catch (err: any) {
-      console.error('Error deleting task:', err);
-      setError(err.message || 'Failed to delete task');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to delete task');
+      console.error('Error deleting task:', error);
+      setError(error.message);
       return false;
     } finally {
       setIsLoading(false);
@@ -275,24 +278,25 @@ export const useTasks = () => {
       const stats = {
         total: data.length,
         byStatus: {
-          todo: data.filter(t => t.status === 'todo').length,
-          in_progress: data.filter(t => t.status === 'in_progress').length,
-          in_review: data.filter(t => t.status === 'in_review').length,
-          blocked: data.filter(t => t.status === 'blocked').length,
-          done: data.filter(t => t.status === 'done').length,
-          archived: data.filter(t => t.status === 'archived').length
+          todo: data.filter((t: Task) => t.status === 'todo').length,
+          in_progress: data.filter((t: Task) => t.status === 'in_progress').length,
+          in_review: data.filter((t: Task) => t.status === 'in_review').length,
+          blocked: data.filter((t: Task) => t.status === 'blocked').length,
+          done: data.filter((t: Task) => t.status === 'done').length,
+          archived: data.filter((t: Task) => t.status === 'archived').length
         },
         byPriority: {
-          low: data.filter(t => t.priority === 'low').length,
-          medium: data.filter(t => t.priority === 'medium').length,
-          high: data.filter(t => t.priority === 'high').length,
-          urgent: data.filter(t => t.priority === 'urgent').length
+          low: data.filter((t: Task) => t.priority === 'low').length,
+          medium: data.filter((t: Task) => t.priority === 'medium').length,
+          high: data.filter((t: Task) => t.priority === 'high').length,
+          urgent: data.filter((t: Task) => t.priority === 'urgent').length
         }
       };
       
       return stats;
-    } catch (err: any) {
-      console.error('Error getting task statistics:', err);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to get task statistics');
+      console.error('Error getting task statistics:', error);
       return {
         total: 0,
         byStatus: { todo: 0, in_progress: 0, in_review: 0, blocked: 0, done: 0, archived: 0 },

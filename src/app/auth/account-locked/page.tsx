@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { toast } from '@/components/ui/use-toast';
 
 export default function AccountLockedPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, _setIsLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -21,7 +21,7 @@ export default function AccountLockedPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
   const { resetPassword } = useAuth();
-  const supabase = createClient();
+  const _supabase = createClient();
 
   useEffect(() => {
     setIsMounted(true);

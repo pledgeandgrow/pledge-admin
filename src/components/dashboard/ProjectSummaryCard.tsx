@@ -14,7 +14,7 @@ const ProjectSummaryCard: React.FC<ProjectSummaryCardProps> = ({
   projectType = 'All',
   limit = 5
 }) => {
-  const { projects, loading, error, fetchProjects } = useProjects({
+  const { projects, loading, error, fetchProjects: _fetchProjects } = useProjects({
     type: projectType !== 'All' ? projectType : undefined,
     autoFetch: true,
     initialFilters: {
@@ -56,7 +56,7 @@ const ProjectSummaryCard: React.FC<ProjectSummaryCardProps> = ({
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Non défini';
+    if (!dateString) {return 'Non défini';}
     return new Date(dateString).toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'short',

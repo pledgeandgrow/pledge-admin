@@ -23,7 +23,7 @@ export const useData = (type?: DataType) => {
         query = query.eq('data_type', type);
       }
       const { data: result, error: err } = await query;
-      if (err) throw err;
+      if (err) {throw err;}
       setData(result || []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err : new Error(String(err)));
@@ -41,7 +41,7 @@ export const useData = (type?: DataType) => {
     setError(null);
     try {
       const { data: result, error: err } = await supabase.from('data').insert(newData).select().single();
-      if (err) throw err;
+      if (err) {throw err;}
       if (result) {
         setData(prevData => [...prevData, result]);
       }
@@ -63,7 +63,7 @@ export const useData = (type?: DataType) => {
     setError(null);
     try {
       const { data: result, error: err } = await supabase.from('data').update(updatedData).eq('id', id).select().single();
-      if (err) throw err;
+      if (err) {throw err;}
       if (result) {
         setData(prevData => 
           prevData.map(item => item.id === id ? { ...item, ...result } : item)
@@ -87,7 +87,7 @@ export const useData = (type?: DataType) => {
     setError(null);
     try {
       const { error: err } = await supabase.from('data').delete().eq('id', id);
-      if (err) throw err;
+      if (err) {throw err;}
       setData(prevData => prevData.filter(item => item.id !== id));
       return true;
     } catch (err: unknown) {

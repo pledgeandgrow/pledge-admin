@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -43,7 +42,7 @@ export function DateTimePicker({ date, setDate, disabled = false }: DateTimePick
 
   // Handle date selection from calendar
   const handleDateSelect = (day: Date | undefined) => {
-    if (!day) return;
+    if (!day) {return;}
     
     const newDate = new Date(day);
     // Preserve the time from the current date

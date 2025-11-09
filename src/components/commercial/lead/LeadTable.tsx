@@ -20,7 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Edit, Trash } from 'lucide-react';
-import { useContacts } from '@/hooks/useContacts';
+import { useLeads } from '@/hooks/useLeads';
 import { toast } from '@/components/ui/use-toast';
 
 // Define the Lead interface for the table
@@ -50,24 +50,26 @@ interface LeadTableProps {
 }
 
 export function LeadTable({ leads, onEdit, getStatusColor }: LeadTableProps) {
-  const { deleteContact } = useContacts();
+  const { deleteLead } = useLeads();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const handleDelete = async (id: string | undefined) => {
-    if (!id) return;
+    if (!id) {return;}
+    
+    if (!confirm('Are you sure you want to delete this lead?')) {return;}
     
     setIsDeleting(id);
     try {
-      await deleteContact(id);
+      await deleteLead(id);
       toast({
-        title: "Lead supprimé",
-        description: "Le lead a été supprimé avec succès.",
+        title: "Lead deleted",
+        description: "The lead has been deleted successfully.",
       });
     } catch (error) {
       console.error("Error deleting lead:", error);
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression du lead.",
+        title: "Error",
+        description: "An error occurred while deleting the lead.",
         variant: "destructive",
       });
     } finally {

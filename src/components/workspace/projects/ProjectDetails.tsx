@@ -62,7 +62,7 @@ export function ProjectDetails({ project }: ProjectDetailsProps) {
 
   // Format dates for display
   const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return "Non définie";
+    if (!dateString) {return "Non définie";}
     try {
       return format(parseISO(dateString), "d MMMM yyyy", { locale: fr });
     } catch {
@@ -201,7 +201,7 @@ export function ProjectDetails({ project }: ProjectDetailsProps) {
                   <p className="text-sm text-gray-600 dark:text-gray-300">Budget dépensé</p>
                   <p className="font-medium text-gray-900 dark:text-white">
                     {(project.metadata?.budget_spent as number) 
-                      ? `${(project.metadata.budget_spent as number).toLocaleString()} ${project.metadata?.budget_unit || '€'}`
+                      ? `${(project.metadata?.budget_spent as number).toLocaleString()} ${project.metadata?.budget_unit || '€'}`
                       : '0 €'
                     }
                   </p>

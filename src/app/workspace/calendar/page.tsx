@@ -17,7 +17,7 @@ import { Separator } from '@/components/ui/separator';
 
 
 export default function CalendarPage() {
-  const { events, isLoading, error, fetchEvents, createEvent, updateEvent, deleteEvent } = useEvents();
+  const { events, isLoading, error, fetchEvents, createEvent, updateEvent, deleteEvent: _deleteEvent } = useEvents();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventFormData | undefined>(undefined);
   const [view, setView] = useState<'calendar' | 'list'>('calendar');
@@ -59,12 +59,12 @@ export default function CalendarPage() {
   
   // We're not supporting drag and drop or resize with our custom calendar implementation
   // These are placeholder functions to maintain the interface
-  const handleEventDrop = async (event: CalendarEvent, delta: { days: number; minutes: number }) => {
+  const handleEventDrop = async (_event: CalendarEvent, _delta: { days: number; milliseconds: number }) => {
     // Not implemented in our custom calendar view
     console.log('Event drag and drop not supported in this calendar implementation');
   };
   
-  const handleEventResize = async (event: CalendarEvent, delta: { days: number; minutes: number }) => {
+  const handleEventResize = async (_event: CalendarEvent, _delta: { days: number; milliseconds: number }) => {
     // Not implemented in our custom calendar view
     console.log('Event resize not supported in this calendar implementation');
   };
@@ -109,7 +109,7 @@ export default function CalendarPage() {
       
       setIsModalOpen(false);
       setSelectedEvent(undefined);
-    } catch (err) {
+    } catch (_err) {
       toast({
         title: "Error",
         description: "Failed to save event",
@@ -138,12 +138,13 @@ export default function CalendarPage() {
     setIsModalOpen(true);
   };
 
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: string, value: string | Date | undefined) => {
     if (key === 'status') {
-      // Ensure status is properly typed as EventStatus
-      setFilter(prev => ({ ...prev, [key]: value && value !== 'all' ? [value as EventStatus] : undefined }));
+      // Ensure status is properly typed as EventStatus and is a string
+      setFilter(prev => ({ ...prev, [key]: value && value !== 'all' && typeof value === 'string' ? [value as EventStatus] : undefined }));
     } else if (key === 'event_type') {
-      setFilter(prev => ({ ...prev, [key]: value && value !== 'all' ? [value] : undefined }));
+      // event_type should only be string[], not Date
+      setFilter(prev => ({ ...prev, [key]: value && value !== 'all' && typeof value === 'string' ? [value] : undefined }));
     } else {
       setFilter(prev => ({ ...prev, [key]: value }));
     }
@@ -188,7 +189,7 @@ export default function CalendarPage() {
           <div className="flex flex-wrap gap-4 items-end">
             <div className="w-full md:w-auto space-y-1.5">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type d'événement</label>
-              <Select onValueChange={(value) => handleFilterChange('event_type', value ? [value] : undefined)}>
+              <Select onValueChange={(value) => handleFilterChange('event_type', value)}>
                 <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700">
                   <SelectValue placeholder="Sélectionner un type" />
                 </SelectTrigger>
@@ -270,8 +271,8 @@ export default function CalendarPage() {
                   events={events}
                   onEventClick={handleEventClick}
                   onDateSelect={handleDateSelect}
-                  onEventDrop={handleEventDrop}
-                  onEventResize={handleEventResize}
+                  _onEventDrop={handleEventDrop}
+                  _onEventResize={handleEventResize}
                   isLoading={isLoading}
                 />
               </div>

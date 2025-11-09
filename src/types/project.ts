@@ -27,7 +27,7 @@ export interface ProjectType {
       progress: number;
     }[];
     notes?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -67,7 +67,7 @@ export interface ProjectResourceType {
   metadata?: {
     notes?: string;
     skills?: string[];
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -84,11 +84,5 @@ export interface ProjectDocumentType {
   created_by?: string;
   created_at: string;
   updated_at: string;
-  metadata?: {
-    category?: string;
-    tags?: string[];
-    shared_with?: string[];
-    permissions?: Record<string, string>;
-    [key: string]: any;
-  };
+  metadata?: Record<string, unknown>;
 }

@@ -2,18 +2,18 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { CalendarViewProps, CalendarEvent } from '@/types/calendar';
+import { CalendarViewProps } from '@/types/calendar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO, isWithinInterval } from 'date-fns';
 
 export function CalendarView({
   events,
   onEventClick,
   onDateSelect,
-  onEventDrop,
-  onEventResize,
+  _onEventDrop,
+  _onEventResize,
   isLoading = false,
 }: CalendarViewProps) {
   const [mounted, setMounted] = useState(false);
@@ -184,7 +184,7 @@ export function CalendarView({
                         style={{ backgroundColor: event.color || getEventColor(event.event_type) }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (onEventClick) onEventClick(event);
+                          if (onEventClick) {onEventClick(event);}
                         }}
                       >
                         <span className="text-white font-medium">{event.title}</span>

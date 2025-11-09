@@ -124,7 +124,7 @@ export default function SignInPage() {
       console.error('Sign in error:', err);
       setError('An unexpected error occurred. Please try again.');
     } finally {
-      if (!isMounted) return; // Prevent state update if component unmounted
+      if (!isMounted) {return;} // Prevent state update if component unmounted
       setIsLoading(false);
     }
   };

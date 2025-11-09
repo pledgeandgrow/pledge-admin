@@ -62,7 +62,7 @@ export default function UpdatePasswordPage() {
       // If we have a hash fragment in the URL, it might contain the access token
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const hashAccessToken = hashParams.get('access_token');
-      const hashType = hashParams.get('type');
+      const _hashType = hashParams.get('type');
       
       if (hashAccessToken) {
         console.log('Found access token in hash fragment');
@@ -110,7 +110,7 @@ export default function UpdatePasswordPage() {
           // This is a special case for password reset links
           try {
             // First, set the session with the access token
-            const { data: { session: resetSession }, error: sessionError } = 
+            const { data: { session: _resetSession }, error: sessionError } = 
               await supabase.auth.setSession({
                 access_token: hashAccessToken,
                 refresh_token: hashParams.get('refresh_token') || '',

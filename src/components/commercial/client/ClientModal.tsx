@@ -19,10 +19,10 @@ interface ClientModalProps {
 }
 
 export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: ClientModalProps) {
-  if (!client) return null;
+  if (!client) {return null;}
 
   const formatDate = (dateString?: string | null) => {
-    if (!dateString) return 'Non spécifié';
+    if (!dateString) {return 'Non spécifié';}
     try {
       return format(new Date(dateString), 'PPpp', { locale: fr });
     } catch {
@@ -31,7 +31,7 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
   };
 
   const copyToClipboard = (text: string | null | undefined, label: string) => {
-    if (!text) return;
+    if (!text) {return;}
     navigator.clipboard.writeText(text);
     toast({
       title: 'Copié',
@@ -230,8 +230,8 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
           <Button 
             variant="destructive"
             onClick={() => {
-              if (confirm('Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.')) {
-                onDelete(client.id!);
+              if (client.id && confirm('Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.')) {
+                onDelete(client.id);
                 onOpenChange(false);
               }
             }}

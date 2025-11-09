@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { MoreVertical, Calendar, Clock, AlertCircle, CheckCircle, Flag, Tag } from 'lucide-react';
+import { MoreVertical, Calendar, Clock, AlertCircle, CheckCircle, Flag } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -44,14 +44,14 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
   };
 
   const formatDate = (date: Date | string | undefined) => {
-    if (!date) return '';
+    if (!date) {return '';}
     const dateObj = typeof date === 'string' ? parseISO(date) : date;
     return format(dateObj, 'PPP', { locale: fr });
   };
 
   const getProgressColor = (progress: number) => {
-    if (progress >= 100) return 'bg-green-500';
-    if (progress >= 50) return 'bg-blue-500';
+    if (progress >= 100) {return 'bg-green-500';}
+    if (progress >= 50) {return 'bg-blue-500';}
     return 'bg-amber-500';
   };
 
@@ -163,7 +163,6 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
             <div className="flex -space-x-2">
               {task.assignees.slice(0, 3).map((assignee, index) => (
                 <Avatar key={index} className="h-6 w-6 border-2 border-background">
-                  <AvatarImage src={assignee.avatar_url} alt={assignee.name} />
                   <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               ))}

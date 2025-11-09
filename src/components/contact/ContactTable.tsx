@@ -1,5 +1,4 @@
 'use client';
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
@@ -114,7 +113,7 @@ export function ContactTable({ contacts, contactType, onView, onEdit, onDelete }
         return (
           <Badge className="bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-foreground">
             {/* Access position from metadata if it exists, otherwise check for position property on specific contact types */}
-            {(contact as any).position || contact.metadata?.position || 'N/A'}
+            {(contact as unknown as Record<string, unknown>).position as string || contact.metadata?.position as string || 'N/A'}
           </Badge>
         );
       case 'department':
@@ -164,8 +163,8 @@ export function ContactTable({ contacts, contactType, onView, onEdit, onDelete }
           }
         }
         // For board members and waitlist contacts, use joined_at
-        else if ((contact.type === 'board-member' || contact.type === 'waitlist') && (contact as any).joined_at) {
-          const joinedAt = (contact as any).joined_at;
+        else if ((contact.type === 'board-member' || contact.type === 'waitlist') && (contact as unknown as Record<string, unknown>).joined_at) {
+          const joinedAt = (contact as unknown as Record<string, unknown>).joined_at;
           if (typeof joinedAt === 'string' || typeof joinedAt === 'number') {
             return new Date(joinedAt).toLocaleDateString();
           }
@@ -231,7 +230,8 @@ export function ContactTable({ contacts, contactType, onView, onEdit, onDelete }
         return 'N/A';
       case 'last_contact':
         if (contact.type === 'investor' && (contact as InvestorContact).last_contact_date) {
-          return new Date((contact as InvestorContact).last_contact_date!).toLocaleDateString();
+          const date = (contact as InvestorContact).last_contact_date;
+          return date ? new Date(date).toLocaleDateString() : 'N/A';
         }
         return 'N/A';
       case 'status':

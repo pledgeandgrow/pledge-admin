@@ -74,7 +74,7 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
         query = query.order('created_at', { ascending: false });
         
         const { data: fetchedData, error: fetchError } = await query;
-        if (fetchError) throw fetchError;
+        if (fetchError) {throw fetchError;}
         data = fetchedData || [];
       }, 3, 1000);
       
@@ -106,8 +106,9 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       }
       
       if (mergedFilters.maxPrice !== undefined) {
+        const maxPrice = mergedFilters.maxPrice;
         filteredData = filteredData.filter(product => 
-          product.price !== undefined && product.price <= mergedFilters.maxPrice!
+          product.price !== undefined && product.price <= maxPrice
         );
       }
       
@@ -133,9 +134,9 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
           const valueB = b[sortField];
           
           // Handle undefined values
-          if (valueA === undefined && valueB === undefined) return 0;
-          if (valueA === undefined) return sortOrder;
-          if (valueB === undefined) return -sortOrder;
+          if (valueA === undefined && valueB === undefined) {return 0;}
+          if (valueA === undefined) {return sortOrder;}
+          if (valueB === undefined) {return -sortOrder;}
           
           // Handle string comparison
           if (typeof valueA === 'string' && typeof valueB === 'string') {
@@ -143,8 +144,8 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
           }
           
           // Handle numeric comparison
-          if (valueA < valueB) return -1 * sortOrder;
-          if (valueA > valueB) return 1 * sortOrder;
+          if (valueA < valueB) {return -1 * sortOrder;}
+          if (valueA > valueB) {return 1 * sortOrder;}
           return 0;
         });
       }
@@ -298,13 +299,7 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       if (deleteError) {
         throw deleteError;
       }
-      const result = true;
-      
-      if (result === false) {
-        const error = new Error('Failed to delete product');
-        setError(error);
-        throw error;
-      }
+      // Product deleted successfully
       
       // Update local state
       setProducts(prev => prev.filter(p => p.id !== id));

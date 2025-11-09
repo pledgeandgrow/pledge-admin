@@ -3,14 +3,13 @@
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { 
-  Calendar, 
-  Clock, 
-  Edit, 
-  Trash2, 
-  CheckCircle, 
-  AlertCircle, 
-  Tag, 
+import {
+  Clock,
+  Edit,
+  Trash2,
+  CheckCircle,
+  AlertCircle,
+  Tag,
   MessageSquare,
   Link,
   ArrowLeft
@@ -41,7 +40,7 @@ interface TaskDetailProps {
 }
 
 export function TaskDetail({ task, onEdit, onDelete, onBack }: TaskDetailProps) {
-  const router = useRouter();
+  const _router = useRouter();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const statusIcons = {
@@ -61,7 +60,7 @@ export function TaskDetail({ task, onEdit, onDelete, onBack }: TaskDetailProps) 
   };
 
   const formatDate = (date: Date | string | undefined) => {
-    if (!date) return 'Not set';
+    if (!date) {return 'Not set';}
     const dateObj = typeof date === 'string' ? parseISO(date) : date;
     return format(dateObj, 'PPP', { locale: fr });
   };
@@ -255,22 +254,24 @@ export function TaskDetail({ task, onEdit, onDelete, onBack }: TaskDetailProps) 
                 Comments ({task.comments.length})
               </h3>
               <div className="space-y-4">
-                {task.comments.map((comment: any, index: number) => (
+                {task.comments.map((comment: Record<string, unknown>, index: number) => (
                   <div key={index} className="bg-slate-50 dark:bg-slate-800 p-3 rounded-md">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                          <AvatarFallback>{comment.author?.charAt(0) || 'U'}</AvatarFallback>
+                          <AvatarFallback>{typeof comment.author === 'string' ? comment.author.charAt(0) : 'U'}</AvatarFallback>
                         </Avatar>
-                        <span className="text-sm font-medium">{comment.author || 'Unknown'}</span>
+                        <span className="text-sm font-medium">{typeof comment.author === 'string' ? comment.author : 'Unknown'}</span>
                       </div>
-                      {comment.created_at && (
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(comment.created_at)}
-                        </span>
-                      )}
+                      <>
+                        {comment.created_at && typeof comment.created_at === 'string' && (
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(comment.created_at)}
+                          </span>
+                        )}
+                      </>
                     </div>
-                    <p className="text-sm">{comment.text}</p>
+                    <p className="text-sm">{typeof comment.text === 'string' ? comment.text : ''}</p>
                   </div>
                 ))}
               </div>

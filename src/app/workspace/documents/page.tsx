@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 // Import our new components
 import { DocumentList } from '@/components/workspace/documents/DocumentList';
 import { DocumentCard } from '@/components/workspace/documents/DocumentCard';
-import { DocumentUpload } from '@/components/workspace/documents/DocumentUpload';
+import { DocumentUpload, DocumentUploadFormData } from '@/components/workspace/documents/DocumentUpload';
 import { DocumentFilter, DocumentFilterOptions } from '@/components/workspace/documents/DocumentFilter';
 import { DocumentViewer } from '@/components/workspace/documents/DocumentViewer';
 import { DocumentActions, ShareFormData } from '@/components/workspace/documents/DocumentActions';
@@ -42,9 +42,9 @@ export default function DocumentsPage() {
   const { 
     fetchDocuments, 
     deleteDocument, 
-    updateDocument, 
+    updateDocument: _updateDocument, 
     fetchDocumentTypes,
-    uploadDocumentFile,
+    uploadDocumentFile: _uploadDocumentFile,
     createDocument
   } = useDocuments();
 
@@ -78,10 +78,15 @@ export default function DocumentsPage() {
     setFilters(newFilters);
   };
 
-  const handleUpload = async (formData: any, file: File) => {
+  const handleUpload = async (formData: DocumentUploadFormData, file: File) => {
     try {
       const newDocument = await createDocument({
-        ...formData,
+        title: formData.name,
+        description: formData.description,
+        document_type_id: formData.document_type,
+        status: formData.status as 'Draft' | 'Active' | 'Archived' | 'Deleted',
+        version: formData.version,
+        project_id: formData.project_id,
         file_name: file.name,
         file_size: file.size,
         file_type: file.type,
@@ -104,14 +109,14 @@ export default function DocumentsPage() {
     }
   };
 
-  const handleDownload = (document: Document) => {
+  const handleDownload = (doc: Document) => {
     // Create a temporary anchor element to trigger download
-    const link = document.createElement('a');
-    link.href = document.file_path || '';
-    link.download = document.file_name || document.title;
-    document.body.appendChild(link);
+    const link = window.document.createElement('a');
+    link.href = doc.file_path || '';
+    link.download = doc.file_name || doc.title;
+    window.document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    window.document.body.removeChild(link);
   };
 
   const handleShare = async (documentId: string, shareData: ShareFormData) => {
@@ -153,12 +158,12 @@ export default function DocumentsPage() {
     }
   };
 
-  const handleView = (document: Document) => {
-    setSelectedDocument(document);
+  const handleView = (doc: Document) => {
+    setSelectedDocument(doc);
     setIsViewerDialogOpen(true);
   };
 
-  const handleEdit = (document: Document) => {
+  const handleEdit = (_document: Document) => {
     // In a real implementation, you would open an edit dialog
     toast({
       title: 'Info',
@@ -166,18 +171,44 @@ export default function DocumentsPage() {
     });
   };
 
-  const openShareDialog = (document: Document) => {
+  const _openShareDialog = (documentId: string) => {
+    const document = documents.find(d => d.id === documentId);
+    if (document) {
+      setSelectedDocument(document);
+      setIsShareDialogOpen(true);
+    }
+  };
+
+  const openDeleteDialog = (documentId: string) => {
+    const document = documents.find(d => d.id === documentId);
+    if (document) {
+      setSelectedDocument(document);
+      setIsDeleteDialogOpen(true);
+    }
+  };
+
+  // Wrapper functions for DocumentList which expects Document objects for onShare
+  const handleShareFromList = (document: Document) => {
     setSelectedDocument(document);
     setIsShareDialogOpen(true);
   };
 
-  const openDeleteDialog = (document: Document) => {
-    setSelectedDocument(document);
-    setIsDeleteDialogOpen(true);
+  const handleDeleteFromList = (documentId: string) => {
+    openDeleteDialog(documentId);
+  };
+
+  // Wrapper functions for DocumentCard
+  const handleShareFromCard = (doc: Document) => {
+    setSelectedDocument(doc);
+    setIsShareDialogOpen(true);
+  };
+
+  const handleDeleteFromCard = (documentId: string) => {
+    openDeleteDialog(documentId);
   };
 
   // Apply filters to documents
-  const filteredDocuments = documents.filter(doc => {
+  const filteredDocuments = (documents || []).filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(filters.search.toLowerCase()) || 
                          (doc.description || '').toLowerCase().includes(filters.search.toLowerCase());
     const matchesType = filters.type === 'all' || doc.document_type_id === filters.type;
@@ -258,8 +289,8 @@ export default function DocumentsPage() {
                   documents={filteredDocuments}
                   documentTypes={documentTypes}
                   onDownload={handleDownload}
-                  onShare={openShareDialog}
-                  onDelete={openDeleteDialog}
+                  onShare={handleShareFromList}
+                  onDelete={handleDeleteFromList}
                   onEdit={handleEdit}
                 />
               </TabsContent>
@@ -277,8 +308,8 @@ export default function DocumentsPage() {
                         key={doc.id}
                         document={doc}
                         onDownload={handleDownload}
-                        onShare={openShareDialog}
-                        onDelete={openDeleteDialog}
+                        onShare={handleShareFromCard}
+                        onDelete={handleDeleteFromCard}
                         onEdit={handleEdit}
                         onView={handleView}
                       />

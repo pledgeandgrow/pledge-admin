@@ -7,7 +7,7 @@ import { Plus, Search } from 'lucide-react';
 import { ContactTable } from './ContactTable';
 import { ContactForm } from './ContactForm';
 import { ContactView } from './ContactView';
-import { useContacts } from '@/hooks/useContacts';
+import { useContacts, Contact } from '@/hooks/useContacts';
 import { BaseContact, ContactType } from '@/types/contact';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
@@ -44,10 +44,10 @@ export function ContactList({ contactType, title, description }: ContactListProp
   // Filter contacts based on search query
   const filteredContacts = contacts.filter((contact) => {
     // First ensure we only show contacts of the specified type
-    if (contact.type !== contactType) return false;
+    if (contact.type !== contactType) {return false;}
     
     // If no search query, show all contacts of the correct type
-    if (!searchQuery) return true;
+    if (!searchQuery) {return true;}
     
     // Search in all relevant fields
     const firstName = contact.first_name?.toLowerCase() || '';
@@ -123,15 +123,23 @@ export function ContactList({ contactType, title, description }: ContactListProp
   };
 
   const handleSubmit = async (contactData: Partial<BaseContact>) => {
-    if (isEditing && selectedContact?.id) {
-      // For update, extract id and pass the rest as updates
-      const { id, ...updates } = contactData as BaseContact;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await updateContact(selectedContact.id, updates as any);
-    } else {
-      // For create, pass the whole object
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await createContact(contactData as any);
+    try {
+      if (isEditing && selectedContact?.id) {
+        // For update, extract id and pass the rest as updates
+        const { id: _id, ...updates } = contactData as BaseContact;
+        await updateContact(selectedContact.id, updates as Partial<BaseContact>);
+      } else {
+        // For create, ensure required fields are present
+        if (!contactData.type || !contactData.status) {
+          throw new Error('Type and status are required fields');
+        }
+        await createContact(contactData as Omit<Contact, 'id' | 'created_at' | 'updated_at'>);
+      }
+      // Success - form will close itself via ContactForm's success handler
+    } catch (error) {
+      // Re-throw error so ContactForm can handle it
+      console.error('Error in handleSubmit:', error);
+      throw error;
     }
   };
 
@@ -182,7 +190,7 @@ export function ContactList({ contactType, title, description }: ContactListProp
         </div>
       ) : (
         <ContactTable 
-          contacts={filteredContacts}
+          contacts={filteredContacts as BaseContact[]}
           contactType={contactType}
           onView={handleView}
           onEdit={handleEdit}

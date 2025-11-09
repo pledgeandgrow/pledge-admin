@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { toast } from '@/components/ui/use-toast';
 
 export default function VerifyEmailPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, _setIsLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);

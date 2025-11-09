@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/use-toast';
 import { ProjectCard } from '@/components/workspace/projects/ProjectCard';
 import { ProjectDialog } from '@/components/workspace/projects/ProjectDialog';
+import { ViewProjectDialog } from '@/components/workspace/projects/ViewProjectDialog';
 import { useProjects } from '@/hooks/useProjects';
 import {
   Select,
@@ -21,13 +22,13 @@ import { Plus, Search } from 'lucide-react';
 import { BaseProject } from '@/hooks/useProjects';
 
 export default function ProjectsPage() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<BaseProject | null>(null);
-  const [isViewMode, setIsViewMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
-  const router = useRouter();
+  const _router = useRouter();
   
   const { 
     projects, 
@@ -51,15 +52,14 @@ export default function ProjectsPage() {
 
   const handleCreateProject = async (projectData: Omit<BaseProject, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const newProject = await createProject(projectData);
-      setIsDialogOpen(false);
+      const _newProject = await createProject(projectData);
+      setIsEditDialogOpen(false);
       setSelectedProject(null);
       toast({
         title: 'Success',
         description: 'Project created successfully',
       });
-      // Refresh the list
-      await fetchProjects();
+      // No need to fetch - hook already updates local state
     } catch (err) {
       console.error('Error creating project:', err);
       toast({
@@ -71,19 +71,17 @@ export default function ProjectsPage() {
   };
 
   const handleUpdateProject = async (projectData: Omit<BaseProject, 'id' | 'created_at' | 'updated_at'>) => {
-    if (!selectedProject?.id) return;
+    if (!selectedProject?.id) {return;}
     
     try {
       await updateProject(selectedProject.id, projectData);
-      setIsDialogOpen(false);
+      setIsEditDialogOpen(false);
       setSelectedProject(null);
-      setIsViewMode(false);
       toast({
         title: 'Success',
         description: 'Project updated successfully',
       });
-      // Refresh the list
-      await fetchProjects();
+      // No need to fetch - hook already updates local state
     } catch (err) {
       console.error('Error updating project:', err);
       toast({
@@ -94,22 +92,21 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleDeleteProject = async () => {
-    if (!selectedProject?.id) return;
+  const _handleDeleteProject = async () => {
+    if (!selectedProject?.id) {return;}
     
-    if (!window.confirm('Are you sure you want to delete this project?')) return;
+    if (!window.confirm('Are you sure you want to delete this project?')) {return;}
     
     try {
       await deleteProject(selectedProject.id);
-      setIsDialogOpen(false);
+      setIsEditDialogOpen(false);
+      setIsViewDialogOpen(false);
       setSelectedProject(null);
-      setIsViewMode(false);
       toast({
         title: 'Success',
         description: 'Project deleted successfully',
       });
-      // Refresh the list
-      await fetchProjects();
+      // No need to fetch - hook already updates local state
     } catch (err) {
       console.error('Error deleting project:', err);
       toast({
@@ -122,20 +119,17 @@ export default function ProjectsPage() {
 
   const handleViewProject = (project: BaseProject) => {
     setSelectedProject(project);
-    setIsViewMode(true);
-    setIsDialogOpen(true);
+    setIsViewDialogOpen(true);
   };
 
   const handleEditProject = (project: BaseProject) => {
     setSelectedProject(project);
-    setIsViewMode(false);
-    setIsDialogOpen(true);
+    setIsEditDialogOpen(true);
   };
 
   const handleAddNew = () => {
     setSelectedProject(null);
-    setIsViewMode(false);
-    setIsDialogOpen(true);
+    setIsEditDialogOpen(true);
   };
 
   const filteredProjects = projects.filter(project => {
@@ -256,20 +250,35 @@ export default function ProjectsPage() {
               <ProjectCard 
                 key={project.id} 
                 project={project} 
-                onClick={() => handleViewProject(project)} 
+                onView={() => handleViewProject(project)}
+                onEdit={() => handleEditProject(project)}
               />
             )
           ))}
         </div>
       )}
 
-      <ProjectDialog 
-        open={isDialogOpen} 
+      <ViewProjectDialog
+        open={isViewDialogOpen}
         onOpenChange={(open) => {
-          setIsDialogOpen(open);
+          setIsViewDialogOpen(open);
           if (!open) {
             setSelectedProject(null);
-            setIsViewMode(false);
+          }
+        }}
+        project={selectedProject}
+        onEdit={() => {
+          setIsViewDialogOpen(false);
+          setIsEditDialogOpen(true);
+        }}
+      />
+
+      <ProjectDialog 
+        open={isEditDialogOpen} 
+        onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+          if (!open) {
+            setSelectedProject(null);
           }
         }}
         project={selectedProject || undefined}

@@ -28,8 +28,8 @@ export interface CalendarViewProps {
   events: CalendarEvent[];
   onEventClick?: (event: CalendarEvent) => void;
   onDateSelect?: (start: Date, end: Date, allDay: boolean) => void;
-  onEventDrop?: (event: CalendarEvent, delta: any) => void;
-  onEventResize?: (event: CalendarEvent, delta: any) => void;
+  _onEventDrop?: (event: CalendarEvent, delta: { days: number; milliseconds: number }) => void;
+  _onEventResize?: (event: CalendarEvent, delta: { days: number; milliseconds: number }) => void;
   isLoading?: boolean;
 }
 

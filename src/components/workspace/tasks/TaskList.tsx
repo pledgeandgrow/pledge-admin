@@ -10,7 +10,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { TaskCard } from './TaskCard';
 import { TaskFilter, TaskFilters } from './TaskFilter';
 import { TaskModal } from './TaskModal';
-import useTasks, { TaskWithProject, TaskStatus } from '@/hooks/useTasks';
+import { Task, TaskWithProject, TaskStatus } from '@/hooks/useTasks';
+import useTasks from '@/hooks/useTasks';
 
 interface TaskListProps {
   projectId?: string;
@@ -122,7 +123,7 @@ export function TaskList({ projectId }: TaskListProps) {
       if (editingTask) {
         await updateTask(editingTask.id, taskData);
       } else {
-        await createTask(taskData as any);
+        await createTask(taskData as Omit<Task, 'id' | 'created_at' | 'updated_at'>);
       }
       return Promise.resolve();
     } catch (error) {

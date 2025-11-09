@@ -51,9 +51,11 @@ export function DataTable<TData, TValue>({
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {table.getHeaderGroups().map((headerGroup: any) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {headerGroup.headers.map((header: any) => {
                   return (
                     <TableHead key={header.id}>
                       {header.isPlaceholder
@@ -79,12 +81,14 @@ export function DataTable<TData, TValue>({
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              table.getRowModel().rows.map((row: any) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                 >
-                  {row.getVisibleCells().map((cell) => (
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {row.getVisibleCells().map((cell: any) => (
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,

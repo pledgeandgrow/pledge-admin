@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { useDocuments } from '@/hooks/useDocuments';
 import { DocumentDetails } from '@/types/documents';
-import { FileIcon, FileTextIcon, FilePresentationIcon, FileSpreadsheetIcon } from 'lucide-react';
+import { FileIcon, FileTextIcon, PresentationIcon, FileSpreadsheetIcon } from 'lucide-react';
 
 interface RecentDocumentsWidgetProps {
   limit?: number;
@@ -57,7 +57,7 @@ const RecentDocumentsWidget: React.FC<RecentDocumentsWidgetProps> = ({
         case 'cahier_des_charges':
           return <FileTextIcon className="h-5 w-5 text-green-500" />;
         case 'presentation':
-          return <FilePresentationIcon className="h-5 w-5 text-yellow-500" />;
+          return <PresentationIcon className="h-5 w-5 text-yellow-500" />;
         default:
           return <FileIcon className="h-5 w-5 text-gray-500" />;
       }
@@ -68,7 +68,7 @@ const RecentDocumentsWidget: React.FC<RecentDocumentsWidgetProps> = ({
     } else if (fileType.includes('excel') || fileType.includes('spreadsheet')) {
       return <FileSpreadsheetIcon className="h-5 w-5 text-green-500" />;
     } else if (fileType.includes('presentation') || fileType.includes('powerpoint')) {
-      return <FilePresentationIcon className="h-5 w-5 text-orange-500" />;
+      return <PresentationIcon className="h-5 w-5 text-orange-500" />;
     } else {
       return <FileIcon className="h-5 w-5 text-blue-500" />;
     }

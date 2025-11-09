@@ -4,24 +4,17 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
-  PlusCircle, Download, Plus, Users, Settings, Bell, Shield, 
+  Download, Users, Settings, Shield, 
   BarChart3, Server, FileText, HardDrive, Activity, AlertTriangle,
-  User, UserCog, UserPlus, Briefcase, CheckCircle, Clock, Calendar,
+  UserCog, UserPlus, CheckCircle,
   Info
 } from 'lucide-react';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
-import { ClientList } from '@/components/dashboard/ClientList';
-import { ProjectsList } from '@/components/dashboard/ProjectsList';
-import ContactsActivityFeed from '@/components/dashboard/ContactsActivityFeed';
-import NotificationsPanel from '@/components/dashboard/NotificationsPanel';
-import RecentDocumentsWidget from '@/components/dashboard/RecentDocumentsWidget';
-import UpcomingEventsCalendar from '@/components/dashboard/UpcomingEventsCalendar';
 import { useContacts } from '@/hooks/useContacts';
 import { useProjects } from '@/hooks/useProjects';
 import { useTasks } from '@/hooks/useTasks';
@@ -30,7 +23,7 @@ import { createClient } from '@/lib/supabase';
 
 
 export default function DashboardPage() {
-  const { session, user, isLoading: authLoading } = useAuth();
+  const { session, user: _user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -79,7 +72,7 @@ export default function DashboardPage() {
   // Use direct hooks with error handling
   const { 
     contacts, 
-    recentActivities, 
+    recentActivities: _recentActivities, 
     isLoading: contactsLoading, 
     error: contactsError, 
     getContactStatistics 
@@ -89,7 +82,7 @@ export default function DashboardPage() {
     projects, 
     loading: projectsLoading, 
     error: projectsError, 
-    totalCount: projectsCount 
+    totalCount: _projectsCount 
   } = useProjects({ 
     autoFetch: true
   });
@@ -99,11 +92,11 @@ export default function DashboardPage() {
     isLoading: tasksLoading, 
     error: tasksError, 
     getTaskStatistics, 
-    updateTask 
+    updateTask: _updateTask 
   } = useTasks();
   
   const { 
-    user: currentUser, 
+    user: _currentUser, 
     profile: userProfile, 
     isLoading: userLoading 
   } = useUser();
@@ -125,7 +118,7 @@ export default function DashboardPage() {
   }, [contactsError, projectsError, tasksError]);
   
   // Filter clients from contacts
-  const clients = contacts.filter(contact => contact.type === 'client');
+  const _clients = contacts.filter(contact => contact.type === 'client');
 
   useEffect(() => {
     // If no session, redirect to signin
@@ -333,7 +326,7 @@ useEffect(() => {
                 .from('users')
                 .select('*', { count: 'exact', head: true });
                 
-              if (error) throw error;
+              if (error) {throw error;}
               totalUsers = count || 0;
             } catch (countErr) {
               console.warn('Error fetching total users count:', countErr);
@@ -351,7 +344,7 @@ useEffect(() => {
                 .select('*', { count: 'exact', head: true })
                 .gt('last_sign_in_at', thirtyDaysAgo.toISOString());
                 
-              if (error) throw error;
+              if (error) {throw error;}
               activeUsers = count || 0;
             } catch (activeErr) {
               console.warn('Error fetching active users count:', activeErr);
@@ -369,7 +362,7 @@ useEffect(() => {
                 .select('*', { count: 'exact', head: true })
                 .gt('created_at', sevenDaysAgo.toISOString());
                 
-              if (error) throw error;
+              if (error) {throw error;}
               newUsers = count || 0;
             } catch (newErr) {
               console.warn('Error fetching new users count:', newErr);
@@ -528,7 +521,7 @@ useEffect(() => {
   }
   
   // Check if user is admin
-  const isAdmin = userProfile?.role === 'admin';
+  const _isAdmin = userProfile?.role === 'admin';
 
   return (
     <div className="space-y-6">
@@ -556,7 +549,7 @@ useEffect(() => {
         <div className="flex items-center gap-2">
           <Select
             value={timeRange}
-            onValueChange={(value) => handleTimeRangeChange(value as any)}
+            onValueChange={(value) => handleTimeRangeChange(value as 'today' | 'week' | 'month' | 'quarter')}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select time range" />

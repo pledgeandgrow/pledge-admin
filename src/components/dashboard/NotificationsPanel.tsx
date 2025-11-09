@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useNotifications, Notification, NotificationType } from '@/hooks/useNotifications';
+import { useNotifications, NotificationType } from '@/hooks/useNotifications';
 import { 
   Bell, 
   Info, 
@@ -105,13 +105,13 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
   // Filter notifications based on props
   const filteredNotifications = notifications
     .filter(notification => {
-      if (!filter) return true;
+      if (!filter) {return true;}
       
       if (filter.type && filter.type.length > 0) {
-        if (!filter.type.includes(notification.type)) return false;
+        if (!filter.type.includes(notification.type)) {return false;}
       }
       
-      if (filter.onlyUnread && notification.is_read) return false;
+      if (filter.onlyUnread && notification.is_read) {return false;}
       
       return true;
     })

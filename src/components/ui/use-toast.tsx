@@ -16,7 +16,14 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement
 }
 
-const actionTypes = {
+type ActionTypes = {
+  ADD_TOAST: "ADD_TOAST",
+  UPDATE_TOAST: "UPDATE_TOAST",
+  DISMISS_TOAST: "DISMISS_TOAST",
+  REMOVE_TOAST: "REMOVE_TOAST",
+}
+
+const _actionTypes: ActionTypes = {
   ADD_TOAST: "ADD_TOAST",
   UPDATE_TOAST: "UPDATE_TOAST",
   DISMISS_TOAST: "DISMISS_TOAST",
@@ -30,7 +37,7 @@ function genId() {
   return count.toString()
 }
 
-type ActionType = typeof actionTypes
+type ActionType = typeof _actionTypes
 
 type Action =
   | {
@@ -74,21 +81,32 @@ const addToRemoveQueue = (toastId: string) => {
 
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
-    case "ADD_TOAST":
+    case "ADD_TOAST": {
+      if (action.type !== "ADD_TOAST") {
+        return state
+      }
       return {
         ...state,
         toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
       }
+    }
 
-    case "UPDATE_TOAST":
+    case "UPDATE_TOAST": {
+      if (action.type !== "UPDATE_TOAST") {
+        return state
+      }
       return {
         ...state,
         toasts: state.toasts.map((t) =>
           t.id === action.toast.id ? { ...t, ...action.toast } : t
         ),
       }
+    }
 
     case "DISMISS_TOAST": {
+      if (action.type !== "DISMISS_TOAST") {
+        return state
+      }
       const { toastId } = action
 
       // ! Side effects ! - This could be extracted into a dismissToast() action,
@@ -113,8 +131,13 @@ export const reducer = (state: State, action: Action): State => {
         ),
       }
     }
-    case "REMOVE_TOAST":
-      if (action.toastId === undefined) {
+    case "REMOVE_TOAST": {
+      if (action.type !== "REMOVE_TOAST") {
+        return state
+      }
+      const { toastId } = action
+      
+      if (toastId === undefined) {
         return {
           ...state,
           toasts: [],
@@ -122,8 +145,11 @@ export const reducer = (state: State, action: Action): State => {
       }
       return {
         ...state,
-        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+        toasts: state.toasts.filter((t) => t.id !== toastId),
       }
+    }
+    default:
+      return state
   }
 }
 
@@ -157,7 +183,7 @@ function toast({ ...props }: Toast) {
       id,
       open: true,
       onOpenChange: (open) => {
-        if (!open) dismiss()
+        if (!open) {dismiss()}
       },
     },
   })

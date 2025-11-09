@@ -1,5 +1,4 @@
 'use client';
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React from 'react';
 import { 
@@ -25,11 +24,11 @@ interface ContactViewProps {
 }
 
 export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: ContactViewProps) {
-  if (!contact) return null;
+  if (!contact) {return null;}
 
   // Format date for display
   const formatDate = (dateString?: string | number) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) {return 'N/A';}
     try {
       // Ensure we're working with a valid date input
       if (typeof dateString === 'string' || typeof dateString === 'number') {
@@ -40,7 +39,6 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
         });
       }
       return 'Invalid Date';
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       return typeof dateString === 'string' ? dateString : 'Invalid Date';
     }
@@ -99,22 +97,22 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
         </div>
         
         {/* Access position from metadata or specific contact types */}
-        {((contact as any).position || contact.metadata?.position) && (
+        {((contact as unknown as Record<string, unknown>).position || contact.metadata?.position) && (
           <div>
             <Label className="text-gray-600 dark:text-gray-300">Position</Label>
             <p className="text-gray-900 dark:text-white">
-              {(contact as any).position || 
+              {String((contact as unknown as Record<string, unknown>).position) || 
                (typeof contact.metadata?.position === 'string' ? contact.metadata.position : 'N/A')}
             </p>
           </div>
         )}
         
         {/* Access company from metadata or specific contact types */}
-        {((contact as any).company || contact.metadata?.company) && (
+        {((contact as unknown as Record<string, unknown>).company || contact.metadata?.company) && (
           <div>
             <Label className="text-gray-600 dark:text-gray-300">Company</Label>
             <p className="text-gray-900 dark:text-white">
-              {(contact as any).company || 
+              {String((contact as unknown as Record<string, unknown>).company) || 
                (typeof contact.metadata?.company === 'string' ? contact.metadata.company : 'N/A')}
             </p>
           </div>
@@ -161,7 +159,7 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
 
   // Investor contact specific content
   const renderInvestorContent = () => {
-    if (contact.type !== 'investor') return null;
+    if (contact.type !== 'investor') {return null;}
     
     const investorContact = contact as InvestorContact;
     
@@ -255,7 +253,7 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
 
   // Member specific content
   const renderMemberContent = () => {
-    if (contact.type !== 'member') return null;
+    if (contact.type !== 'member') {return null;}
     
     return (
       <>
@@ -266,7 +264,7 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
             <div>
               <Label className="text-gray-600 dark:text-gray-300">Position</Label>
               <p className="text-gray-900 dark:text-white">
-                {(contact as any).position || 
+                {String((contact as unknown as Record<string, unknown>).position) || 
                  (typeof contact.metadata?.position === 'string' ? contact.metadata.position : 'N/A')}
               </p>
             </div>
@@ -362,7 +360,8 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
           <div className="space-y-2">
             <Label className="text-gray-600 dark:text-gray-300">Languages</Label>
             <div className="flex flex-wrap gap-2">
-              {contact.metadata.languages.map((lang: any, index: number) => {
+              {(contact.metadata.languages as unknown[]).map((langItem: unknown, index: number) => {
+                const lang = langItem as Record<string, unknown>;
                 // Ensure lang is an object with language and level properties
                 if (typeof lang === 'object' && lang !== null && 'language' in lang && 'level' in lang) {
                   return (
@@ -381,7 +380,8 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
           <div className="space-y-4">
             <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Education</h3>
             <div className="space-y-3">
-              {contact.metadata.education.map((edu: any, index: number) => {
+              {(contact.metadata.education as unknown[]).map((eduItem: unknown, index: number) => {
+                const edu = eduItem as Record<string, unknown>;
                 // Ensure edu is an object with required properties
                 if (typeof edu === 'object' && edu !== null && 
                     'degree' in edu && 'year' in edu && 'institution' in edu) {
@@ -406,7 +406,7 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
 
   // Freelance specific content
   const renderFreelanceContent = () => {
-    if (contact.type !== 'freelance') return null;
+    if (contact.type !== 'freelance') {return null;}
     
     return (
       <>
@@ -462,7 +462,8 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
           <div className="space-y-4">
             <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Experience</h3>
             <div className="space-y-4">
-              {contact.metadata.experience.map((exp: any, index: number) => {
+              {(contact.metadata.experience as unknown[]).map((expItem: unknown, index: number) => {
+                const exp = expItem as Record<string, unknown>;
                 // Ensure exp is an object with required properties
                 if (typeof exp === 'object' && exp !== null && 
                     'role' in exp && 'duration' in exp && 'company' in exp && 'description' in exp) {
@@ -488,7 +489,7 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
 
   // Partner specific content
   const renderPartnerContent = () => {
-    if (contact.type !== 'partner') return null;
+    if (contact.type !== 'partner') {return null;}
     
     return (
       <div className="space-y-4">
@@ -520,7 +521,7 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
 
   // Board member specific content
   const renderBoardMemberContent = () => {
-    if (contact.type !== 'board-member') return null;
+    if (contact.type !== 'board-member') {return null;}
     
     return (
       <div className="space-y-4">
@@ -543,7 +544,7 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
 
   // External contact specific content
   const renderExternalContent = () => {
-    if (contact.type !== 'external') return null;
+    if (contact.type !== 'external') {return null;}
     
     return (
       <div className="space-y-4">
@@ -558,7 +559,7 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
 
   // Network contact specific content
   const renderNetworkContent = () => {
-    if (contact.type !== 'network') return null;
+    if (contact.type !== 'network') {return null;}
     
     return (
       <div className="space-y-4">
@@ -581,7 +582,7 @@ export function ContactView({ isOpen, contact, contactType, onClose, onEdit }: C
 
   // Notes section
   const renderNotes = () => {
-    if (!contact.metadata?.notes) return null;
+    if (!contact.metadata?.notes) {return null;}
     
     return (
       <div className="space-y-2">

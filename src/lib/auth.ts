@@ -685,7 +685,7 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
  * Converts an unknown error to a consistent error format
  */
 export function toErrorWithMessage(error: unknown): ErrorWithMessage {
-  if (isErrorWithMessage(error)) return error;
+  if (isErrorWithMessage(error)) {return error;}
 
   try {
     return {

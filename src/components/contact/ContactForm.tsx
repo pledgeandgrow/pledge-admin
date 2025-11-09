@@ -57,6 +57,7 @@ export function ContactForm({
     tags?: string[];
     created_at?: string;
     updated_at?: string;
+     
     metadata: Record<string, any>;
     // Investor-specific fields
     investment_stage?: string;
@@ -68,6 +69,7 @@ export function ContactForm({
     maximum_check_size?: number;
     last_contact_date?: string;
     // Allow any other fields
+     
     [key: string]: any;
   };
 
@@ -265,10 +267,10 @@ export function ContactForm({
       
       // Handle regular metadata arrays
       const metadata = { ...prev.metadata };
-      if (!metadata[metadataKey]) return prev;
+      if (!metadata[metadataKey]) {return prev;}
       
       const keyData = metadata[metadataKey] as Record<string, any>;
-      if (!keyData[arrayKey]) return prev;
+      if (!keyData[arrayKey]) {return prev;}
       
       const items = [...keyData[arrayKey]];
       items.splice(index, 1);
@@ -356,6 +358,15 @@ export function ContactForm({
       return { valid: false, message: 'Position is required for members' };
     }
     
+    if (contactType === 'board-member') {
+      if (!formData.position?.trim()) {
+        return { valid: false, message: 'Position is required for board members' };
+      }
+      if (!formData.company?.trim()) {
+        return { valid: false, message: 'Company is required for board members' };
+      }
+    }
+    
     return { valid: true };
   };
 
@@ -404,10 +415,10 @@ export function ContactForm({
         }
         
         // Ensure required metadata fields exist
-        if (!dataToSubmit.metadata.department) dataToSubmit.metadata.department = '';
+        if (!dataToSubmit.metadata.department) {dataToSubmit.metadata.department = '';}
         
         // Initialize arrays if they don't exist
-        if (!dataToSubmit.metadata.responsibilities) dataToSubmit.metadata.responsibilities = [];
+        if (!dataToSubmit.metadata.responsibilities) {dataToSubmit.metadata.responsibilities = [];}
         
         // Handle job description
         if (!dataToSubmit.metadata.job_description) {
@@ -424,23 +435,40 @@ export function ContactForm({
             roles?: unknown[];
             missions?: unknown[];
           };
-          if (!jobDesc.summary) jobDesc.summary = '';
-          if (!jobDesc.roles) jobDesc.roles = [];
-          if (!jobDesc.missions) jobDesc.missions = [];
+          if (!jobDesc.summary) {jobDesc.summary = '';}
+          if (!jobDesc.roles) {jobDesc.roles = [];}
+          if (!jobDesc.missions) {jobDesc.missions = [];}
         }
         
         // Ensure languages and education are arrays
-        if (!dataToSubmit.metadata.languages) dataToSubmit.metadata.languages = [];
-        if (!dataToSubmit.metadata.education) dataToSubmit.metadata.education = [];
+        if (!dataToSubmit.metadata.languages) {dataToSubmit.metadata.languages = [];}
+        if (!dataToSubmit.metadata.education) {dataToSubmit.metadata.education = [];}
       }
       
       // Handle freelance-specific fields
       if (contactType === 'freelance') {
         // Ensure freelance metadata fields are properly initialized
-        if (!dataToSubmit.metadata.availability) dataToSubmit.metadata.availability = 'available';
-        if (!dataToSubmit.metadata.certifications) dataToSubmit.metadata.certifications = [];
-        if (!dataToSubmit.metadata.languages) dataToSubmit.metadata.languages = [];
-        if (!dataToSubmit.metadata.projects) dataToSubmit.metadata.projects = [];
+        if (!dataToSubmit.metadata.availability) {dataToSubmit.metadata.availability = 'available';}
+        if (!dataToSubmit.metadata.certifications) {dataToSubmit.metadata.certifications = [];}
+        if (!dataToSubmit.metadata.languages) {dataToSubmit.metadata.languages = [];}
+        if (!dataToSubmit.metadata.projects) {dataToSubmit.metadata.projects = [];}
+      }
+      
+      // Handle board-member-specific fields
+      if (contactType === 'board-member') {
+        // Handle joined_at field from the form - convert to ISO timestamp
+        if (formData.joined_at) {
+          // If it's already a full ISO string, use it; otherwise convert date string to ISO
+          const dateValue = formData.joined_at;
+          if (dateValue.includes('T')) {
+            // Already an ISO string
+            (dataToSubmit as any).joined_at = dateValue;
+          } else {
+            // Date string from input (YYYY-MM-DD), convert to ISO timestamp
+            const date = new Date(dateValue);
+            (dataToSubmit as any).joined_at = date.toISOString();
+          }
+        }
       }
       
       // Handle investor-specific fields
@@ -458,14 +486,19 @@ export function ContactForm({
         });
         
         // Ensure investor-specific arrays are properly initialized
-        if (!(dataToSubmit as any).investment_focus) (dataToSubmit as any).investment_focus = [];
-        if (!(dataToSubmit as any).portfolio_companies) (dataToSubmit as any).portfolio_companies = [];
-        if (!(dataToSubmit as any).preferred_industries) (dataToSubmit as any).preferred_industries = [];
+        if (!(dataToSubmit as any).investment_focus) {(dataToSubmit as any).investment_focus = [];}
+        if (!(dataToSubmit as any).portfolio_companies) {(dataToSubmit as any).portfolio_companies = [];}
+        if (!(dataToSubmit as any).preferred_industries) {(dataToSubmit as any).preferred_industries = [];}
       }
       
-      console.log('Submitting contact data:', JSON.stringify(dataToSubmit, null, 2));
+      console.log('=== SUBMITTING CONTACT DATA ===');
+      console.log('Contact Type:', contactType);
+      console.log('Is Editing:', isEditing);
+      console.log('Data to Submit:', JSON.stringify(dataToSubmit, null, 2));
+      
       await onSubmit(dataToSubmit);
       
+      console.log('✅ Contact submitted successfully');
       setAlert({
         show: true,
         type: 'success',
@@ -476,7 +509,11 @@ export function ContactForm({
         onClose();
       }, 1500);
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('❌ ERROR SUBMITTING FORM:', error);
+      console.error('Error type:', error instanceof Error ? 'Error' : typeof error);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
       setAlert({
         show: true,
         type: 'error',
@@ -1171,7 +1208,7 @@ export function ContactForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl bg-white dark:bg-gray-800">
+      <DialogContent className="max-w-3xl bg-white dark:bg-gray-800" aria-describedby="contact-form-description">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white">
             {isEditing ? `Edit ${contactType}` : `Add new ${contactType}`}

@@ -117,7 +117,7 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
         query = query.order('created_at', { ascending: false });
         
         const { data: fetchedData, error: fetchError } = await query;
-        if (fetchError) throw fetchError;
+        if (fetchError) {throw fetchError;}
         data = fetchedData || [];
       }, 3, 1000);
       
@@ -163,9 +163,9 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
           const valueB = b[sortField];
           
           // Handle undefined values
-          if (valueA === undefined && valueB === undefined) return 0;
-          if (valueA === undefined) return sortOrder;
-          if (valueB === undefined) return -sortOrder;
+          if (valueA === undefined && valueB === undefined) {return 0;}
+          if (valueA === undefined) {return sortOrder;}
+          if (valueB === undefined) {return -sortOrder;}
           
           // Handle string comparison
           if (typeof valueA === 'string' && typeof valueB === 'string') {
@@ -173,8 +173,8 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
           }
           
           // Handle numeric comparison
-          if (valueA < valueB) return -1 * sortOrder;
-          if (valueA > valueB) return 1 * sortOrder;
+          if (valueA < valueB) {return -1 * sortOrder;}
+          if (valueA > valueB) {return 1 * sortOrder;}
           return 0;
         });
       }
@@ -195,8 +195,7 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Remove filters dependency to prevent stale closures
+  }, [supabase]);
 
   const refetch = useCallback(() => fetchProjects(), [fetchProjects]);
 
@@ -272,7 +271,7 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
       
       throw error;
     }
-  }, []);
+  }, [supabase]);
 
   const updateProject = useCallback(async (id: string, projectUpdate: Partial<BaseProject>): Promise<BaseProject> => {
     try {
@@ -329,7 +328,7 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
       
       throw error;
     }
-  }, []);
+  }, [supabase]);
 
   const deleteProject = useCallback(async (id: string): Promise<boolean> => {
     try {
@@ -363,7 +362,7 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
       
       throw error;
     }
-  }, []);
+  }, [supabase]);
 
   // Fetch projects on mount if autoFetch is true
   useEffect(() => {
@@ -378,7 +377,7 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
         fetchAbortControllerRef.current.abort();
       }
     };
-  }, [autoFetch]); // Only depend on autoFetch, not fetchProjects
+  }, [fetchProjects]); // Include fetchProjects to use latest version
 
   return {
     projects,

@@ -29,11 +29,13 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.from('documents').select('*').order('created_at', { ascending: false });
-      if (err) throw err;
+      if (err) {throw err;}
       setDocuments(data || []);
+      return data || [];
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch documents'));
       console.error('Error fetching documents:', err);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -47,7 +49,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.rpc('get_document_details');
-      if (err) throw err;
+      if (err) {throw err;}
       setDocumentDetails(data || []);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch document details'));
@@ -65,11 +67,13 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.from('document_types').select('*');
-      if (err) throw err;
+      if (err) {throw err;}
       setDocumentTypes(data || []);
+      return data || [];
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch document types'));
       console.error('Error fetching document types:', err);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -83,7 +87,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.from('document_types').select('*').eq('is_active', true);
-      if (err) throw err;
+      if (err) {throw err;}
       setDocumentTypes(data || []);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch active document types'));
@@ -101,7 +105,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.from('documents').select('*').eq('project_id', projectId);
-      if (err) throw err;
+      if (err) {throw err;}
       setDocuments(data || []);
       return data || [];
     } catch (err) {
@@ -121,7 +125,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.from('documents').select('*').eq('contact_id', contactId);
-      if (err) throw err;
+      if (err) {throw err;}
       setDocuments(data || []);
       return data || [];
     } catch (err) {
@@ -141,7 +145,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.from('documents').insert(document).select().single();
-      if (err) throw err;
+      if (err) {throw err;}
       setDocuments(prev => [data, ...prev]);
       return data;
     } catch (err) {
@@ -161,7 +165,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.from('documents').update(document).eq('id', document.id).select().single();
-      if (err) throw err;
+      if (err) {throw err;}
       setDocuments(prev => prev.map(doc => doc.id === data.id ? data : doc));
       return data;
     } catch (err) {
@@ -181,7 +185,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { error: err } = await supabase.from('documents').update({ status: 'Deleted' }).eq('id', id);
-      if (err) throw err;
+      if (err) {throw err;}
       setDocuments(prev => prev.map(doc => doc.id === id ? { ...doc, status: 'Deleted' } : doc));
       return true;
     } catch (err) {
@@ -201,7 +205,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { error: err } = await supabase.from('documents').delete().eq('id', id);
-      if (err) throw err;
+      if (err) {throw err;}
       setDocuments(prev => prev.filter(doc => doc.id !== id));
       return true;
     } catch (err) {
@@ -221,7 +225,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.from('document_types').insert(documentType).select().single();
-      if (err) throw err;
+      if (err) {throw err;}
       setDocumentTypes(prev => [...prev, data]);
       return data;
     } catch (err) {
@@ -241,7 +245,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.from('document_types').update(documentType).eq('id', documentType.id).select().single();
-      if (err) throw err;
+      if (err) {throw err;}
       setDocumentTypes(prev => prev.map(type => type.id === data.id ? data : type));
       return data;
     } catch (err) {
@@ -261,7 +265,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { error: err } = await supabase.from('document_types').delete().eq('id', id);
-      if (err) throw err;
+      if (err) {throw err;}
       setDocumentTypes(prev => prev.filter(type => type.id !== id));
       return true;
     } catch (err) {
@@ -281,7 +285,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.storage.from('documents').upload(path, file);
-      if (err) throw err;
+      if (err) {throw err;}
       return data;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to upload document file'));
@@ -300,7 +304,7 @@ export const useDocuments = () => {
     setError(null);
     try {
       const { data, error: err } = await supabase.from('documents').select('*').or(`title.ilike.%${query}%,description.ilike.%${query}%`);
-      if (err) throw err;
+      if (err) {throw err;}
       return data || [];
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to search documents'));

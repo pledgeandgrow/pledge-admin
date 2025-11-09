@@ -27,9 +27,16 @@ export async function GET(request: NextRequest) {
   try {
     // Create a Supabase client for the Route Handler
     const cookieStore = await cookies();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.redirect(new URL('/auth/signin?error=Server configuration error', request.url));
+    }
+    
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      supabaseUrl,
+      supabaseKey,
       {
         cookies: {
           get(name: string) {
@@ -37,14 +44,14 @@ export async function GET(request: NextRequest) {
           },
           set(name: string, value: string, options: CookieOptions) {
             try {
-              cookieStore.set(name, value, options as any);
+              cookieStore.set(name, value, options as Record<string, unknown>);
             } catch (err) {
               console.error('Error setting cookie:', err);
             }
           },
           remove(name: string, options: CookieOptions) {
             try {
-              cookieStore.set(name, '', { ...options as any, maxAge: 0 });
+              cookieStore.set(name, '', { ...(options as Record<string, unknown>), maxAge: 0 });
             } catch (err) {
               console.error('Error removing cookie:', err);
             }

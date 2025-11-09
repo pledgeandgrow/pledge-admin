@@ -1,37 +1,14 @@
-// src/components/commercial/client/ClientList.tsx
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, Loader2, RefreshCw } from 'lucide-react';
-import { ClientTable } from './ClientTable';
-import { ClientForm } from './ClientForm';
-import { ClientModal } from './ClientModal';
-import { Contact, ClientContact } from '@/types/contact';
-import { useContacts } from '@/hooks/useContacts';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Search, DollarSign, Users, TrendingUp, Eye, Edit, Trash2 } from 'lucide-react';
+import { useClients } from '@/hooks/useClients';
 import { toast } from '@/components/ui/use-toast';
-
-// Define Client interface for UI representation
-interface Client {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  status: string;
-  address?: string;
-  website?: string;
-  industry?: string;
-  notes?: string;
-  created_at?: string;
-  updated_at?: string;
-  is_company: boolean;
-  company_name?: string;
-  contact_person?: string;
-  vat_number?: string;
-  registration_number?: string;
-  country?: string;
-}
+import { Badge } from '@/components/ui/badge';
+import { Spinner } from '@/components/ui/spinner';
 
 const getStatusColor = (status?: string) => {
   switch (status?.toLowerCase()) {
@@ -47,276 +24,205 @@ const getStatusColor = (status?: string) => {
 };
 
 export function ClientList() {
-  console.log('Rendering ClientList');
   const [searchTerm, setSearchTerm] = useState('');
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<ClientContact | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  // Use the contacts hook to get clients
-  const { contacts: contactsData, isLoading: loading, error, realtimeEnabled, toggleRealtime } = useContacts({ type: 'client' });
+  // Use the clients hook
+  const { clients, isLoading, error, getClientStatistics, deleteClient } = useClients();
   
-  // Convert contacts to clients
-  const clients = useMemo(() => {
-    return contactsData.map((contact) => {
-      // Extract metadata fields from contact
-      const metadata = contact.metadata as Record<string, string | number | boolean | null | Record<string, unknown>> || {};
-      
-      // Create a client object from the contact data
-      return {
-        id: contact.id,
-        name: contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : contact.first_name || contact.last_name || '',
-        email: contact.email || '',
-        phone: contact.phone || '',
-        status: contact.status || 'active',
-        address: metadata.address as string || '',
-        website: metadata.website as string || '',
-        industry: metadata.industry as string || '',
-        notes: metadata.notes as string || '',
-        created_at: contact.created_at,
-        updated_at: contact.updated_at,
-        is_company: metadata.is_company as boolean || false,
-        company_name: metadata.company_name as string || '',
-        contact_person: metadata.contact_person as string || '',
-        vat_number: metadata.vat_number as string || '',
-        registration_number: metadata.registration_number as string || '',
-        country: metadata.country as string || ''
-      } as Client;
-    });
-  }, [contactsData]);
+  // Get statistics
+  const stats = getClientStatistics();
 
-  // Handle search input
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
+  // Filter clients based on search
+  const filteredClients = useMemo(() => {
+    if (!searchTerm) {return clients;}
+    const search = searchTerm.toLowerCase();
+    return clients.filter(client => 
+      `${client.first_name} ${client.last_name}`.toLowerCase().includes(search) ||
+      client.email?.toLowerCase().includes(search) ||
+      client.phone?.includes(search) ||
+      client.company?.toLowerCase().includes(search)
+    );
+  }, [clients, searchTerm]);
 
-  // Convert UI Client object to ClientContact format for the form
-  const convertToClientContact = (client: Client): ClientContact => {
-    return {
-      id: client.id,
-      first_name: client.name.split(' ')[0] || '',
-      last_name: client.name.split(' ').slice(1).join(' ') || '',
-      email: client.email || '',
-      phone: client.phone || '',
-      status: client.status || 'Active',
-      type: 'client',
-      created_at: client.created_at || new Date().toISOString(),
-      updated_at: client.updated_at || new Date().toISOString(),
-      metadata: {
-        is_company: client.is_company,
-        company_name: client.company_name || '',
-        contact_person: client.contact_person || '',
-        vat_number: client.vat_number || '',
-        registration_number: client.registration_number || '',
-        address: client.address || '',
-        website: client.website || '',
-        country: client.country || '',
-        industry: client.industry || '',
-        notes: client.notes || ''
-      }
-    };
-  };
-
-  // Handle edit client
-  const handleEdit = (client: Client) => {
-    const clientContact = convertToClientContact(client);
-    setSelectedClient(clientContact);
-    setIsFormOpen(true);
-  };
-
-  // Handle view client
-  const handleView = (client: Client) => {
-    const clientContact = convertToClientContact(client);
-    setSelectedClient(clientContact);
-    setIsModalOpen(true);
-  };
-
-  // Handle delete client
-  const { deleteContact } = useContacts();
-  
+  // Handle delete
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this client?')) {
-      setIsDeleting(id);
-      try {
-        await deleteContact(id);
-        toast({
-          title: 'Client deleted',
-          description: 'Client has been deleted successfully',
-        });
-      } catch (error) {
-        console.error('Error deleting client:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to delete client',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsDeleting(null);
-      }
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce client?')) {return;}
+    
+    try {
+      await deleteClient(id);
+      toast({
+        title: 'Client supprimé',
+        description: 'Le client a été supprimé avec succès',
+      });
+    } catch (error) {
+      console.error('Error deleting client:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer le client',
+        variant: 'destructive',
+      });
     }
   };
 
-  // Handle form success
-  const handleSuccess = () => {
-    console.log('Form submission successful');
-    // No need to refresh clients as useRealtimeContacts will handle it
-    setIsFormOpen(false);
-    setSelectedClient(null);
-    toast({
-      title: 'Succès',
-      description: 'Opération effectuée avec succès',
-    });
-  };
-
-  // Form and modal open/close is handled directly in the components
-
-  // Filter clients based on search term
-  const filteredClients = useMemo(() => {
-    if (!searchTerm) return clients;
-    const search = searchTerm.toLowerCase();
-    return clients.filter(client => (
-      client.name?.toLowerCase().includes(search) ||
-      client.email?.toLowerCase().includes(search) ||
-      client.phone?.includes(search) ||
-      client.company_name?.toLowerCase().includes(search) ||
-      client.vat_number?.includes(search) ||
-      client.address?.toLowerCase().includes(search) ||
-      client.country?.toLowerCase().includes(search)
-    ));
-  }, [clients, searchTerm]);
-
-  // Log state changes
-  useEffect(() => {
-    console.log('Clients data updated:', clients.length);
-  }, [clients]);
-
-  // Loading state
-  if (loading && clients.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
-
-  // Error state
   if (error) {
     return (
-      <div className="p-4 text-red-500">
-        Erreur: {typeof error === 'object' && error !== null ? (error as Error).message : error || 'Une erreur est survenue'}
+      <div className="p-6 text-center">
+        <p className="text-red-600 dark:text-red-400">Erreur: {error}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Rechercher un client..."
-            className="pl-10 w-full"
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-        </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Button 
-            onClick={toggleRealtime}
-            variant="outline"
-            className={realtimeEnabled ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50" : ""}
-            title="Toggle realtime updates"
-          >
-            {realtimeEnabled ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Realtime: ON
-              </>
-            ) : (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Realtime: OFF
-              </>
-            )}
-          </Button>
-          <Button 
-            className="w-full sm:w-auto" 
-            onClick={() => {
-              setSelectedClient(null);
-              setIsFormOpen(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nouveau client
-          </Button>
-        </div>
+    <div className="space-y-6">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="border-l-4 border-l-blue-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Total Clients
+            </CardTitle>
+            <Users className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              {stats.total}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-green-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Revenu Total
+            </CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              ${stats.totalRevenue.toLocaleString()}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-purple-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Dépense Moyenne
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              ${stats.averageSpent.toLocaleString()}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {filteredClients.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg">
-          <p className="text-muted-foreground">
-            {searchTerm ? 
-              'Aucun client ne correspond à votre recherche' : 
-              'Aucun client trouvé. Commencez par ajouter un client.'}
-          </p>
-          {!searchTerm && (
-            <Button 
-              className="mt-4" 
-              onClick={() => setIsFormOpen(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Ajouter un client
+      {/* Search and Actions */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Liste des Clients
+            </CardTitle>
+            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600">
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau Client
             </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <Input
+                placeholder="Rechercher des clients..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <Spinner />
+            </div>
+          ) : filteredClients.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400">
+                {searchTerm ? 'Aucun client trouvé' : 'Aucun client'}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Nom</th>
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Email</th>
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Téléphone</th>
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Entreprise</th>
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Statut</th>
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Dépenses</th>
+                    <th className="text-right p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredClients.map((client) => (
+                    <tr 
+                      key={client.id} 
+                      className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    >
+                      <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
+                        {client.first_name} {client.last_name}
+                      </td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">{client.email || '-'}</td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">{client.phone || '-'}</td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">{client.company || '-'}</td>
+                      <td className="p-3">
+                        <Badge className={getStatusColor(client.status)}>
+                          {client.status}
+                        </Badge>
+                      </td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
+                        ${client.total_spent?.toLocaleString() || '0'}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(client.id)}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </div>
-      ) : (
-        <ClientTable 
-          clients={filteredClients} 
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onView={handleView}
-          getStatusColor={getStatusColor}
-        />
-      )}
-
-      <ClientForm 
-        open={isFormOpen} 
-        onOpenChange={(open) => {
-          setIsFormOpen(open);
-          if (!open) setSelectedClient(null);
-        }}
-        client={selectedClient}
-        onSuccess={handleSuccess}
-      />
-
-      <ClientModal
-        client={selectedClient}
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        onEdit={() => {
-          setIsModalOpen(false);
-          setIsFormOpen(true);
-        }}
-        onDelete={async (id) => {
-          try {
-            await deleteContact(id);
-            toast({
-              title: 'Succès',
-              description: 'Le client a été supprimé avec succès',
-            });
-          } catch (error) {
-            console.error('Error deleting client:', error);
-            toast({
-              title: 'Erreur',
-              description: 'Une erreur est survenue lors de la suppression du client',
-              variant: 'destructive',
-            });
-          }
-        }}
-      />
+        </CardContent>
+      </Card>
     </div>
   );
 }

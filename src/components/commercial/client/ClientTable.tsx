@@ -52,7 +52,7 @@ export function ClientTable({
 }: ClientTableProps) {
   
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) {return 'N/A';}
     try {
       return format(new Date(dateString), 'PP', { locale: fr });
     } catch {

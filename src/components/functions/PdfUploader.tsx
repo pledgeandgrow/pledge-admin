@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,7 +102,7 @@ export default function PdfUploader({
   };
 
   const uploadPdf = async () => {
-    if (!file) return;
+    if (!file) {return;}
     
     // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {

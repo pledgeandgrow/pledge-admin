@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 
 interface DocumentTypeOption {
   id: string;

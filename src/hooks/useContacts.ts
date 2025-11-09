@@ -15,7 +15,7 @@ export interface Contact {
   type: ContactType;
   status: string;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   company?: string;
   position?: string;
   tags?: string[];
@@ -54,7 +54,7 @@ export interface ContactActivity {
   activity_type: string;
   description: string;
   timestamp: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface ContactFilters {
@@ -81,6 +81,7 @@ export const useContacts = (options?: UseContactsOptions) => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [recentActivities, setRecentActivities] = useState<ContactActivity[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isOperating, setIsOperating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [realtimeEnabled, setRealtimeEnabled] = useState<boolean>(false);
   const supabase = createClient();
@@ -199,9 +200,10 @@ export const useContacts = (options?: UseContactsOptions) => {
         
         setRecentActivities(mockActivities);
       }
-    } catch (err: any) {
-      console.error('Error fetching contacts:', err);
-      setError(err.message || 'Failed to fetch contacts');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to fetch contacts');
+      console.error('Error fetching contacts:', error);
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -209,8 +211,15 @@ export const useContacts = (options?: UseContactsOptions) => {
 
   const createContact = useCallback(async (contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      setIsLoading(true);
+      setIsOperating(true);
       setError(null);
+
+      console.log('🔵 useContacts.createContact - Starting insert');
+      console.log('Contact data to insert:', JSON.stringify(contact, null, 2));
+
+      // Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('User authenticated:', !!session, session?.user?.email);
 
       const { data, error } = await supabase
         .from('contacts')
@@ -219,23 +228,31 @@ export const useContacts = (options?: UseContactsOptions) => {
         .single();
 
       if (error) {
+        console.error('🔴 Supabase insert error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 
+      console.log('✅ Contact created successfully:', data);
       setContacts(prev => [data, ...prev]);
       return data;
-    } catch (err: any) {
-      console.error('Error creating contact:', err);
-      setError(err.message || 'Failed to create contact');
-      throw err;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to create contact');
+      console.error('❌ Error creating contact:', error);
+      setError(error.message);
+      throw error;
     } finally {
-      setIsLoading(false);
+      setIsOperating(false);
     }
   }, [supabase]);
 
   const updateContact = useCallback(async (id: string, updates: Partial<Contact>) => {
     try {
-      setIsLoading(true);
+      setIsOperating(true);
       setError(null);
 
       const { data, error } = await supabase
@@ -257,13 +274,13 @@ export const useContacts = (options?: UseContactsOptions) => {
 
       setContacts(prev => prev.map(contact => contact.id === id ? data : contact));
       return data;
-    } catch (err: any) {
-      console.error('Error updating contact:', err);
-      console.error('Error details:', JSON.stringify(err, null, 2));
-      setError(err.message || 'Failed to update contact');
-      throw err;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to update contact');
+      console.error('Error updating contact:', error);
+      setError(error.message);
+      throw error;
     } finally {
-      setIsLoading(false);
+      setIsOperating(false);
     }
   }, [supabase]);
 
@@ -283,9 +300,10 @@ export const useContacts = (options?: UseContactsOptions) => {
 
       setContacts(prev => prev.filter(contact => contact.id !== id));
       return true;
-    } catch (err: any) {
-      console.error('Error deleting contact:', err);
-      setError(err.message || 'Failed to delete contact');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to delete contact');
+      console.error('Error deleting contact:', error);
+      setError(error.message);
       return false;
     } finally {
       setIsLoading(false);
@@ -306,19 +324,20 @@ export const useContacts = (options?: UseContactsOptions) => {
       const stats = {
         total: data.length,
         byType: {
-          client: data.filter(c => c.type === 'client').length,
-          lead: data.filter(c => c.type === 'lead').length,
-          partner: data.filter(c => c.type === 'partner').length,
-          member: data.filter(c => c.type === 'member').length,
-          freelance: data.filter(c => c.type === 'freelance').length,
-          investor: data.filter(c => c.type === 'investor').length,
-          other: data.filter(c => !['client', 'lead', 'partner', 'member', 'freelance', 'investor'].includes(c.type)).length
+          client: data.filter((c: Contact) => c.type === 'client').length,
+          lead: data.filter((c: Contact) => c.type === 'lead').length,
+          partner: data.filter((c: Contact) => c.type === 'partner').length,
+          member: data.filter((c: Contact) => c.type === 'member').length,
+          freelance: data.filter((c: Contact) => c.type === 'freelance').length,
+          investor: data.filter((c: Contact) => c.type === 'investor').length,
+          other: data.filter((c: Contact) => !['client', 'lead', 'partner', 'member', 'freelance', 'investor'].includes(c.type)).length
         }
       };
       
       return stats;
-    } catch (err: any) {
-      console.error('Error getting contact statistics:', err);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to get contact statistics');
+      console.error('Error getting contact statistics:', error);
       return {
         total: 0,
         byType: { client: 0, lead: 0, partner: 0, member: 0, freelance: 0, investor: 0, other: 0 }
@@ -328,7 +347,7 @@ export const useContacts = (options?: UseContactsOptions) => {
 
   // Setup realtime subscription
   const setupRealtimeSubscription = useCallback(() => {
-    if (!realtimeEnabled) return;
+    if (!realtimeEnabled) {return;}
     
     // Clean up any existing subscription
     if (supabaseChannel.current) {
@@ -343,7 +362,7 @@ export const useContacts = (options?: UseContactsOptions) => {
       .channel('contacts-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'contacts' }, 
-        async (payload) => {
+        async (payload: { eventType: string; new: unknown; old: unknown }) => {
           console.log('Realtime change received:', payload);
           
           // Handle the different types of changes
@@ -351,7 +370,7 @@ export const useContacts = (options?: UseContactsOptions) => {
             const newContact = payload.new as Contact;
             // Only add if it matches our filters (if any)
             if (typeFilter && Array.isArray(typeFilter)) {
-              if (!typeFilter.includes(newContact.type as ContactType)) return;
+              if (!typeFilter.includes(newContact.type as ContactType)) {return;}
             } else if (typeFilter && newContact.type !== typeFilter) {
               return;
             }
@@ -379,7 +398,7 @@ export const useContacts = (options?: UseContactsOptions) => {
             );
           } 
           else if (payload.eventType === 'DELETE') {
-            const deletedContactId = payload.old.id;
+            const deletedContactId = (payload.old as { id: string }).id;
             
             // Always remove deleted contacts from our list
             setContacts(prev => 
@@ -397,7 +416,6 @@ export const useContacts = (options?: UseContactsOptions) => {
         supabase.removeChannel(channel);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [realtimeEnabled, supabase]); // Removed options from dependencies
   
   // Toggle realtime subscription
@@ -409,7 +427,6 @@ export const useContacts = (options?: UseContactsOptions) => {
   useEffect(() => {
     const cleanup = setupRealtimeSubscription();
     return cleanup;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [realtimeEnabled, options?.type]); // Only re-setup when realtime is toggled or type filter changes
   
   // Load contacts on component mount with the type filter
@@ -420,13 +437,13 @@ export const useContacts = (options?: UseContactsOptions) => {
       initialFilter.type = options.type;
     }
     fetchContacts(initialFilter);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options?.type]); // Only re-fetch when the type filter changes
 
   return {
     contacts,
     recentActivities,
     isLoading,
+    isOperating,
     error,
     fetchContacts,
     createContact,

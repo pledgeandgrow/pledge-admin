@@ -40,7 +40,7 @@ export function DocumentViewer({
         setIsLoading(false);
         // For PDF files, we would determine total pages here
         // This is a placeholder - in a real implementation, you would use a PDF library
-        setTotalPages(document.file_type.includes('pdf') ? 3 : 1);
+        setTotalPages(document.file_type?.includes('pdf') ? 3 : 1);
       }, 1000);
       
       return () => clearTimeout(timer);
@@ -84,7 +84,7 @@ export function DocumentViewer({
   };
 
   const renderDocumentPreview = () => {
-    if (!document) return null;
+    if (!document) {return null;}
 
     if (isLoading) {
       return (

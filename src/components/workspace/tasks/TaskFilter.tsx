@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Calendar, Filter } from 'lucide-react';
+import { Search, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { 
@@ -44,11 +44,11 @@ export function TaskFilter({ filters, onFilterChange, projects = [], users = [] 
   // Update active filters display
   useEffect(() => {
     const active: string[] = [];
-    if (filters.status) active.push('Status');
-    if (filters.priority) active.push('Priority');
-    if (filters.project_id) active.push('Project');
-    if (filters.assignee_id) active.push('Assignee');
-    if (filters.due_before || filters.due_after) active.push('Due Date');
+    if (filters.status) {active.push('Status');}
+    if (filters.priority) {active.push('Priority');}
+    if (filters.project_id) {active.push('Project');}
+    if (filters.assignee_id) {active.push('Assignee');}
+    if (filters.due_before || filters.due_after) {active.push('Due Date');}
     setActiveFilters(active);
   }, [filters]);
 
@@ -86,7 +86,7 @@ export function TaskFilter({ filters, onFilterChange, projects = [], users = [] 
   };
 
   const handleDateRangeChange = (date: Date | undefined) => {
-    if (!date) return;
+    if (!date) {return;}
     
     // If we're setting the start date
     if (!filters.due_after || date > (filters.due_after as Date)) {

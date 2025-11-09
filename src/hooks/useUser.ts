@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import type { User } from '@supabase/supabase-js';
+import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 
 type UserProfile = {
   id: string;
@@ -107,7 +107,7 @@ export function useUser(): UseUserReturn {
 
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event: AuthChangeEvent, session: Session | null) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
@@ -187,7 +187,7 @@ export function useRequireAuth(requiredRole?: string) {
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading) {return;}
 
     // Redirect to sign in if not authenticated
     if (!user) {

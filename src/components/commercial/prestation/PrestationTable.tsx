@@ -19,7 +19,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useProducts } from '@/hooks/useProducts';
 
 export default function PrestationTable() {
-  const { products, loading, error, fetchProducts, updateProduct, createProduct, deleteProduct } = useProducts();
+  const { products, loading, error: _error, fetchProducts, updateProduct, createProduct, deleteProduct } = useProducts();
   const [selectedPrestation, setSelectedPrestation] = useState<Product | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);

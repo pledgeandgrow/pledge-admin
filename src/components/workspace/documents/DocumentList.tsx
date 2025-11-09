@@ -1,6 +1,4 @@
 'use client';
-
-import { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -20,15 +18,15 @@ import {
 import { Download, MoreVertical, FileText, File, Trash2, Share2, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { DocumentType } from '@/types/documents';
+import { Document as DocumentModel } from '@/types/documents';
 
 interface DocumentListProps {
-  documents: DocumentType[];
+  documents: DocumentModel[];
   documentTypes: { id: string; name: string }[];
-  onDownload: (document: DocumentType) => void;
-  onShare: (document: DocumentType) => void;
+  onDownload: (document: DocumentModel) => void;
+  onShare: (document: DocumentModel) => void;
   onDelete: (documentId: string) => void;
-  onEdit: (document: DocumentType) => void;
+  onEdit: (document: DocumentModel) => void;
 }
 
 export function DocumentList({
@@ -40,11 +38,11 @@ export function DocumentList({
   onEdit,
 }: DocumentListProps) {
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) {return '0 Bytes';}
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
   };
 
   const getDocumentTypeLabel = (typeId: string) => {
@@ -52,7 +50,7 @@ export function DocumentList({
     return type ? type.name : typeId;
   };
 
-  const getStatusBadge = (status: string) => {
+  const _getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case 'draft':
         return <Badge variant="outline">Brouillon</Badge>;
@@ -104,9 +102,9 @@ export function DocumentList({
               <TableRow key={doc.id}>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {getFileIcon(doc.file_type)}
+                    {getFileIcon(doc.file_type || 'unknown')}
                     <div>
-                      <div className="font-medium">{doc.name}</div>
+                      <div className="font-medium">{doc.title}</div>
                       {doc.description && (
                         <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
                           {doc.description}
@@ -115,9 +113,8 @@ export function DocumentList({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>{getDocumentTypeLabel(doc.document_type)}</TableCell>
-                <TableCell>{formatFileSize(doc.file_size)}</TableCell>
-                <TableCell>{getStatusBadge(doc.status)}</TableCell>
+                <TableCell>{getDocumentTypeLabel(doc.document_type_id)}</TableCell>
+                <TableCell>{formatFileSize(doc.file_size || 0)}</TableCell>
                 <TableCell>
                   {format(new Date(doc.created_at), 'dd/MM/yyyy', { locale: fr })}
                 </TableCell>

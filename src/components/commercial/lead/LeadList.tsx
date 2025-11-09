@@ -1,260 +1,293 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Contact, WaitlistContact } from '@/types/contact';
-import { useContacts } from '@/hooks/useContacts';
-import { LeadTable } from './LeadTable';
+import { useState } from 'react';
+import { useLeads, type Lead } from '@/hooks/useLeads';
 import { AddLeadDialog } from './AddLeadDialog';
 import { EditLeadDialog } from './EditLeadDialog';
+import { ViewLeadModal } from './ViewLeadModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RefreshCw } from 'lucide-react';
+import { TrendingUp, Users, Target, DollarSign, Plus, Eye, Edit } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
-// Define the Lead interface expected by the components
-interface Lead {
-  id?: string;
+// UI Lead interface for display
+interface UILead {
+  id: string;
   name: string;
   position: string;
   company: string;
   email: string;
   phone: string;
   commentaires: string;
-  status: "New" | "In Progress" | "Converted" | "Contacted" | "Qualified" | "Lost";
-  service: string;
+  status: string;
   source?: string;
   probability?: number;
   last_contacted_at?: string;
   next_follow_up?: string;
   estimated_value?: number;
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-// Convert Contact to Lead format
-const contactToLead = (contact: Contact): Lead => {
-  // Convert status to the expected enum type or default to "New"
-  const mapStatus = (status: string): Lead['status'] => {
-    const validStatuses: Lead['status'][] = [
-      "New", "In Progress", "Converted", "Contacted", "Qualified", "Lost"
-    ];
-    return validStatuses.includes(status as Lead['status']) ? 
-      (status as Lead['status']) : "New";
-  };
-  
-  // Safely access metadata properties
-  const metadata = contact.metadata || {};
-  
-  // Function to get string values from metadata
-  const getStringValue = (key: string, defaultValue: string = ''): string => {
-    if (typeof metadata === 'object' && metadata !== null) {
-      const value = (metadata as Record<string, unknown>)[key];
-      if (value === undefined || value === null) return defaultValue;
-      if (typeof value === 'object') return defaultValue;
-      return String(value);
-    }
-    return defaultValue;
-  };
-  
-  // Get service value safely
-  const getServiceValue = (): string => {
-    if (contact.type === 'waitlist' && (contact as WaitlistContact).service) {
-      return (contact as WaitlistContact).service;
-    }
-    return getStringValue('service');
-  };
-  
-  // Function to get number values from metadata
-  const getNumberValue = (key: string, defaultValue: number = 0): number => {
-    if (typeof metadata === 'object' && metadata !== null) {
-      const value = (metadata as Record<string, unknown>)[key];
-      return value !== undefined && value !== null ? Number(value) : defaultValue;
-    }
-    return defaultValue;
-  };
-  
-  // Function to get optional string values from metadata
-  const getOptionalStringValue = (key: string): string | undefined => {
-    if (typeof metadata === 'object' && metadata !== null) {
-      const value = (metadata as Record<string, unknown>)[key];
-      return value !== undefined && value !== null ? String(value) : undefined;
-    }
-    return undefined;
-  };
-  
+// Convert Lead to UI format
+const leadToUI = (lead: Lead): UILead => {
   return {
-    id: contact.id,
-    name: `${contact.first_name} ${contact.last_name}`,
-    position: ('position' in contact) ? contact.position || '' : getStringValue('position'),
-    company: ('company' in contact) ? contact.company || '' : getStringValue('company'),
-    email: typeof contact.email === 'string' ? contact.email : '',
-    phone: contact.phone || '',
-    commentaires: ('notes' in contact && typeof contact.notes === 'string') ? contact.notes : getStringValue('notes'),
-    status: mapStatus(contact.status),
-    service: getServiceValue(),
-    source: getStringValue('source'),
-    probability: getNumberValue('probability'),
-    last_contacted_at: getOptionalStringValue('last_contacted_at'),
-    next_follow_up: getOptionalStringValue('next_follow_up'),
-    estimated_value: getNumberValue('estimated_value'),
-    created_at: contact.created_at,
-    updated_at: contact.updated_at
+    id: lead.id,
+    name: `${lead.first_name} ${lead.last_name}`,
+    position: lead.position || '',
+    company: lead.company || '',
+    email: lead.email || '',
+    phone: lead.phone || '',
+    commentaires: lead.notes || '',
+    status: lead.status,
+    source: lead.lead_source || lead.source,
+    probability: lead.probability,
+    last_contacted_at: lead.last_contacted_at,
+    next_follow_up: lead.next_follow_up,
+    estimated_value: lead.estimated_value,
+    created_at: lead.created_at,
+    updated_at: lead.updated_at
   };
 };
 
 export function LeadList() {
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [viewingLead, setViewingLead] = useState<Lead | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Use the enhanced useContacts hook with lead type filter
-  const { contacts, isLoading: loading, error, realtimeEnabled, toggleRealtime } = useContacts({
-    type: 'lead'
+  // Use the useLeads hook
+  const { leads, isLoading, error, getLeadStatistics, createLead, updateLead } = useLeads({
+    initialFilters: {
+      orderBy: 'updated_at',
+      orderDirection: 'desc'
+    }
   });
   
-  // Convert contacts to leads format for the UI components
-  const leads = useMemo(() => {
-    return contacts.map(contact => contactToLead(contact as unknown as Contact));
-  }, [contacts]);
+  // Convert leads to UI format
+  const uiLeads = leads.map(leadToUI);
   
-  // Keep track of the selected lead for editing
-  const selectedLead = useMemo(() => {
-    return selectedContact ? contactToLead(selectedContact) : null;
-  }, [selectedContact]);
+  // Filter leads based on search
+  const filteredLeads = uiLeads.filter(lead => {
+    if (!searchQuery) {return true;}
+    const query = searchQuery.toLowerCase();
+    return (
+      lead.name.toLowerCase().includes(query) ||
+      lead.company.toLowerCase().includes(query) ||
+      lead.email.toLowerCase().includes(query) ||
+      (lead.phone && lead.phone.includes(query))
+    );
+  });
 
+  // Get statistics
+  const stats = getLeadStatistics();
+  
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      'New': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
-      'In Progress': 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300',
-      'Contacted': 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300',
-      'Qualified': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
-      'Converted': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300',
-      'Lost': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
+      'new': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
+      'contacted': 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300',
+      'qualified': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
+      'in_progress': 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300',
+      'converted': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300',
+      'lost': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
     };
-    return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300';
+    return colors[status.toLowerCase()] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300';
   };
 
-  const stats = {
-    total: leads.length,
-    new: leads.filter(l => l.status === 'New').length,
-    inProgress: leads.filter(l => l.status === 'In Progress').length,
-    converted: leads.filter(l => l.status === 'Converted').length
-  };
+  if (error) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-red-500">Error loading leads: {error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Leads</h1>
-        <div className="flex gap-2">
-          <Button 
-            onClick={toggleRealtime}
-            variant="outline"
-            className={realtimeEnabled ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50" : ""}
-            title="Toggle realtime updates"
-          >
-            {realtimeEnabled ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Realtime: ON
-              </>
-            ) : (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Realtime: OFF
-              </>
-            )}
-          </Button>
-          <Button onClick={() => setIsAddModalOpen(true)}>Add Lead</Button>
-        </div>
-      </div>
-
+    <div className="space-y-6">
+      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Leads</CardTitle>
+              <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">{stats.total}</div>
           </CardContent>
         </Card>
-        <Card>
+        
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">New Leads</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">High Probability</CardTitle>
+              <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.new}</div>
+            <div className="text-3xl font-bold text-green-900 dark:text-green-100">{stats.highProbability}</div>
+            <p className="text-xs text-green-600 dark:text-green-400 mt-1">≥70% probability</p>
           </CardContent>
         </Card>
-        <Card>
+        
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">Avg Probability</CardTitle>
+              <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.inProgress}</div>
+            <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">{Math.round(stats.averageProbability)}%</div>
           </CardContent>
         </Card>
-        <Card>
+        
+        <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Converted</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-300">Est. Value</CardTitle>
+              <DollarSign className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.converted}</div>
+            <div className="text-3xl font-bold text-amber-900 dark:text-amber-100">
+              ${(stats.totalEstimatedValue / 1000).toFixed(1)}k
+            </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Search and Actions */}
+      <div className="flex justify-between items-center gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search leads..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
+          />
+        </div>
+        <Button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Lead
+        </Button>
+      </div>
+
+      {/* Leads Table */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Liste des Leads</CardTitle>
-          <div className="flex gap-2">
-            <Button 
-              onClick={toggleRealtime}
-              variant="outline"
-              size="sm"
-              className={realtimeEnabled ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50" : ""}
-              title="Toggle realtime updates"
-            >
-              {realtimeEnabled ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-1" />
-                  Realtime
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-1" />
-                  Realtime
-                </>
-              )}
-            </Button>
-            <Button 
-              onClick={() => setIsAddModalOpen(true)} 
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Ajouter un Lead
-            </Button>
-          </div>
+        <CardHeader>
+          <CardTitle className="text-gray-900 dark:text-white">All Leads</CardTitle>
         </CardHeader>
         <CardContent>
-          <LeadTable
-            leads={leads}
-            onEdit={(lead) => {
-              const contact = contacts.find(c => c.id === lead.id);
-              if (contact) setSelectedContact(contact as unknown as Contact);
-            }}
-            getStatusColor={getStatusColor}
-          />
+          {isLoading ? (
+            <div className="flex justify-center items-center p-12">
+              <Spinner className="h-8 w-8 animate-spin" />
+            </div>
+          ) : filteredLeads.length === 0 ? (
+            <div className="text-center p-12 text-gray-500 dark:text-gray-400">
+              {searchQuery ? 'No leads found matching your search' : 'No leads yet. Add your first lead!'}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Name</th>
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Company</th>
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Email</th>
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Probability</th>
+                    <th className="text-left p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Value</th>
+                    <th className="text-right p-3 text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLeads.map((lead) => (
+                    <tr 
+                      key={lead.id} 
+                      className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    >
+                      <td className="p-3 text-sm text-gray-900 dark:text-gray-100">{lead.name}</td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">{lead.company}</td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">{lead.email}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(lead.status)}`}>
+                          {lead.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
+                        {lead.probability ? `${lead.probability}%` : '-'}
+                      </td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
+                        {lead.estimated_value ? `$${lead.estimated_value.toLocaleString()}` : '-'}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const fullLead = leads.find(l => l.id === lead.id);
+                              if (fullLead) {setViewingLead(fullLead);}
+                            }}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const fullLead = leads.find(l => l.id === lead.id);
+                              if (fullLead) {setSelectedLead(fullLead);}
+                            }}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      <ViewLeadModal
+        lead={viewingLead ? leadToUI(viewingLead) : null}
+        open={!!viewingLead}
+        onOpenChange={(open) => !open && setViewingLead(null)}
+        onEdit={() => {
+          if (viewingLead) {
+            setSelectedLead(viewingLead);
+            setViewingLead(null);
+          }
+        }}
+        getStatusColor={getStatusColor}
+      />
 
       <AddLeadDialog
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
+        onCreateLead={createLead}
       />
 
       {selectedLead && (
         <EditLeadDialog
-          lead={selectedLead}
+          lead={leadToUI(selectedLead)}
           open={!!selectedLead}
-          onOpenChange={(open) => !open && setSelectedContact(null)}
+          onOpenChange={(open) => !open && setSelectedLead(null)}
+          onUpdateLead={updateLead}
         />
       )}
     </div>
