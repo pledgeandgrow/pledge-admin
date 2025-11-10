@@ -48,6 +48,8 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientFormProps) {
+  console.log('🔵 ClientForm opened:', { open, hasClient: !!client, clientId: client?.id });
+  
   const { createContact, updateContact } = useContacts();
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<ClientFormData>({
     defaultValues: client ? {
@@ -151,6 +153,9 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
 
   const onSubmit = async (formData: ClientFormData) => {
     try {
+      console.log('🔵 Form submitted with data:', formData);
+      console.log('🔵 Is editing existing client?', !!client?.id);
+      
       let firstName = '';
       let lastName = '';
       
@@ -167,6 +172,16 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
         // Use existing first_name and last_name if available
         firstName = formData.first_name || '';
         lastName = formData.last_name || '';
+      }
+
+      // Validate required fields
+      if (!firstName && !lastName) {
+        toast({
+          title: 'Erreur de validation',
+          description: 'Veuillez fournir un nom',
+          variant: 'destructive',
+        });
+        return;
       }
 
       // Prepare the data to be saved in the format expected by contactService
@@ -192,16 +207,19 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
         }
       };
 
-      console.log('Submitting client data:', contactData);
+      console.log('✅ Submitting client data:', contactData);
 
       if (client?.id) {
+        console.log('🔄 Updating client with ID:', client.id);
         await updateContact(client.id, contactData);
         toast({
           title: 'Succès',
           description: 'Client mis à jour avec succès',
         });
       } else {
-        await createContact(contactData);
+        console.log('➕ Creating new client');
+        const result = await createContact(contactData);
+        console.log('✅ Client created:', result);
         toast({
           title: 'Succès',
           description: 'Client créé avec succès',
@@ -210,10 +228,11 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
       onSuccess?.();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error saving client:', error);
+      console.error('❌ Error saving client:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
       toast({
         title: 'Erreur',
-        description: 'Une erreur est survenue lors de la sauvegarde du client',
+        description: `Erreur lors de la sauvegarde: ${errorMessage}`,
         variant: 'destructive',
       });
     }
@@ -221,9 +240,9 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
         <DialogHeader>
-          <DialogTitle>{client ? 'Modifier le client' : 'Nouveau client'}</DialogTitle>
+          <DialogTitle className="text-gray-900 dark:text-white">{client ? 'Modifier le client' : 'Nouveau client'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="flex items-center space-x-2">
@@ -241,6 +260,7 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
               <Input 
                 {...register('metadata.company_name', { required: 'Le nom de l&apos;entreprise est requis' })}
                 placeholder="John&apos;s Company"
+                className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
               {errors.metadata?.company_name && (
                 <p className="text-sm text-red-500 dark:text-red-400">{errors.metadata.company_name.message}</p>
@@ -251,7 +271,7 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
               <Label className="text-gray-700 dark:text-gray-300">Nom complet *</Label>
               <Input 
                 {...register('fullName', { required: 'Le nom est requis' })}
-                className="text-gray-700 dark:text-gray-300"
+                className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
               {errors.fullName && (
                 <p className="text-sm text-red-500 dark:text-red-400">{errors.fullName.message}</p>
@@ -266,17 +286,17 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
                 <Input 
                   {...register('metadata.contact_person')} 
                   placeholder="John Doe"
-                  className="text-gray-700 dark:text-gray-300"
+                  className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-gray-700 dark:text-gray-300">N° de TVA</Label>
-                  <Input {...register('metadata.vat_number')} className="text-gray-700 dark:text-gray-300" />
+                  <Input {...register('metadata.vat_number')} className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500" />
                 </div>
                 <div>
                   <Label className="text-gray-700 dark:text-gray-300">N° d&apos;entreprise</Label>
-                  <Input {...register('metadata.registration_number')} className="text-gray-700 dark:text-gray-300" />
+                  <Input {...register('metadata.registration_number')} className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500" />
                 </div>
               </div>
             </>
@@ -285,38 +305,38 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-gray-700 dark:text-gray-300">Email</Label>
-              <Input type="email" {...register('email')} className="text-gray-700 dark:text-gray-300" />
+              <Input type="email" {...register('email')} className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500" />
             </div>
             <div>
               <Label className="text-gray-700 dark:text-gray-300">Téléphone</Label>
-              <Input type="tel" {...register('phone')} className="text-gray-700 dark:text-gray-300" />
+              <Input type="tel" {...register('phone')} className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500" />
             </div>
           </div>
 
           <div>
             <Label className="text-gray-700 dark:text-gray-300">Adresse</Label>
-            <Textarea {...register('metadata.address')} rows={2} className="text-gray-700 dark:text-gray-300" />
+            <Textarea {...register('metadata.address')} rows={2} className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-gray-700 dark:text-gray-300">Pays</Label>
-              <Input {...register('metadata.country')} className="text-gray-700 dark:text-gray-300" />
+              <Input {...register('metadata.country')} className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500" />
             </div>
             <div>
               <Label className="text-gray-700 dark:text-gray-300">Site web</Label>
-              <Input type="url" {...register('metadata.website')} className="text-gray-700 dark:text-gray-300" />
+              <Input type="url" {...register('metadata.website')} className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500" />
             </div>
           </div>
 
           <div>
             <Label className="text-gray-700 dark:text-gray-300">Notes</Label>
-            <Textarea {...register('metadata.notes')} rows={2} className="text-gray-700 dark:text-gray-300" />
+            <Textarea {...register('metadata.notes')} rows={2} className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500" />
           </div>
 
           <div>
             <Label className="text-gray-700 dark:text-gray-300">Industrie</Label>
-            <Input {...register('metadata.industry')} className="text-gray-700 dark:text-gray-300" />
+            <Input {...register('metadata.industry')} className="text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500" />
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
@@ -327,7 +347,12 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
             >
               Annuler
             </Button>
-            <Button type="submit">Enregistrer</Button>
+            <Button 
+              type="submit"
+              onClick={() => console.log('🔵 Submit button clicked')}
+            >
+              Enregistrer
+            </Button>
           </div>
         </form>
       </DialogContent>
