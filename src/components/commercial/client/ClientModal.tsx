@@ -52,13 +52,13 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
           <p className="text-sm font-medium text-muted-foreground">{label}</p>
           {value ? (
             <p 
-              className={`mt-0.5 ${isCopyable ? 'cursor-pointer hover:underline' : ''}`}
+              className={`mt-0.5 text-gray-900 dark:text-gray-100 ${isCopyable ? 'cursor-pointer hover:underline' : ''}`}
               onClick={isCopyable ? () => copyToClipboard(value, label) : undefined}
             >
               {value}
             </p>
           ) : (
-            <p className="text-muted-foreground/70 italic text-sm mt-0.5">Non spécifié</p>
+            <p className="text-muted-foreground/70 dark:text-gray-500 italic text-sm mt-0.5">Non spécifié</p>
           )}
         </div>
       </div>
@@ -105,7 +105,7 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
         <div className="grid gap-6 mt-6">
           <Card>
             <CardContent className="p-6 space-y-4">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
                 <User className="h-5 w-5 text-primary" />
                 Informations {Boolean(client.metadata?.is_company) ? 'de l\'entreprise' : 'personnelles'}
               </h3>
@@ -147,7 +147,7 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
 
           <Card>
             <CardContent className="p-6 space-y-4">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
                 <MapPin className="h-5 w-5 text-primary" />
                 Adresse
               </h3>
@@ -169,7 +169,7 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
           {Boolean(client.metadata?.is_company) && (
             <Card>
               <CardContent className="p-6 space-y-4">
-                <h3 className="font-medium flex items-center gap-2">
+                <h3 className="font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
                   <FileText className="h-5 w-5 text-primary" />
                   Informations légales
                 </h3>
@@ -193,7 +193,7 @@ export function ClientModal({ client, open, onOpenChange, onEdit, onDelete }: Cl
 
           <Card>
             <CardContent className="p-6 space-y-4">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
                 <Calendar className="h-5 w-5 text-primary" />
                 Autres informations
               </h3>

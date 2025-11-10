@@ -54,13 +54,8 @@ export const useClients = (options?: UseClientsOptions) => {
       setIsLoading(true);
       setError(null);
 
-      // Merge options.initialFilters with provided filters
-      const mergedFilters: ClientFilters = {
-        ...(options?.initialFilters || {}),
-        ...(filters || {}),
-      };
-
-      console.log('🔵 Fetching clients with filters:', mergedFilters);
+      // Use provided filters or default values
+      const mergedFilters: ClientFilters = filters || {};
 
       // Start building the query - always filter by type='client'
       let query = supabase
@@ -104,7 +99,6 @@ export const useClients = (options?: UseClientsOptions) => {
         throw error;
       }
 
-      console.log('✅ Fetched clients:', data?.length || 0);
       setClients(data || []);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to fetch clients');
@@ -113,14 +107,12 @@ export const useClients = (options?: UseClientsOptions) => {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase, options?.initialFilters]);
+  }, [supabase]);
 
   const createClient = useCallback(async (client: Omit<Client, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       setIsOperating(true);
       setError(null);
-
-      console.log('🔵 Creating client:', client);
 
       // Ensure type is 'client'
       const clientData = { ...client, type: 'client' as const };
@@ -141,7 +133,6 @@ export const useClients = (options?: UseClientsOptions) => {
         throw error;
       }
 
-      console.log('✅ Client created successfully:', data);
       setClients(prev => [data, ...prev]);
       return data;
     } catch (err) {
@@ -158,8 +149,6 @@ export const useClients = (options?: UseClientsOptions) => {
     try {
       setIsOperating(true);
       setError(null);
-
-      console.log('🔵 Updating client:', id, updates);
 
       const { data, error } = await supabase
         .from('contacts')
@@ -179,7 +168,6 @@ export const useClients = (options?: UseClientsOptions) => {
         throw error;
       }
 
-      console.log('✅ Client updated successfully:', data);
       setClients(prev => prev.map(client => client.id === id ? data : client));
       return data;
     } catch (err) {
@@ -197,8 +185,6 @@ export const useClients = (options?: UseClientsOptions) => {
       setIsOperating(true);
       setError(null);
 
-      console.log('🔵 Deleting client:', id);
-
       const { error } = await supabase
         .from('contacts')
         .delete()
@@ -210,7 +196,6 @@ export const useClients = (options?: UseClientsOptions) => {
         throw error;
       }
 
-      console.log('✅ Client deleted successfully');
       setClients(prev => prev.filter(client => client.id !== id));
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to delete client');
@@ -270,9 +255,41 @@ export const useClients = (options?: UseClientsOptions) => {
   // Auto-fetch on mount if enabled
   useEffect(() => {
     if (options?.autoFetch !== false) {
-      fetchClients(options?.initialFilters);
+      // Build initial filters from options
+      const initialFilter: ClientFilters = {};
+      if (options?.initialFilters?.orderBy) {
+        initialFilter.orderBy = options.initialFilters.orderBy;
+      }
+      if (options?.initialFilters?.orderDirection) {
+        initialFilter.orderDirection = options.initialFilters.orderDirection;
+      }
+      if (options?.initialFilters?.status) {
+        initialFilter.status = options.initialFilters.status;
+      }
+      if (options?.initialFilters?.client_since_from) {
+        initialFilter.client_since_from = options.initialFilters.client_since_from;
+      }
+      if (options?.initialFilters?.client_since_to) {
+        initialFilter.client_since_to = options.initialFilters.client_since_to;
+      }
+      if (options?.initialFilters?.total_spent_min !== undefined) {
+        initialFilter.total_spent_min = options.initialFilters.total_spent_min;
+      }
+      if (options?.initialFilters?.total_spent_max !== undefined) {
+        initialFilter.total_spent_max = options.initialFilters.total_spent_max;
+      }
+      fetchClients(initialFilter);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    options?.initialFilters?.orderBy,
+    options?.initialFilters?.orderDirection,
+    options?.initialFilters?.status,
+    options?.initialFilters?.client_since_from,
+    options?.initialFilters?.client_since_to,
+    options?.initialFilters?.total_spent_min,
+    options?.initialFilters?.total_spent_max
+  ]);
 
   return {
     clients,

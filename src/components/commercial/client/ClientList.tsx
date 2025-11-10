@@ -5,10 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Search, DollarSign, Users, TrendingUp, Eye, Edit, Trash2 } from 'lucide-react';
-import { useClients } from '@/hooks/useClients';
+import { useClients, type Client } from '@/hooks/useClients';
 import { toast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
+import { ClientForm } from './ClientForm';
+import { ClientModal } from './ClientModal';
+import { ClientContact } from '@/types/contact';
 
 const getStatusColor = (status?: string) => {
   switch (status?.toLowerCase()) {
@@ -25,9 +28,13 @@ const getStatusColor = (status?: string) => {
 
 export function ClientList() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [viewingClient, setViewingClient] = useState<Client | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   // Use the clients hook
-  const { clients, isLoading, error, getClientStatistics, deleteClient } = useClients();
+  const { clients, isLoading, error, getClientStatistics, deleteClient, fetchClients } = useClients();
   
   // Get statistics
   const stats = getClientStatistics();
@@ -54,6 +61,7 @@ export function ClientList() {
         title: 'Client supprimé',
         description: 'Le client a été supprimé avec succès',
       });
+      await fetchClients(); // Refresh the list
     } catch (error) {
       console.error('Error deleting client:', error);
       toast({
@@ -62,6 +70,73 @@ export function ClientList() {
         variant: 'destructive',
       });
     }
+  };
+
+  // Handle view client
+  const handleViewClient = (client: Client) => {
+    setViewingClient(client);
+    setIsViewModalOpen(true);
+  };
+
+  // Handle edit client
+  const handleEditClient = (client: Client) => {
+    setSelectedClient(client);
+    setIsFormOpen(true);
+  };
+
+  // Handle add new client
+  const handleAddClient = () => {
+    setSelectedClient(null);
+    setIsFormOpen(true);
+  };
+
+  // Handle form success
+  const handleFormSuccess = async () => {
+    await fetchClients(); // Refresh the list
+    setIsFormOpen(false);
+    setSelectedClient(null);
+  };
+
+  // Convert Client to ClientContact for modals
+  const clientToContact = (client: Client): ClientContact => {
+    const metadata: ClientContact['metadata'] = {
+      is_company: Boolean(client.metadata?.is_company),
+    };
+    
+    // Only add defined values to metadata
+    if (client.metadata?.notes && metadata) {
+      metadata.notes = String(client.metadata.notes);
+    }
+    if (client.metadata?.address && metadata) {
+      metadata.address = String(client.metadata.address);
+    }
+    if (client.metadata?.website && metadata) {
+      metadata.website = String(client.metadata.website);
+    }
+    if (client.metadata?.country && metadata) {
+      metadata.country = String(client.metadata.country);
+    }
+    if (client.metadata?.contact_person && metadata) {
+      metadata.contact_person = String(client.metadata.contact_person);
+    }
+    if (client.metadata?.vat_number && metadata) {
+      metadata.vat_number = String(client.metadata.vat_number);
+    }
+    if (client.metadata?.registration_number && metadata) {
+      metadata.registration_number = String(client.metadata.registration_number);
+    }
+    if (client.metadata?.industry && metadata) {
+      metadata.industry = String(client.metadata.industry);
+    }
+    if (client.metadata?.company_name && metadata) {
+      metadata.company_name = String(client.metadata.company_name);
+    }
+    
+    return {
+      ...client,
+      type: 'client' as const,
+      metadata,
+    };
   };
 
   if (error) {
@@ -126,7 +201,10 @@ export function ClientList() {
             <CardTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Liste des Clients
             </CardTitle>
-            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600">
+            <Button 
+              onClick={handleAddClient}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Nouveau Client
             </Button>
@@ -194,6 +272,7 @@ export function ClientList() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => handleViewClient(client)}
                             className="h-8 w-8 p-0"
                           >
                             <Eye className="h-4 w-4" />
@@ -201,6 +280,7 @@ export function ClientList() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => handleEditClient(client)}
                             className="h-8 w-8 p-0"
                           >
                             <Edit className="h-4 w-4" />
@@ -223,6 +303,28 @@ export function ClientList() {
           )}
         </CardContent>
       </Card>
+
+      {/* Client Form Modal */}
+      <ClientForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        client={selectedClient ? clientToContact(selectedClient) : null}
+        onSuccess={handleFormSuccess}
+      />
+
+      {/* Client View Modal */}
+      {viewingClient && (
+        <ClientModal
+          client={clientToContact(viewingClient)}
+          open={isViewModalOpen}
+          onOpenChange={setIsViewModalOpen}
+          onEdit={() => {
+            setIsViewModalOpen(false);
+            handleEditClient(viewingClient);
+          }}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 }

@@ -179,7 +179,7 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, supabase]);
 
   const refetch = useCallback(() => fetchAssets(), [fetchAssets]);
 
@@ -294,7 +294,7 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
       
       throw error;
     }
-  }, []);
+  }, [supabase]);
 
   // Fetch assets on mount if autoFetch is true
   useEffect(() => {

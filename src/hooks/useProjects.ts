@@ -75,7 +75,6 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
   
   // Request deduplication: track in-flight requests
   const fetchAbortControllerRef = useRef<AbortController | null>(null);
-  const isMountedRef = useRef(true);
   const filtersRef = useRef(filters);
   
   // Keep filtersRef in sync with filters state
@@ -369,15 +368,14 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
     if (autoFetch) {
       fetchProjects();
     }
-    
-    // Cleanup on unmount
+
+    // Cleanup function to cancel ongoing requests
     return () => {
-      isMountedRef.current = false;
       if (fetchAbortControllerRef.current) {
         fetchAbortControllerRef.current.abort();
       }
     };
-  }, [fetchProjects]); // Include fetchProjects to use latest version
+  }, [autoFetch, fetchProjects]);
 
   return {
     projects,

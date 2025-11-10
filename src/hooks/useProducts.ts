@@ -166,7 +166,7 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, supabase]);
 
   const refetch = useCallback(() => fetchProducts(), [fetchProducts]);
 
@@ -322,7 +322,7 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       
       throw error;
     }
-  }, []);
+  }, [supabase]);
 
   // Fetch products on mount if autoFetch is true
   useEffect(() => {

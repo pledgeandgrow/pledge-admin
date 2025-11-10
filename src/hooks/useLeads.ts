@@ -56,13 +56,8 @@ export const useLeads = (options?: UseLeadsOptions) => {
       setIsLoading(true);
       setError(null);
 
-      // Merge options.initialFilters with provided filters
-      const mergedFilters: LeadFilters = {
-        ...(options?.initialFilters || {}),
-        ...(filters || {}),
-      };
-
-      console.log('🔵 Fetching leads with filters:', mergedFilters);
+      // Use provided filters or default values
+      const mergedFilters: LeadFilters = filters || {};
 
       // Start building the query - always filter by type='lead'
       let query = supabase
@@ -103,7 +98,6 @@ export const useLeads = (options?: UseLeadsOptions) => {
         throw error;
       }
 
-      console.log('✅ Fetched leads:', data?.length || 0);
       setLeads(data || []);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to fetch leads');
@@ -112,14 +106,12 @@ export const useLeads = (options?: UseLeadsOptions) => {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase, options?.initialFilters]);
+  }, [supabase]);
 
   const createLead = useCallback(async (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       setIsOperating(true);
       setError(null);
-
-      console.log('🔵 Creating lead:', lead);
 
       // Ensure type is 'lead'
       const leadData = { ...lead, type: 'lead' as const };
@@ -135,7 +127,6 @@ export const useLeads = (options?: UseLeadsOptions) => {
         throw error;
       }
 
-      console.log('✅ Lead created successfully:', data);
       setLeads(prev => [data, ...prev]);
       return data;
     } catch (err) {
@@ -152,8 +143,6 @@ export const useLeads = (options?: UseLeadsOptions) => {
     try {
       setIsOperating(true);
       setError(null);
-
-      console.log('🔵 Updating lead:', id, updates);
 
       const { data, error } = await supabase
         .from('contacts')
@@ -173,7 +162,6 @@ export const useLeads = (options?: UseLeadsOptions) => {
         throw error;
       }
 
-      console.log('✅ Lead updated successfully:', data);
       setLeads(prev => prev.map(lead => lead.id === id ? data : lead));
       return data;
     } catch (err) {
@@ -191,8 +179,6 @@ export const useLeads = (options?: UseLeadsOptions) => {
       setIsOperating(true);
       setError(null);
 
-      console.log('🔵 Deleting lead:', id);
-
       const { error } = await supabase
         .from('contacts')
         .delete()
@@ -204,7 +190,6 @@ export const useLeads = (options?: UseLeadsOptions) => {
         throw error;
       }
 
-      console.log('✅ Lead deleted successfully');
       setLeads(prev => prev.filter(lead => lead.id !== id));
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to delete lead');
@@ -253,9 +238,37 @@ export const useLeads = (options?: UseLeadsOptions) => {
   // Auto-fetch on mount if enabled
   useEffect(() => {
     if (options?.autoFetch !== false) {
-      fetchLeads(options?.initialFilters);
+      // Build initial filters from options
+      const initialFilter: LeadFilters = {};
+      if (options?.initialFilters?.orderBy) {
+        initialFilter.orderBy = options.initialFilters.orderBy;
+      }
+      if (options?.initialFilters?.orderDirection) {
+        initialFilter.orderDirection = options.initialFilters.orderDirection;
+      }
+      if (options?.initialFilters?.status) {
+        initialFilter.status = options.initialFilters.status;
+      }
+      if (options?.initialFilters?.lead_source) {
+        initialFilter.lead_source = options.initialFilters.lead_source;
+      }
+      if (options?.initialFilters?.probability_min !== undefined) {
+        initialFilter.probability_min = options.initialFilters.probability_min;
+      }
+      if (options?.initialFilters?.probability_max !== undefined) {
+        initialFilter.probability_max = options.initialFilters.probability_max;
+      }
+      fetchLeads(initialFilter);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    options?.initialFilters?.orderBy,
+    options?.initialFilters?.orderDirection,
+    options?.initialFilters?.status,
+    options?.initialFilters?.lead_source,
+    options?.initialFilters?.probability_min,
+    options?.initialFilters?.probability_max
+  ]);
 
   return {
     leads,

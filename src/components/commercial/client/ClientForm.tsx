@@ -227,7 +227,7 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="flex items-center space-x-2">
-            <Label>Entreprise</Label>
+            <Label className="text-gray-700 dark:text-gray-300">Entreprise</Label>
             <Switch
               checked={isCompany}
               onCheckedChange={(checked) => setValue('metadata.is_company', checked)}
@@ -237,23 +237,24 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
 
           {isCompany ? (
             <div>
-              <Label>Nom de l&apos;entreprise *</Label>
+              <Label className="text-gray-700 dark:text-gray-300">Nom de l&apos;entreprise *</Label>
               <Input 
                 {...register('metadata.company_name', { required: 'Le nom de l&apos;entreprise est requis' })}
                 placeholder="John&apos;s Company"
               />
               {errors.metadata?.company_name && (
-                <p className="text-sm text-red-500">{errors.metadata.company_name.message}</p>
+                <p className="text-sm text-red-500 dark:text-red-400">{errors.metadata.company_name.message}</p>
               )}
             </div>
           ) : (
             <div>
-              <Label>Nom complet *</Label>
+              <Label className="text-gray-700 dark:text-gray-300">Nom complet *</Label>
               <Input 
                 {...register('fullName', { required: 'Le nom est requis' })}
+                className="text-gray-700 dark:text-gray-300"
               />
               {errors.fullName && (
-                <p className="text-sm text-red-500">{errors.fullName.message}</p>
+                <p className="text-sm text-red-500 dark:text-red-400">{errors.fullName.message}</p>
               )}
             </div>
           )}
@@ -261,20 +262,21 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
           {isCompany && (
             <>
               <div>
-                <Label>Personne à contacter</Label>
+                <Label className="text-gray-700 dark:text-gray-300">Personne à contacter</Label>
                 <Input 
                   {...register('metadata.contact_person')} 
                   placeholder="John Doe"
+                  className="text-gray-700 dark:text-gray-300"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>N° de TVA</Label>
-                  <Input {...register('metadata.vat_number')} />
+                  <Label className="text-gray-700 dark:text-gray-300">N° de TVA</Label>
+                  <Input {...register('metadata.vat_number')} className="text-gray-700 dark:text-gray-300" />
                 </div>
                 <div>
-                  <Label>N° d&apos;entreprise</Label>
-                  <Input {...register('metadata.registration_number')} />
+                  <Label className="text-gray-700 dark:text-gray-300">N° d&apos;entreprise</Label>
+                  <Input {...register('metadata.registration_number')} className="text-gray-700 dark:text-gray-300" />
                 </div>
               </div>
             </>
@@ -282,39 +284,39 @@ export function ClientForm({ open, onOpenChange, client, onSuccess }: ClientForm
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label>Email</Label>
-              <Input type="email" {...register('email')} />
+              <Label className="text-gray-700 dark:text-gray-300">Email</Label>
+              <Input type="email" {...register('email')} className="text-gray-700 dark:text-gray-300" />
             </div>
             <div>
-              <Label>Téléphone</Label>
-              <Input type="tel" {...register('phone')} />
+              <Label className="text-gray-700 dark:text-gray-300">Téléphone</Label>
+              <Input type="tel" {...register('phone')} className="text-gray-700 dark:text-gray-300" />
             </div>
           </div>
 
           <div>
-            <Label>Adresse</Label>
-            <Textarea {...register('metadata.address')} rows={2} />
+            <Label className="text-gray-700 dark:text-gray-300">Adresse</Label>
+            <Textarea {...register('metadata.address')} rows={2} className="text-gray-700 dark:text-gray-300" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label>Pays</Label>
-              <Input {...register('metadata.country')} />
+              <Label className="text-gray-700 dark:text-gray-300">Pays</Label>
+              <Input {...register('metadata.country')} className="text-gray-700 dark:text-gray-300" />
             </div>
             <div>
-              <Label>Site web</Label>
-              <Input type="url" {...register('metadata.website')} />
+              <Label className="text-gray-700 dark:text-gray-300">Site web</Label>
+              <Input type="url" {...register('metadata.website')} className="text-gray-700 dark:text-gray-300" />
             </div>
           </div>
 
           <div>
-            <Label>Notes</Label>
-            <Textarea {...register('metadata.notes')} rows={2} />
+            <Label className="text-gray-700 dark:text-gray-300">Notes</Label>
+            <Textarea {...register('metadata.notes')} rows={2} className="text-gray-700 dark:text-gray-300" />
           </div>
 
           <div>
-            <Label>Industrie</Label>
-            <Input {...register('metadata.industry')} />
+            <Label className="text-gray-700 dark:text-gray-300">Industrie</Label>
+            <Input {...register('metadata.industry')} className="text-gray-700 dark:text-gray-300" />
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

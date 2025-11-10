@@ -90,7 +90,7 @@ export const useEvents = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [supabase]);
 
   // Create a new event
   const createEvent = async (eventData: CalendarEventFormData) => {

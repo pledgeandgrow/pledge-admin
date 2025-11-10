@@ -207,7 +207,8 @@ export const useContacts = (options?: UseContactsOptions) => {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase]); // options?.initialFilters and options.type are used inside but can't be dependencies (would cause infinite loop)
 
   const createContact = useCallback(async (contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => {
     try {
@@ -416,7 +417,8 @@ export const useContacts = (options?: UseContactsOptions) => {
         supabase.removeChannel(channel);
       }
     };
-  }, [realtimeEnabled, supabase]); // Removed options from dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [realtimeEnabled, supabase]); // options?.type is captured inside but can't be a dependency (would cause infinite loop)
   
   // Toggle realtime subscription
   const toggleRealtime = useCallback(() => {
@@ -427,7 +429,7 @@ export const useContacts = (options?: UseContactsOptions) => {
   useEffect(() => {
     const cleanup = setupRealtimeSubscription();
     return cleanup;
-  }, [realtimeEnabled, options?.type]); // Only re-setup when realtime is toggled or type filter changes
+  }, [realtimeEnabled, options?.type, setupRealtimeSubscription]); // Re-setup when realtime is toggled, type changes, or subscription function updates
   
   // Load contacts on component mount with the type filter
   useEffect(() => {
@@ -437,7 +439,7 @@ export const useContacts = (options?: UseContactsOptions) => {
       initialFilter.type = options.type;
     }
     fetchContacts(initialFilter);
-  }, [options?.type]); // Only re-fetch when the type filter changes
+  }, [options?.type, fetchContacts]); // Re-fetch when type changes or fetchContacts updates
 
   return {
     contacts,
