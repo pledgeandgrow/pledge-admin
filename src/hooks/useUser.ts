@@ -125,7 +125,8 @@ export function useUser(): UseUserReturn {
     return () => {
       subscription?.unsubscribe();
     };
-  }, [fetchUserProfile, supabase, supabase.auth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // supabase is singleton, fetchUserProfile is stable - intentional design
 
   // Update user profile
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {

@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 
+// Create supabase client once outside the hook to avoid recreating on every render
+const supabase = createClient();
+
 export interface Lead {
   id: string;
   first_name: string;
@@ -49,7 +52,6 @@ export const useLeads = (options?: UseLeadsOptions) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isOperating, setIsOperating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
 
   const fetchLeads = useCallback(async (filters?: LeadFilters) => {
     try {
@@ -98,6 +100,7 @@ export const useLeads = (options?: UseLeadsOptions) => {
         throw error;
       }
 
+      console.log('✅ Fetched', (data || []).length, 'leads');
       setLeads(data || []);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to fetch leads');
@@ -106,7 +109,7 @@ export const useLeads = (options?: UseLeadsOptions) => {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const createLead = useCallback(async (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => {
     try {
@@ -127,6 +130,7 @@ export const useLeads = (options?: UseLeadsOptions) => {
         throw error;
       }
 
+      console.log('✅ Lead created:', `${data.first_name} ${data.last_name}`);
       setLeads(prev => [data, ...prev]);
       return data;
     } catch (err) {
@@ -137,7 +141,7 @@ export const useLeads = (options?: UseLeadsOptions) => {
     } finally {
       setIsOperating(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const updateLead = useCallback(async (id: string, updates: Partial<Lead>) => {
     try {
@@ -162,6 +166,7 @@ export const useLeads = (options?: UseLeadsOptions) => {
         throw error;
       }
 
+      console.log('✅ Lead updated:', `${data.first_name} ${data.last_name}`);
       setLeads(prev => prev.map(lead => lead.id === id ? data : lead));
       return data;
     } catch (err) {
@@ -172,7 +177,7 @@ export const useLeads = (options?: UseLeadsOptions) => {
     } finally {
       setIsOperating(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const deleteLead = useCallback(async (id: string) => {
     try {
@@ -190,6 +195,7 @@ export const useLeads = (options?: UseLeadsOptions) => {
         throw error;
       }
 
+      console.log('✅ Lead deleted:', id);
       setLeads(prev => prev.filter(lead => lead.id !== id));
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to delete lead');
@@ -199,7 +205,7 @@ export const useLeads = (options?: UseLeadsOptions) => {
     } finally {
       setIsOperating(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const getLeadStatistics = useCallback(() => {
     const stats = {
@@ -238,6 +244,7 @@ export const useLeads = (options?: UseLeadsOptions) => {
   // Auto-fetch on mount if enabled
   useEffect(() => {
     if (options?.autoFetch !== false) {
+      console.log('🚀 useLeads: Initial fetch on mount');
       // Build initial filters from options
       const initialFilter: LeadFilters = {};
       if (options?.initialFilters?.orderBy) {

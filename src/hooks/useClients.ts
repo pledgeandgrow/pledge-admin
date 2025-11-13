@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient as createSupabaseClient } from '@/lib/supabase';
 
+// Create supabase client once outside the hook to avoid recreating on every render
+const supabase = createSupabaseClient();
+
 export interface Client {
   id: string;
   first_name: string;
@@ -47,7 +50,6 @@ export const useClients = (options?: UseClientsOptions) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isOperating, setIsOperating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createSupabaseClient();
 
   const fetchClients = useCallback(async (filters?: ClientFilters) => {
     try {
@@ -99,6 +101,7 @@ export const useClients = (options?: UseClientsOptions) => {
         throw error;
       }
 
+      console.log('✅ Fetched', (data || []).length, 'clients');
       setClients(data || []);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to fetch clients');
@@ -107,7 +110,7 @@ export const useClients = (options?: UseClientsOptions) => {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const createClient = useCallback(async (client: Omit<Client, 'id' | 'created_at' | 'updated_at'>) => {
     try {
@@ -133,6 +136,7 @@ export const useClients = (options?: UseClientsOptions) => {
         throw error;
       }
 
+      console.log('✅ Client created:', `${data.first_name} ${data.last_name}`);
       setClients(prev => [data, ...prev]);
       return data;
     } catch (err) {
@@ -143,7 +147,7 @@ export const useClients = (options?: UseClientsOptions) => {
     } finally {
       setIsOperating(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const updateClient = useCallback(async (id: string, updates: Partial<Client>) => {
     try {
@@ -168,6 +172,7 @@ export const useClients = (options?: UseClientsOptions) => {
         throw error;
       }
 
+      console.log('✅ Client updated:', `${data.first_name} ${data.last_name}`);
       setClients(prev => prev.map(client => client.id === id ? data : client));
       return data;
     } catch (err) {
@@ -178,7 +183,7 @@ export const useClients = (options?: UseClientsOptions) => {
     } finally {
       setIsOperating(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const deleteClient = useCallback(async (id: string) => {
     try {
@@ -196,6 +201,7 @@ export const useClients = (options?: UseClientsOptions) => {
         throw error;
       }
 
+      console.log('✅ Client deleted:', id);
       setClients(prev => prev.filter(client => client.id !== id));
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to delete client');
@@ -205,7 +211,7 @@ export const useClients = (options?: UseClientsOptions) => {
     } finally {
       setIsOperating(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const getClientStatistics = useCallback(() => {
     const stats = {
@@ -255,6 +261,7 @@ export const useClients = (options?: UseClientsOptions) => {
   // Auto-fetch on mount if enabled
   useEffect(() => {
     if (options?.autoFetch !== false) {
+      console.log('🚀 useClients: Initial fetch on mount');
       // Build initial filters from options
       const initialFilter: ClientFilters = {};
       if (options?.initialFilters?.orderBy) {

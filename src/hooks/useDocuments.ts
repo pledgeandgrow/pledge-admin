@@ -1,5 +1,8 @@
 import { useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
+
+// Create supabase client once outside the hook to avoid recreating on every render
+const supabase = createClient();
 import { 
   Document, 
   DocumentType, 
@@ -14,7 +17,6 @@ import {
  * Custom hook for managing documents
  */
 export const useDocuments = () => {
-  const supabase = createClient();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [documentDetails, setDocumentDetails] = useState<DocumentDetails[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
@@ -30,6 +32,7 @@ export const useDocuments = () => {
     try {
       const { data, error: err } = await supabase.from('documents').select('*').order('created_at', { ascending: false });
       if (err) {throw err;}
+      console.log('✅ Fetched', (data || []).length, 'documents');
       setDocuments(data || []);
       return data || [];
     } catch (err) {
@@ -39,7 +42,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Fetch document details
@@ -57,7 +60,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // supabase is singleton - no need as dependency
 
   /**
    * Fetch all document types
@@ -77,7 +80,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Fetch active document types
@@ -95,7 +98,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // supabase is singleton - no need as dependency
 
   /**
    * Fetch documents by project ID
@@ -115,7 +118,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Fetch documents by contact ID
@@ -135,7 +138,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Create a new document
@@ -146,6 +149,7 @@ export const useDocuments = () => {
     try {
       const { data, error: err } = await supabase.from('documents').insert(document).select().single();
       if (err) {throw err;}
+      console.log('✅ Document created:', data.title);
       setDocuments(prev => [data, ...prev]);
       return data;
     } catch (err) {
@@ -155,7 +159,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Update an existing document
@@ -166,6 +170,7 @@ export const useDocuments = () => {
     try {
       const { data, error: err } = await supabase.from('documents').update(document).eq('id', document.id).select().single();
       if (err) {throw err;}
+      console.log('✅ Document updated:', data.title);
       setDocuments(prev => prev.map(doc => doc.id === data.id ? data : doc));
       return data;
     } catch (err) {
@@ -175,7 +180,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Soft delete a document (set status to 'Deleted')
@@ -195,7 +200,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Permanently delete a document
@@ -206,6 +211,7 @@ export const useDocuments = () => {
     try {
       const { error: err } = await supabase.from('documents').delete().eq('id', id);
       if (err) {throw err;}
+      console.log('✅ Document deleted:', id);
       setDocuments(prev => prev.filter(doc => doc.id !== id));
       return true;
     } catch (err) {
@@ -215,7 +221,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Create a new document type
@@ -235,7 +241,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Update an existing document type
@@ -255,7 +261,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Delete a document type
@@ -275,7 +281,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Upload a document file
@@ -294,7 +300,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   /**
    * Search documents by query
@@ -313,7 +319,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   return {
     documents,

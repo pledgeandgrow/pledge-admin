@@ -61,6 +61,16 @@ export function EditLeadDialog({ lead, open, onOpenChange, onUpdateLead }: EditL
     e.preventDefault();
     if (!editedLead.id) {return;}
     
+    // Validate required fields
+    if (!editedLead.name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Name is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -73,13 +83,13 @@ export function EditLeadDialog({ lead, open, onOpenChange, onUpdateLead }: EditL
       const leadData: Record<string, unknown> = {
         first_name: firstName,
         last_name: lastName,
-        position: editedLead.position || null,
-        company: editedLead.company || null,
-        email: editedLead.email || null,
-        phone: editedLead.phone || null,
-        notes: editedLead.commentaires || null,
+        position: editedLead.position?.trim() || null,
+        company: editedLead.company?.trim() || null,
+        email: editedLead.email?.trim() || null,
+        phone: editedLead.phone?.trim() || null,
+        notes: editedLead.commentaires?.trim() || null,
         status: editedLead.status,
-        lead_source: editedLead.source || null,
+        lead_source: editedLead.source?.trim() || null,
         probability: editedLead.probability || null,
         estimated_value: editedLead.estimated_value || null,
       };
@@ -95,19 +105,20 @@ export function EditLeadDialog({ lead, open, onOpenChange, onUpdateLead }: EditL
       // Update lead in Supabase
       if (onUpdateLead) {
         await onUpdateLead(editedLead.id, leadData);
+        
+        // Success - close dialog
+        onOpenChange(false);
+        
+        toast({
+          title: "Lead updated",
+          description: `${firstName} ${lastName} has been updated successfully.`,
+        });
       }
-      
-      toast({
-        title: "Lead updated",
-        description: "The lead has been updated successfully.",
-      });
-      
-      onOpenChange(false);
     } catch (error) {
       console.error("Error updating lead:", error);
       toast({
         title: "Error",
-        description: "An error occurred while updating the lead.",
+        description: error instanceof Error ? error.message : "An error occurred while updating the lead.",
         variant: "destructive",
       });
     } finally {

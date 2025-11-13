@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 
+// Create supabase client once outside the hook to avoid recreating on every render
+const supabase = createClient();
+
 // Task status values from schema
 export type TaskStatus = 'todo' | 'in_progress' | 'in_review' | 'blocked' | 'done' | 'archived';
 // Task priority values from schema (lowercase)
@@ -49,7 +52,6 @@ export const useTasks = () => {
   const [tasks, setTasks] = useState<TaskWithProject[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
 
   const fetchTasks = useCallback(async (filters?: TaskFilters) => {
     try {
@@ -122,15 +124,16 @@ export const useTasks = () => {
         updated_at: new Date(task.updated_at)
       }));
 
+      console.log('✅ Fetched', transformedData.length, 'tasks');
       setTasks(transformedData);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to fetch tasks');
-      console.error('Error fetching tasks:', error);
+      console.error('❌ Error fetching tasks:', error);
       setError(error.message);
     } finally {
       setIsLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const createTask = useCallback(async (task: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
     try {
@@ -171,6 +174,7 @@ export const useTasks = () => {
         updated_at: new Date(data.updated_at)
       };
 
+      console.log('✅ Task created:', newTask.title);
       // Add the new task to the state
       setTasks(prev => [newTask, ...prev]);
       return newTask;
@@ -182,7 +186,7 @@ export const useTasks = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
     try {
@@ -224,6 +228,7 @@ export const useTasks = () => {
         updated_at: new Date(data.updated_at)
       };
 
+      console.log('✅ Task updated:', updatedTask.title);
       // Update the task in the state
       setTasks(prev => prev.map(task => task.id === id ? updatedTask : task));
       return updatedTask;
@@ -235,7 +240,7 @@ export const useTasks = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const deleteTask = useCallback(async (id: string) => {
     try {
@@ -251,6 +256,7 @@ export const useTasks = () => {
         throw error;
       }
 
+      console.log('✅ Task deleted:', id);
       // Remove the task from the state
       setTasks(prev => prev.filter(task => task.id !== id));
       return true;
@@ -262,7 +268,7 @@ export const useTasks = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   // Get task statistics
   const getTaskStatistics = useCallback(async () => {
@@ -303,12 +309,14 @@ export const useTasks = () => {
         byPriority: { low: 0, medium: 0, high: 0, urgent: 0 }
       };
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   // Load tasks on component mount
   useEffect(() => {
+    console.log('🚀 useTasks: Initial fetch on mount');
     fetchTasks();
-  }, [fetchTasks]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only on mount
 
   return {
     tasks,

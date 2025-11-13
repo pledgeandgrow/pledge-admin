@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
+
+// Create supabase client once outside the hook to avoid recreating on every render
+const supabase = createClient();
+
 import { Product, ProductType, ProductStatus } from '@/types/products';
 import { toast } from '@/components/ui/use-toast';
 import { retryWithBackoff } from '@/lib/supabase';
@@ -40,7 +44,6 @@ interface UseProductsReturn {
 
 export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn => {
   const { type, initialFilters = {}, autoFetch = true } = options;
-  const supabase = createClient();
   
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(autoFetch);
@@ -159,14 +162,16 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
         filteredData = filteredData.slice(offset, offset + mergedFilters.limit);
       }
       
+      console.log('✅ Fetched', filteredData.length, 'products');
       setProducts(filteredData);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
-      console.error('Error fetching products:', err);
+      console.error('❌ Error fetching products:', err);
     } finally {
       setLoading(false);
     }
-  }, [filters, supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // filters accessed from closure for merging with newFilters parameter
 
   const refetch = useCallback(() => fetchProducts(), [fetchProducts]);
 
@@ -211,8 +216,10 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
         throw error;
       }
       
+      console.log('✅ Product created:', data.name);
       // Update local state
       setProducts(prev => [data, ...prev]);
+      setTotalCount(prev => prev + 1);
       
       toast({
         title: "Produit créé",
@@ -232,7 +239,7 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       
       throw error;
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const updateProduct = useCallback(async (id: string, productUpdate: Partial<Product>): Promise<Product> => {
     try {
@@ -264,6 +271,7 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
         throw error;
       }
       
+      console.log('✅ Product updated:', data.name);
       // Update local state
       setProducts(prev => 
         prev.map(p => p.id === id ? { ...p, ...data } : p)
@@ -287,7 +295,7 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       
       throw error;
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const deleteProduct = useCallback(async (id: string): Promise<boolean> => {
     try {
@@ -299,10 +307,11 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       if (deleteError) {
         throw deleteError;
       }
-      // Product deleted successfully
       
+      console.log('✅ Product deleted:', id);
       // Update local state
       setProducts(prev => prev.filter(p => p.id !== id));
+      setTotalCount(prev => Math.max(0, prev - 1));
       
       toast({
         title: "Produit supprimé",
@@ -322,14 +331,16 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       
       throw error;
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   // Fetch products on mount if autoFetch is true
   useEffect(() => {
     if (autoFetch) {
+      console.log('🚀 useProducts: Initial fetch on mount');
       fetchProducts();
     }
-  }, [autoFetch, fetchProducts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFetch]); // Only depend on autoFetch flag
 
   return {
     products,

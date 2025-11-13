@@ -60,9 +60,11 @@ interface UseProjectsReturn {
   refetch: () => Promise<void>;
 }
 
+// Create supabase client once outside the hook to avoid recreating on every render
+const supabase = createClient();
+
 export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn => {
   const { type, initialFilters = {}, autoFetch = true } = options;
-  const supabase = createClient();
   
   const [projects, setProjects] = useState<BaseProject[]>([]);
   const [loading, setLoading] = useState<boolean>(autoFetch);
@@ -99,6 +101,8 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
       // Create new abort controller for this request
       fetchAbortControllerRef.current = new AbortController();
       
+      console.log('🔄 Fetching projects with filters:', mergedFilters);
+      
       // Fetch projects with retry logic
       let data: BaseProject[] = [];
       
@@ -118,6 +122,7 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
         const { data: fetchedData, error: fetchError } = await query;
         if (fetchError) {throw fetchError;}
         data = fetchedData || [];
+        console.log('✅ Fetched', data.length, 'projects from database');
       }, 3, 1000);
       
       // Apply additional filters client-side
@@ -188,15 +193,23 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
       }
       
       setProjects(filteredData);
+      console.log('✅ Set', filteredData.length, 'projects in state');
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('⚠️ Fetch aborted (request cancelled)');
+        return; // Don't set error for aborted requests
+      }
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
-      console.error('Error fetching projects:', err);
+      console.error('❌ Error fetching projects:', err);
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - fetchProjects is stable
 
-  const refetch = useCallback(() => fetchProjects(), [fetchProjects]);
+  const refetch = useCallback(() => {
+    console.log('🔄 Manual refetch triggered');
+    return fetchProjects();
+  }, [fetchProjects]);
 
   const createProject = useCallback(async (project: Omit<BaseProject, 'id' | 'created_at' | 'updated_at'>): Promise<BaseProject> => {
     try {
@@ -249,8 +262,11 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
       
       const result = data as BaseProject;
       
-      // Update local state
+      console.log('✅ Project created:', result.name);
+      
+      // Update local state - add new project to the beginning
       setProjects(prev => [result, ...prev]);
+      setTotalCount(prev => prev + 1);
       
       toast({
         title: "Projet créé",
@@ -270,7 +286,7 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
       
       throw error;
     }
-  }, [supabase]);
+  }, []); // supabase is singleton - no need as dependency
 
   const updateProject = useCallback(async (id: string, projectUpdate: Partial<BaseProject>): Promise<BaseProject> => {
     try {
@@ -304,6 +320,8 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
       
       const result = data as BaseProject;
       
+      console.log('✅ Project updated:', result.name);
+      
       // Update local state
       setProjects(prev => 
         prev.map(p => p.id === id ? { ...p, ...result } : p)
@@ -327,7 +345,7 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
       
       throw error;
     }
-  }, [supabase]);
+  }, []); // Empty deps - all functions are stable
 
   const deleteProject = useCallback(async (id: string): Promise<boolean> => {
     try {
@@ -340,8 +358,11 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
         throw deleteError;
       }
       
+      console.log('✅ Project deleted:', id);
+      
       // Update local state
       setProjects(prev => prev.filter(p => p.id !== id));
+      setTotalCount(prev => Math.max(0, prev - 1));
       
       toast({
         title: "Projet supprimé",
@@ -361,11 +382,12 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
       
       throw error;
     }
-  }, [supabase]);
+  }, []); // Empty deps - all functions are stable
 
   // Fetch projects on mount if autoFetch is true
   useEffect(() => {
     if (autoFetch) {
+      console.log('🚀 Initial fetch on mount');
       fetchProjects();
     }
 
@@ -375,7 +397,8 @@ export const useProjects = (options: UseProjectsOptions = {}): UseProjectsReturn
         fetchAbortControllerRef.current.abort();
       }
     };
-  }, [autoFetch, fetchProjects]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFetch]); // Only depend on autoFetch flag, not fetchProjects function
 
   return {
     projects,

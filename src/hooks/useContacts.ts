@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
 
+// Create supabase client once outside the hook to avoid recreating on every render
+const supabase = createClient();
+
 export type ContactType = 
   'board-member' | 'external' | 'freelance' | 'member' | 
   'network' | 'partner' | 'waitlist' | 'blacklist' | 
@@ -84,7 +87,6 @@ export const useContacts = (options?: UseContactsOptions) => {
   const [isOperating, setIsOperating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [realtimeEnabled, setRealtimeEnabled] = useState<boolean>(false);
-  const supabase = createClient();
   const supabaseChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const fetchContacts = useCallback(async (filters?: ContactFilters) => {
@@ -208,7 +210,7 @@ export const useContacts = (options?: UseContactsOptions) => {
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supabase]); // options?.initialFilters and options.type are used inside but can't be dependencies (would cause infinite loop)
+  }, []); // Empty deps - options accessed from closure for filter merging
 
   const createContact = useCallback(async (contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => {
     try {
@@ -238,7 +240,7 @@ export const useContacts = (options?: UseContactsOptions) => {
         throw error;
       }
 
-      console.log('✅ Contact created successfully:', data);
+      console.log('✅ Contact created:', `${data.first_name} ${data.last_name}`);
       setContacts(prev => [data, ...prev]);
       return data;
     } catch (err) {
@@ -249,7 +251,7 @@ export const useContacts = (options?: UseContactsOptions) => {
     } finally {
       setIsOperating(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const updateContact = useCallback(async (id: string, updates: Partial<Contact>) => {
     try {
@@ -273,6 +275,7 @@ export const useContacts = (options?: UseContactsOptions) => {
         throw error;
       }
 
+      console.log('✅ Contact updated:', `${data.first_name} ${data.last_name}`);
       setContacts(prev => prev.map(contact => contact.id === id ? data : contact));
       return data;
     } catch (err) {
@@ -283,7 +286,7 @@ export const useContacts = (options?: UseContactsOptions) => {
     } finally {
       setIsOperating(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   const deleteContact = useCallback(async (id: string) => {
     try {
@@ -299,6 +302,7 @@ export const useContacts = (options?: UseContactsOptions) => {
         throw error;
       }
 
+      console.log('✅ Contact deleted:', id);
       setContacts(prev => prev.filter(contact => contact.id !== id));
       return true;
     } catch (err) {
@@ -309,7 +313,7 @@ export const useContacts = (options?: UseContactsOptions) => {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   // Get contact statistics
   const getContactStatistics = useCallback(async () => {
@@ -344,7 +348,7 @@ export const useContacts = (options?: UseContactsOptions) => {
         byType: { client: 0, lead: 0, partner: 0, member: 0, freelance: 0, investor: 0, other: 0 }
       };
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   // Setup realtime subscription
   const setupRealtimeSubscription = useCallback(() => {
@@ -418,7 +422,7 @@ export const useContacts = (options?: UseContactsOptions) => {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [realtimeEnabled, supabase]); // options?.type is captured inside but can't be a dependency (would cause infinite loop)
+  }, [realtimeEnabled]); // options.type captured in closure at subscription time
   
   // Toggle realtime subscription
   const toggleRealtime = useCallback(() => {
@@ -429,17 +433,20 @@ export const useContacts = (options?: UseContactsOptions) => {
   useEffect(() => {
     const cleanup = setupRealtimeSubscription();
     return cleanup;
-  }, [realtimeEnabled, options?.type, setupRealtimeSubscription]); // Re-setup when realtime is toggled, type changes, or subscription function updates
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [realtimeEnabled, options?.type]); // Re-setup when realtime is toggled or type changes
   
   // Load contacts on component mount with the type filter
   useEffect(() => {
+    console.log('🚀 useContacts: Initial fetch on mount');
     // Create a filter with the type from options
     const initialFilter: ContactFilters = {};
     if (options?.type) {
       initialFilter.type = options.type;
     }
     fetchContacts(initialFilter);
-  }, [options?.type, fetchContacts]); // Re-fetch when type changes or fetchContacts updates
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options?.type]); // Re-fetch when type changes
 
   return {
     contacts,

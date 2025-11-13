@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
+
+// Create supabase client once outside the hook to avoid recreating on every render
+const supabase = createClient();
 import { CalendarEvent, CalendarEventFormData, EventStatus, EventPriority } from '@/types/calendar';
 
 // Define a type for the raw database event that matches events.sql schema
@@ -22,7 +25,6 @@ export const useEvents = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
 
   // Fetch events with optional filtering
   const fetchEvents = useCallback(async (filters?: {
@@ -82,15 +84,16 @@ export const useEvents = () => {
         status: event.status as EventStatus
       }));
 
+      console.log('✅ Fetched', formattedEvents.length, 'events');
       setEvents(formattedEvents);
     } catch (err: Error | unknown) {
-      console.error('Error fetching events:', err);
+      console.error('❌ Error fetching events:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage || 'Failed to fetch events');
     } finally {
       setIsLoading(false);
     }
-  }, [supabase]);
+  }, []); // Empty deps - function is stable
 
   // Create a new event
   const createEvent = async (eventData: CalendarEventFormData) => {
@@ -136,10 +139,11 @@ export const useEvents = () => {
         status: dbEvent.status as EventStatus
       };
 
+      console.log('✅ Event created:', newEvent.title);
       setEvents((prevEvents: CalendarEvent[]) => [...prevEvents, newEvent]);
       return newEvent;
     } catch (err: Error | unknown) {
-      console.error('Error creating event:', err);
+      console.error('❌ Error creating event:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage || 'Failed to create event');
       return null;
@@ -193,6 +197,7 @@ export const useEvents = () => {
         status: dbEvent.status as EventStatus
       };
 
+      console.log('✅ Event updated:', updatedEvent.title);
       setEvents((prevEvents: CalendarEvent[]) =>
         prevEvents.map((event: CalendarEvent) =>
           event.event_id === eventId ? updatedEvent : event
@@ -201,7 +206,7 @@ export const useEvents = () => {
 
       return updatedEvent;
     } catch (err: Error | unknown) {
-      console.error('Error updating event:', err);
+      console.error('❌ Error updating event:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage || 'Failed to update event');
       return null;
@@ -225,6 +230,7 @@ export const useEvents = () => {
         throw error;
       }
 
+      console.log('✅ Event deleted:', eventId);
       // Remove the event from the state
       setEvents((prevEvents: CalendarEvent[]) =>
         prevEvents.filter((event: CalendarEvent) => event.event_id !== eventId)
@@ -232,7 +238,7 @@ export const useEvents = () => {
 
       return true;
     } catch (err: Error | unknown) {
-      console.error('Error deleting event:', err);
+      console.error('❌ Error deleting event:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage || 'Failed to delete event');
       return false;
@@ -261,8 +267,10 @@ export const useEvents = () => {
 
   // Load events on component mount
   useEffect(() => {
+    console.log('🚀 useEvents: Initial fetch on mount');
     fetchEvents();
-  }, [fetchEvents]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only on mount
 
   return {
     events,

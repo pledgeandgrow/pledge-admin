@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
+
+// Create supabase client once outside the hook to avoid recreating on every render
+const supabase = createClient();
 import { Asset, AssetType, AssetStatus } from '@/types/assets';
 import { toast } from '@/components/ui/use-toast';
 
@@ -40,7 +43,6 @@ interface UseAssetsReturn {
 
 export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
   const { type, initialFilters = {}, autoFetch = true } = options;
-  const supabase = createClient();
   
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState<boolean>(autoFetch);
@@ -172,16 +174,21 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
         filteredData = filteredData.slice(offset, offset + mergedFilters.limit);
       }
       
+      console.log('✅ Fetched', filteredData.length, 'assets');
       setAssets(filteredData);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
-      console.error('Error fetching assets:', err);
+      console.error('❌ Error fetching assets:', err);
     } finally {
       setLoading(false);
     }
-  }, [filters, supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // filters is intentionally accessed from closure for merging with newFilters parameter
 
-  const refetch = useCallback(() => fetchAssets(), [fetchAssets]);
+  const refetch = useCallback(() => {
+    console.log('🔄 Manual refetch triggered');
+    return fetchAssets();
+  }, [fetchAssets]);
 
   const createAsset = useCallback(async (asset: Omit<Asset, 'id' | 'created_at' | 'updated_at'>) => {
     try {
@@ -202,15 +209,19 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
         throw error;
       }
       
+      const result = data as Asset;
+      
+      console.log('✅ Asset created:', result.name);
       // Update local state
-      setAssets(prev => [data, ...prev]);
+      setAssets(prev => [result, ...prev]);
+      setTotalCount(prev => prev + 1);
       
       toast({
         title: "Asset créé",
-        description: `L'asset ${data.name} a été créé avec succès`,
+        description: `L'asset ${result.name} a été créé avec succès`,
       });
       
-      return data;
+      return result;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to create asset');
       setError(error);
@@ -221,9 +232,9 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
         variant: "destructive",
       });
       
-      throw error;
+      return null;
     }
-  }, [supabase]);
+  }, []);
 
   const updateAsset = useCallback(async (id: string, assetUpdate: Partial<Asset>) => {
     try {
@@ -236,17 +247,20 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
         throw error;
       }
       
+      const result = data as Asset;
+      
+      console.log('✅ Asset updated:', result.name);
       // Update local state
       setAssets(prev => 
-        prev.map(a => a.id === id ? { ...a, ...data } : a)
+        prev.map(a => a.id === id ? { ...a, ...result } : a)
       );
       
       toast({
         title: "Asset mis à jour",
-        description: `L'asset ${data.name} a été mis à jour avec succès`,
+        description: `L'asset ${result.name} a été mis à jour avec succès`,
       });
       
-      return data;
+      return result;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to update asset');
       setError(error);
@@ -257,24 +271,21 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
         variant: "destructive",
       });
       
-      throw error;
+      return null;
     }
-  }, [supabase]);
+  }, []);
 
   const deleteAsset = useCallback(async (id: string) => {
     try {
-      const { error: err } = await supabase.from('assets').delete().eq('id', id);
-      if (err) {throw err;}
-      const success = true;
-      
-      if (!success) {
-        const error = new Error('Failed to delete asset');
-        setError(error);
-        throw error;
+      const { error: deleteError } = await supabase.from('assets').delete().eq('id', id);
+      if (deleteError) {
+        throw deleteError;
       }
       
+      console.log('✅ Asset deleted:', id);
       // Update local state
       setAssets(prev => prev.filter(a => a.id !== id));
+      setTotalCount(prev => Math.max(0, prev - 1));
       
       toast({
         title: "Asset supprimé",
@@ -292,16 +303,18 @@ export const useAssets = (options: UseAssetsOptions = {}): UseAssetsReturn => {
         variant: "destructive",
       });
       
-      throw error;
+      return false;
     }
-  }, [supabase]);
+  }, []);
 
   // Fetch assets on mount if autoFetch is true
   useEffect(() => {
     if (autoFetch) {
+      console.log('🚀 useAssets: Initial fetch on mount');
       fetchAssets();
     }
-  }, [autoFetch, fetchAssets]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFetch]); // Only depend on autoFetch flag
 
   return {
     assets,

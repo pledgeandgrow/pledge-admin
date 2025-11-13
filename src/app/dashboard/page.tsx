@@ -149,6 +149,11 @@ export default function DashboardPage() {
   
   // Calculate dashboard stats
   useEffect(() => {
+    // Only calculate when data is loaded
+    if (contactsLoading || projectsLoading || tasksLoading) {
+      return;
+    }
+
     const calculateStats = async () => {
       try {
         setIsLoading(true);
@@ -226,10 +231,10 @@ export default function DashboardPage() {
       }
     };
     
-    // Run calculation even if some data is still loading, with available data
+    // Run calculation when data is ready
     calculateStats();
-  
-}, [contacts, projects, tasks, contactsLoading, projectsLoading, tasksLoading, getContactStatistics, getTaskStatistics]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [contacts, projects, tasks, contactsLoading, projectsLoading, tasksLoading]); // Removed function dependencies - calculateStats is stable
 
 // Initialize system status and events on component mount
 useEffect(() => {

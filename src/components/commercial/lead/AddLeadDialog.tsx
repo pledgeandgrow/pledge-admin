@@ -63,21 +63,32 @@ export function AddLeadDialog({ open, onOpenChange, onCreateLead }: AddLeadDialo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!newLead.first_name.trim() || !newLead.last_name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "First name and last name are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
       // Create lead object
       const leadData = {
-        first_name: newLead.first_name,
-        last_name: newLead.last_name,
-        position: newLead.position,
-        company: newLead.company,
-        email: newLead.email,
-        phone: newLead.phone,
-        notes: newLead.notes,
+        first_name: newLead.first_name.trim(),
+        last_name: newLead.last_name.trim(),
+        position: newLead.position.trim(),
+        company: newLead.company.trim(),
+        email: newLead.email.trim(),
+        phone: newLead.phone.trim(),
+        notes: newLead.notes.trim(),
         status: newLead.status,
         type: 'lead' as const,
-        lead_source: newLead.lead_source,
+        lead_source: newLead.lead_source.trim(),
         probability: newLead.probability,
         estimated_value: newLead.estimated_value,
         last_contacted_at: new Date().toISOString(),
@@ -87,20 +98,21 @@ export function AddLeadDialog({ open, onOpenChange, onCreateLead }: AddLeadDialo
       // Add lead to Supabase
       if (onCreateLead) {
         await onCreateLead(leadData);
+        
+        // Success - reset form and close dialog
+        setNewLead(initialLead);
+        onOpenChange(false);
+        
+        toast({
+          title: "Lead added",
+          description: `${leadData.first_name} ${leadData.last_name} has been added successfully.`,
+        });
       }
-      
-      toast({
-        title: "Lead added",
-        description: "The lead has been added successfully.",
-      });
-      
-      setNewLead(initialLead);
-      onOpenChange(false);
     } catch (error) {
       console.error("Error adding lead:", error);
       toast({
         title: "Error",
-        description: "An error occurred while adding the lead.",
+        description: error instanceof Error ? error.message : "An error occurred while adding the lead.",
         variant: "destructive",
       });
     } finally {

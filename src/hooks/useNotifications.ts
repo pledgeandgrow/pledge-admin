@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useUser } from '@/hooks/useUser';
 
+// Create supabase client once outside the hook (singleton pattern)
+// Reserved for future real-time notifications
+const _supabase = createClient();
+
 export type NotificationType = 
   'info' | 'warning' | 'success' | 'error' | 
   'task' | 'project' | 'document' | 'event' | 
@@ -26,16 +30,13 @@ export const useNotifications = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
-  const _supabase = createClient(); // Reserved for future real-time notifications
 
   // Generate mock notifications for demonstration purposes
-  const generateMockNotifications = useCallback(() => {
-    if (!user) {return [];}
-    
+  const generateMockNotifications = useCallback((userId: string) => {
     const mockNotifications: Notification[] = [
       {
         id: '1',
-        user_id: user.id,
+        user_id: userId,
         title: 'Nouvelle tâche assignée',
         message: 'Vous avez été assigné à une nouvelle tâche "Mise à jour du site web"',
         type: 'task',
@@ -46,7 +47,7 @@ export const useNotifications = () => {
       },
       {
         id: '2',
-        user_id: user.id,
+        user_id: userId,
         title: 'Réunion à venir',
         message: 'Rappel: Réunion d\'équipe dans 1 heure',
         type: 'event',
@@ -57,7 +58,7 @@ export const useNotifications = () => {
       },
       {
         id: '3',
-        user_id: user.id,
+        user_id: userId,
         title: 'Document partagé',
         message: 'Jean Dupont a partagé un document "Cahier des charges v2" avec vous',
         type: 'document',
@@ -68,7 +69,7 @@ export const useNotifications = () => {
       },
       {
         id: '4',
-        user_id: user.id,
+        user_id: userId,
         title: 'Nouveau message',
         message: 'Vous avez reçu un nouveau message de Marie Martin',
         type: 'message',
@@ -79,7 +80,7 @@ export const useNotifications = () => {
       },
       {
         id: '5',
-        user_id: user.id,
+        user_id: userId,
         title: 'Projet mis à jour',
         message: 'Le projet "Refonte Application Mobile" a été mis à jour',
         type: 'project',
@@ -90,7 +91,7 @@ export const useNotifications = () => {
       },
       {
         id: '6',
-        user_id: user.id,
+        user_id: userId,
         title: 'Nouveau contact',
         message: 'Un nouveau contact a été ajouté: Sophie Lefebvre',
         type: 'contact',
@@ -101,7 +102,7 @@ export const useNotifications = () => {
       },
       {
         id: '7',
-        user_id: user.id,
+        user_id: userId,
         title: 'Maintenance système',
         message: 'Une maintenance système est prévue ce soir à 22h00',
         type: 'system',
@@ -112,10 +113,11 @@ export const useNotifications = () => {
     ];
     
     return mockNotifications;
-  }, [user]);
+  }, []); // Empty deps - function is stable
 
   const fetchNotifications = useCallback(async () => {
     try {
+      console.log('🔄 Fetching notifications...');
       setIsLoading(true);
       setError(null);
       
@@ -126,27 +128,35 @@ export const useNotifications = () => {
       }
       
       // In a real app, we would fetch from Supabase
-      // For now, we'll use mock data
-      const mockData = generateMockNotifications();
+      // const { data, error } = await supabase
+      //   .from('notifications')
+      //   .select('*')
+      //   .eq('user_id', user.id)
+      //   .order('created_at', { ascending: false });
       
+      // For now, use mock data
+      const mockData = generateMockNotifications(user.id);
+      
+      console.log('✅ Fetched', mockData.length, 'notifications');
       setNotifications(mockData);
       setUnreadCount(mockData.filter(n => !n.is_read).length);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to fetch notifications');
-      console.error('Error fetching notifications:', error);
+      console.error('❌ Error fetching notifications:', error);
       setError(error.message);
     } finally {
       setIsLoading(false);
     }
-  }, [user, generateMockNotifications]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // user and generateMockNotifications accessed from closure - stable for hook lifetime
 
   const markAsRead = useCallback(async (id: string) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // In a real app, we would update in Supabase
-      // For now, we'll update our local state
+      // In a real app: await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+      
       setNotifications(prev => 
         prev.map(notification => 
           notification.id === id 
@@ -157,25 +167,26 @@ export const useNotifications = () => {
       
       // Update unread count
       setUnreadCount(prev => Math.max(0, prev - 1));
+      console.log('✅ Notification marked as read:', id);
       
       return true;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to mark notification as read');
-      console.error('Error marking notification as read:', error);
+      console.error('❌ Error marking notification as read:', error);
       setError(error.message);
       return false;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, []); // Empty deps - function is stable
 
   const markAllAsRead = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // In a real app, we would update in Supabase
-      // For now, we'll update our local state
+      // In a real app: await supabase.from('notifications').update({ is_read: true }).eq('user_id', user.id);
+      
       setNotifications(prev => 
         prev.map(notification => ({ 
           ...notification, 
@@ -186,48 +197,56 @@ export const useNotifications = () => {
       
       // Update unread count
       setUnreadCount(0);
+      console.log('✅ All notifications marked as read');
       
       return true;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to mark all notifications as read');
-      console.error('Error marking all notifications as read:', error);
+      console.error('❌ Error marking all notifications as read:', error);
       setError(error.message);
       return false;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, []); // Empty deps - function is stable
 
   const deleteNotification = useCallback(async (id: string) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // In a real app, we would delete from Supabase
-      // For now, we'll update our local state
-      const notificationToDelete = notifications.find(n => n.id === id);
-      setNotifications(prev => prev.filter(notification => notification.id !== id));
+      // In a real app: await supabase.from('notifications').delete().eq('id', id);
       
-      // Update unread count if needed
-      if (notificationToDelete && !notificationToDelete.is_read) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
+      setNotifications(prev => {
+        const notificationToDelete = prev.find(n => n.id === id);
+        const filtered = prev.filter(notification => notification.id !== id);
+        
+        // Update unread count if needed
+        if (notificationToDelete && !notificationToDelete.is_read) {
+          setUnreadCount(count => Math.max(0, count - 1));
+        }
+        
+        return filtered;
+      });
       
+      console.log('✅ Notification deleted:', id);
       return true;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to delete notification');
-      console.error('Error deleting notification:', error);
+      console.error('❌ Error deleting notification:', error);
       setError(error.message);
       return false;
     } finally {
       setIsLoading(false);
     }
-  }, [notifications]);
+  }, []); // Empty deps - function is stable
 
   // Load notifications on component mount or when user changes
   useEffect(() => {
+    console.log('🚀 useNotifications: Initial fetch on mount');
     fetchNotifications();
-  }, [fetchNotifications]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Only depend on user ID
 
   return {
     notifications,

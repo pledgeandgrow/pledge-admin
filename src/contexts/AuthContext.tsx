@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Session, User, AuthError } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase';
 
+// Create supabase client once outside the component (singleton pattern)
+const supabase = createClient();
+
 // Define the shape of our auth context
 export interface AuthContextType {
   session: Session | null;
@@ -32,7 +35,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
     // Get the current session
@@ -69,7 +71,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []); // Empty deps - supabase is now a stable singleton
 
   // Sign in with email and password
   const signIn = async (email: string, password: string) => {

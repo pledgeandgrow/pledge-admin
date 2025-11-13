@@ -6,12 +6,12 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
+        protocol: 'https',
+        hostname: 'pledge-admin-tau.vercel.app',
       },
       {
         protocol: 'https',
-        hostname: 'placeholder-url.supabase.co',
+        hostname: 'cuyltvmhpenfgtgjeggu.supabase.co',
       },
       {
         protocol: 'https',
