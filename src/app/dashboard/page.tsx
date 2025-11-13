@@ -143,7 +143,7 @@ export default function DashboardPage() {
       */
       
       // For now, just log the role for debugging
-      console.log(`User role: ${userProfile.role || 'not set'}`);
+      console.log(`User role: ${userProfile.role || "not set"}`);
     }
   }, [session, authLoading, router, userProfile, userLoading]);
   

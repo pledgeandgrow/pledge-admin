@@ -21,7 +21,7 @@ export function TaskList({ projectId }: TaskListProps) {
   const { tasks, isLoading, error, fetchTasks, createTask, updateTask, deleteTask } = useTasks();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskWithProject | undefined>(undefined);
-  const [filters, setFilters] = useState<TaskFilters>({
+  const [activeFilters, setActiveFilters] = useState<TaskFilters>({
     project_id: projectId,
   });
   const [view, setView] = useState<'board' | 'list'>('board');
@@ -31,8 +31,8 @@ export function TaskList({ projectId }: TaskListProps) {
 
   // Fetch tasks when component mounts or filters change
   useEffect(() => {
-    fetchTasks(filters);
-  }, [fetchTasks, filters]);
+    fetchTasks(activeFilters);
+  }, [fetchTasks, activeFilters]);
 
   // Mock function to fetch projects - replace with actual API call
   useEffect(() => {
@@ -71,7 +71,7 @@ export function TaskList({ projectId }: TaskListProps) {
   }, []);
 
   const handleFilterChange = (newFilters: TaskFilters) => {
-    setFilters(newFilters);
+    setActiveFilters(newFilters);
   };
 
   const handleCreateTask = () => {
@@ -166,7 +166,7 @@ export function TaskList({ projectId }: TaskListProps) {
       </div>
 
       <TaskFilter 
-        filters={filters} 
+        filters={activeFilters} 
         onFilterChange={handleFilterChange} 
         projects={projects}
         users={users}
