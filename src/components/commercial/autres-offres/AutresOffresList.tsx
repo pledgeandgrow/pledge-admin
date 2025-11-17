@@ -131,16 +131,16 @@ export function AutresOffresList() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-white">
       <div className="flex justify-between items-center">
         <div className="space-y-1">
-          <h2 className="text-2xl font-semibold tracking-tight">Autres Offres</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-2xl font-semibold tracking-tight text-white">Autres Offres</h2>
+          <p className="text-sm text-gray-400">
             Découvrez nos offres spéciales et formations
           </p>
         </div>
         <Button 
-          className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:opacity-90"
+          className="bg-gradient-to-r from-gray-700 via-gray-900 to-black border border-gray-700 text-white hover:opacity-90"
           onClick={handleAddOffre}
         >
           <Plus className="mr-2 h-4 w-4" /> Ajouter une offre
@@ -148,43 +148,46 @@ export function AutresOffresList() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <p>Chargement des offres...</p>
+        <div className="flex justify-center items-center h-64 rounded-2xl border border-gray-800 bg-gray-900/60">
+          <p className="text-gray-400">Chargement des offres...</p>
         </div>
       ) : products.length === 0 ? (
-        <div className="flex justify-center items-center h-64">
-          <p>Aucune offre disponible</p>
+        <div className="flex justify-center items-center h-64 rounded-2xl border border-gray-800 bg-gray-900/60">
+          <p className="text-gray-400">Aucune offre disponible</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {products.map((offre) => (
-            <Card key={offre.id} className="overflow-hidden border border-gray-200 dark:border-gray-800 bg-white/5 backdrop-blur-lg hover:bg-white/10 transition-all duration-300 shadow-lg">
+            <Card
+              key={offre.id}
+              className="overflow-hidden border border-gray-800 bg-gradient-to-br from-gray-950 via-gray-900 to-black backdrop-blur-xl hover:border-purple-500/40 transition-all duration-300 shadow-[0_20px_60px_-30px_rgba(168,85,247,0.9)]"
+            >
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl font-bold">{offre.name}</CardTitle>
-                  <Badge variant="outline" className={getTypeColor(offre.type)}>
+                  <CardTitle className="text-xl font-bold text-white">{offre.name}</CardTitle>
+                  <Badge variant="outline" className={`${getTypeColor(offre.type)} border-white/10 bg-white/5 text-xs`}> 
                     {getProductTypeDisplay(offre.type)}
                   </Badge>
                 </div>
-                <CardDescription className="mt-2 line-clamp-2">
+                <CardDescription className="mt-2 line-clamp-2 text-gray-400">
                   {offre.description}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pb-4">
                 <div className="flex flex-col gap-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-muted-foreground">Prix</span>
-                    <span className="font-semibold">{offre.price ? `${offre.price.toLocaleString('fr-FR')  } €` : 'Sur devis'}</span>
+                    <span className="text-sm font-medium text-gray-400">Prix</span>
+                    <span className="font-semibold text-white">{offre.price ? `${offre.price.toLocaleString('fr-FR')  } €` : 'Sur devis'}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-muted-foreground">Disponibilité</span>
-                    <Badge variant="outline" className={getAvailabilityColor(offre.status)}>
+                    <span className="text-sm font-medium text-gray-400">Disponibilité</span>
+                    <Badge variant="outline" className={`${getAvailabilityColor(offre.status)} border-white/10 bg-white/5 text-xs`}>
                       {getAvailabilityText(offre.status)}
                     </Badge>
                   </div>
                   {offre.metadata && 'validUntil' in offre.metadata && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4" />
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <Clock className="h-4 w-4 text-gray-500" />
                       <span>Valide jusqu&apos;au {new Date(String(offre.metadata.validUntil)).toLocaleDateString('fr-FR')}</span>
                     </div>
                   )}
@@ -198,7 +201,7 @@ export function AutresOffresList() {
                     setSelectedOffre(offre);
                     setViewDialogOpen(true);
                   }}
-                  className="hover:bg-white/20 dark:hover:bg-gray-800/50"
+                  className="text-gray-300 hover:text-white hover:bg-white/10"
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   Voir
@@ -207,7 +210,7 @@ export function AutresOffresList() {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleEditOffre(offre)}
-                  className="hover:bg-white/20 dark:hover:bg-gray-800/50"
+                  className="text-gray-300 hover:text-white hover:bg-white/10"
                 >
                   <Pencil className="h-4 w-4 mr-2" />
                   Modifier

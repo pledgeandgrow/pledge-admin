@@ -39,30 +39,28 @@ export function ViewAutreOffreDialog({
 }: ViewAutreOffreDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-white/10 dark:bg-gray-950/50 backdrop-blur-xl">
+      <DialogContent className="sm:max-w-[650px] bg-gradient-to-br from-gray-950 via-gray-900 to-black border border-gray-800 text-white">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
-            <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              {offre.name}
-            </span>
+          <DialogTitle className="text-2xl font-semibold text-white">
+            {offre.name}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-muted-foreground">Description</Label>
-            <p className="text-sm">{offre.description}</p>
+            <Label className="text-sm font-medium text-gray-300">Description</Label>
+            <p className="text-sm text-gray-200">{offre.description}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Prix</Label>
-              <p className="text-lg font-semibold">{offre.price ? `${offre.price.toLocaleString('fr-FR')  } €` : 'Sur devis'}</p>
+              <Label className="text-sm font-medium text-gray-300">Prix</Label>
+              <p className="text-lg font-semibold text-white">{offre.price ? `${offre.price.toLocaleString('fr-FR')  } €` : 'Sur devis'}</p>
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Type</Label>
+              <Label className="text-sm font-medium text-gray-300">Type</Label>
               <div>
-                <Badge variant="outline" className={getTypeColor(offre.type)}>
+                <Badge variant="outline" className={`${getTypeColor(offre.type)} border-white/10 bg-white/5 text-xs`}>
                   {getProductTypeDisplay(offre.type)}
                 </Badge>
               </div>
@@ -70,9 +68,9 @@ export function ViewAutreOffreDialog({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-muted-foreground">Disponibilité</Label>
+            <Label className="text-sm font-medium text-gray-300">Disponibilité</Label>
             <div>
-              <Badge variant="outline" className={getAvailabilityColor(offre.status)}>
+              <Badge variant="outline" className={`${getAvailabilityColor(offre.status)} border-white/10 bg-white/5 text-xs`}>
                 {getAvailabilityText(offre.status)}
               </Badge>
             </div>
@@ -80,9 +78,9 @@ export function ViewAutreOffreDialog({
 
           {offre.metadata && 'validUntil' in offre.metadata && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Date de validité</Label>
-              <div className="flex items-center">
-                <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+              <Label className="text-sm font-medium text-gray-300">Date de validité</Label>
+              <div className="flex items-center text-gray-300">
+                <Clock className="h-4 w-4 mr-2 text-gray-500" />
                 <span>Valide jusqu&apos;au {new Date(String(offre.metadata.validUntil)).toLocaleDateString('fr-FR')}</span>
               </div>
             </div>
@@ -90,33 +88,34 @@ export function ViewAutreOffreDialog({
           
           {offre.metadata && 'specifications' in offre.metadata && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Spécifications</Label>
-              <p className="text-sm">{String(offre.metadata.specifications)}</p>
+              <Label className="text-sm font-medium text-gray-300">Spécifications</Label>
+              <p className="text-sm text-gray-200">{String(offre.metadata.specifications)}</p>
             </div>
           )}
           
           {offre.metadata && 'manufacturer' in offre.metadata && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Fabricant</Label>
-              <p className="text-sm">{String(offre.metadata.manufacturer)}</p>
+              <Label className="text-sm font-medium text-gray-300">Fabricant</Label>
+              <p className="text-sm text-gray-200">{String(offre.metadata.manufacturer)}</p>
             </div>
           )}
           
           {offre.metadata && 'warranty' in offre.metadata && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Garantie</Label>
-              <p className="text-sm">{String(offre.metadata.warranty)}</p>
+              <Label className="text-sm font-medium text-gray-300">Garantie</Label>
+              <p className="text-sm text-gray-200">{String(offre.metadata.warranty)}</p>
             </div>
           )}
         </div>
 
-        <Separator className="my-6 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20" />
+        <Separator className="my-6 bg-gray-800" />
 
         <DialogFooter className="flex justify-between w-full">
           <div className="flex gap-2">
             {onEdit && (
               <Button
                 variant="secondary"
+                className="bg-gray-800 text-white border border-gray-700 hover:bg-gray-700"
                 onClick={onEdit}
               >
                 Modifier
@@ -134,7 +133,7 @@ export function ViewAutreOffreDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="hover:bg-white/20 dark:hover:bg-gray-800/50"
+            className="border-gray-700 text-gray-200 hover:bg-gray-800"
           >
             Fermer
           </Button>

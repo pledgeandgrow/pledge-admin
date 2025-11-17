@@ -4,9 +4,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { CalendarEvent, EventListProps, EventStatus } from '@/types/calendar';
 import { format, parseISO, isAfter, isBefore } from 'date-fns';
-import { Calendar, Clock, MapPin, Users, Tag, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Tag, AlertCircle, Plus } from 'lucide-react';
 
 // Helper function to get colors based on event type
 function getEventColor(type: string): string {
@@ -33,6 +34,8 @@ export function EventList({
   onEventClick,
   isLoading = false,
   filter,
+  searchQuery = '',
+  onCreateEvent,
 }: EventListProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -40,10 +43,22 @@ export function EventList({
     setMounted(true);
   }, []);
 
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
   const filteredEvents = useMemo(() => {
     if (!events) {return [];}
     
     return events.filter(event => {
+      const matchesQuery = normalizedQuery
+        ? [event.title, event.location, event.event_type, event.description]
+            .filter(Boolean)
+            .some((value) => value?.toLowerCase().includes(normalizedQuery))
+        : true;
+
+      if (!matchesQuery) {
+        return false;
+      }
+      
       // Filter by type
       if (filter?.event_type?.length && event.event_type && !filter.event_type.includes(event.event_type)) {
         return false;
@@ -76,7 +91,7 @@ export function EventList({
       const dateB = typeof b.start_datetime === 'string' ? parseISO(b.start_datetime) : b.start_datetime || new Date();
       return dateA.getTime() - dateB.getTime();
     });
-  }, [events, filter]);
+  }, [events, filter, normalizedQuery]);
 
   // Group events by date
   const groupedEvents = useMemo(() => {
@@ -133,12 +148,21 @@ export function EventList({
   if (filteredEvents.length === 0) {
     return (
       <Card>
-        <CardContent className="p-8 flex flex-col items-center justify-center">
-          <Calendar className="h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No events found</h3>
-          <p className="text-gray-500 dark:text-gray-400 text-center mb-4">
-            There are no events matching your current filters.
+        <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-3">
+          <div className="relative">
+            <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-indigo-500/30 to-purple-500/30" />
+            <Calendar className="h-12 w-12 text-indigo-500 relative" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Aucun événement trouvé</h3>
+          <p className="text-gray-500 dark:text-gray-400 max-w-md">
+            Ajustez vos filtres ou créez un nouvel événement pour remplir votre planning.
           </p>
+          {onCreateEvent && (
+            <Button onClick={onCreateEvent} className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              Créer un événement
+            </Button>
+          )}
         </CardContent>
       </Card>
     );
@@ -148,22 +172,35 @@ export function EventList({
     <Card>
       <CardContent className="p-4">
         <div className="space-y-6">
-          {Object.entries(groupedEvents).map(([dateKey, dateEvents]) => (
-            <div key={dateKey} className="space-y-3">
-              <h3 className="font-medium text-lg border-b pb-2">
-                {format(parseISO(dateKey), 'EEEE, MMMM d, yyyy')}
-              </h3>
-              <div className="space-y-3">
-                {dateEvents.map((event) => (
-                  <EventCard 
-                    key={event.event_id} 
-                    event={event} 
-                    onClick={() => onEventClick && onEventClick(event)} 
-                  />
-                ))}
+          {Object.entries(groupedEvents).map(([dateKey, dateEvents]) => {
+            const parsedDate = parseISO(dateKey);
+            return (
+              <div key={dateKey} className="space-y-3">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      {format(parsedDate, 'EEEE')}
+                    </p>
+                    <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">
+                      {format(parsedDate, 'd MMMM yyyy')}
+                    </h3>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {dateEvents.length} événement{dateEvents.length > 1 ? 's' : ''}
+                  </Badge>
+                </div>
+                <div className="space-y-3">
+                  {dateEvents.map((event) => (
+                    <EventCard 
+                      key={event.event_id} 
+                      event={event} 
+                      onClick={() => onEventClick && onEventClick(event)} 
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>

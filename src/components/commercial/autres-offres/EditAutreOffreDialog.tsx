@@ -94,57 +94,58 @@ export function EditAutreOffreDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-white/10 dark:bg-gray-950/50 backdrop-blur-xl">
+      <DialogContent className="sm:max-w-[650px] bg-gradient-to-br from-gray-950 via-gray-900 to-black border border-gray-800 text-white">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
-            <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              {isNewOffre ? 'Nouvelle Offre' : 'Modifier l\'Offre'}
-            </span>
+          <DialogTitle className="text-2xl text-white">
+            {isNewOffre ? 'Nouvelle Offre' : 'Modifier l\'Offre'}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nom</Label>
+              <Label htmlFor="name" className="text-gray-300">Nom</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Nom de l'offre"
+                className="bg-gray-900 border-gray-800 text-white placeholder:text-gray-500 focus-visible:ring-gray-500"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="text-gray-300">Description</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Description détaillée de l&apos;offre"
+                className="bg-gray-900 border-gray-800 text-white placeholder:text-gray-500 focus-visible:ring-gray-500"
                 rows={3}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Prix (€)</Label>
+                <Label htmlFor="price" className="text-gray-300">Prix (€)</Label>
                 <Input
                   id="price"
                   type="number"
                   value={price || ''}
                   onChange={(e) => setPrice(e.target.value ? Number(e.target.value) : undefined)}
                   placeholder="Prix en euros"
+                  className="bg-gray-900 border-gray-800 text-white placeholder:text-gray-500 focus-visible:ring-gray-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
+                <Label htmlFor="type" className="text-gray-300">Type</Label>
                 <Select value={type} onValueChange={(value) => setType(value as ProductType)}>
-                  <SelectTrigger id="type">
+                  <SelectTrigger id="type" className="bg-gray-900 border-gray-800 text-white">
                     <SelectValue placeholder="Sélectionner un type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-gray-900 text-white border border-gray-800">
                     <SelectItem value="software">Logiciel</SelectItem>
                     <SelectItem value="tool">Outil</SelectItem>
                     <SelectItem value="hardware">Matériel</SelectItem>
@@ -155,12 +156,12 @@ export function EditAutreOffreDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Statut</Label>
+              <Label htmlFor="status" className="text-gray-300">Statut</Label>
               <Select value={status} onValueChange={(value) => setStatus(value as ProductStatus)}>
-                <SelectTrigger id="status">
+                <SelectTrigger id="status" className="bg-gray-900 border-gray-800 text-white">
                   <SelectValue placeholder="Sélectionner un statut" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-gray-900 text-white border border-gray-800">
                   <SelectItem value="active">Disponible</SelectItem>
                   <SelectItem value="draft">Bientôt disponible</SelectItem>
                   <SelectItem value="discontinued">Épuisé</SelectItem>
@@ -169,53 +170,57 @@ export function EditAutreOffreDialog({
               </Select>
             </div>
 
-            <Separator className="my-4" />
+            <Separator className="my-4 bg-gray-800" />
 
             <div className="space-y-2">
-              <Label htmlFor="validUntil">Date de validité</Label>
+              <Label htmlFor="validUntil" className="text-gray-300">Date de validité</Label>
               <Input
                 id="validUntil"
                 type="date"
                 value={validUntil ? new Date(validUntil).toISOString().split('T')[0] : ''}
                 onChange={(e) => setValidUntil(e.target.value ? new Date(e.target.value).toISOString() : '')}
                 placeholder="Date de validité"
+                className="bg-gray-900 border-gray-800 text-white focus-visible:ring-gray-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="specifications">Spécifications</Label>
+              <Label htmlFor="specifications" className="text-gray-300">Spécifications</Label>
               <Textarea
                 id="specifications"
                 value={specifications}
                 onChange={(e) => setSpecifications(e.target.value)}
                 placeholder="Spécifications techniques"
+                className="bg-gray-900 border-gray-800 text-white placeholder:text-gray-500 focus-visible:ring-gray-500"
                 rows={2}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="manufacturer">Fabricant</Label>
+                <Label htmlFor="manufacturer" className="text-gray-300">Fabricant</Label>
                 <Input
                   id="manufacturer"
                   value={manufacturer}
                   onChange={(e) => setManufacturer(e.target.value)}
                   placeholder="Nom du fabricant"
+                  className="bg-gray-900 border-gray-800 text-white placeholder:text-gray-500 focus-visible:ring-gray-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="warranty">Garantie</Label>
+                <Label htmlFor="warranty" className="text-gray-300">Garantie</Label>
                 <Input
                   id="warranty"
                   value={warranty}
                   onChange={(e) => setWarranty(e.target.value)}
                   placeholder="Durée de garantie"
+                  className="bg-gray-900 border-gray-800 text-white placeholder:text-gray-500 focus-visible:ring-gray-500"
                 />
               </div>
             </div>
           </div>
 
-          <Separator className="my-4 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20" />
+          <Separator className="my-4 bg-gray-800" />
 
           <DialogFooter className="flex justify-between w-full">
             <div className="flex gap-2">
@@ -234,14 +239,14 @@ export function EditAutreOffreDialog({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="hover:bg-white/20 dark:hover:bg-gray-800/50"
+                className="border-gray-700 text-gray-200 hover:bg-gray-800"
               >
                 Annuler
               </Button>
               <Button
                 type="submit"
                 disabled={saving}
-                className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:opacity-90"
+                className="bg-gradient-to-r from-gray-700 via-gray-900 to-black border border-gray-700 text-white hover:opacity-90"
               >
                 {saving ? (
                   <>

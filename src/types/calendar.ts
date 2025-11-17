@@ -51,4 +51,6 @@ export interface EventListProps {
     from?: Date;
     to?: Date;
   };
+  onCreateEvent?: () => void;
+  searchQuery?: string;
 }
